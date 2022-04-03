@@ -10,6 +10,7 @@
     "start": "node ./server.js"
   },
   "dependencies": {
-    "fastify": "^3.27.4"
+    "fastify": "^3.27.4",
+    "fastify-static": "^4.6.1"
   }
 }
