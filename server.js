@@ -7,10 +7,26 @@ const app = fastify({ logger: true });
 
 app.register(fastifyStatic, {
   root: new URL('./www', import.meta.url).pathname,
+  prefix: '/www'
+})
+app.register(fastifyStatic, {
+  root: new URL('./lib', import.meta.url).pathname,
+  prefix: '/lib',
+  decorateReply: false
 })
 
-app.get('/', async (request, reply) => {
-  const page = await renderToString(HomePage);
+app.get('/*', async (request, reply) => {
+  const { url } = request;
+  const pageRoute = url === '/'
+    ? 'index'
+    : url;
+
+  console.debug({ url });
+  console.debug({ pageRoute })
+  const Page = (await import(`./www/${pageRoute}.js`)).default;
+
+  console.debug({ Page });
+  const html = await renderToString(Page);
 
   reply
     .header('Content-Type', 'text/html; charset=utf-8')
@@ -20,14 +36,17 @@ app.get('/', async (request, reply) => {
           <title>WCC</title>
         </head>
         <body>
-          <h1>Hello World</h1>
-
           <page-entry>
-            ${page}
+            ${html}
           </page-entry>
 
           <script type="module">
-            import PageEntry from './index.js';
+            import { HydrateElement } from './lib/hydrate-element.js';
+            window.HydrateElement = HydrateElement;
+          </script>
+
+          <script type="module">
+            import PageEntry from './www/${pageRoute}.js';
 
             customElements.define('page-entry', PageEntry);
           </script>
