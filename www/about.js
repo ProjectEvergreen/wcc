@@ -8,13 +8,10 @@ export default class AboutPage extends HTMLElement {
       console.debug('shadowRoot detected!')
     }
 
-    // create a Shadow root
     this.root = this.attachShadow({ mode: 'open' });
     this.root.innerHTML = `
       <wcc-header></wcc-header>
       <h1>About Page</h1>
     `;
   }
-
-  // render
 }

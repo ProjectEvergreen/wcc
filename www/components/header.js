@@ -6,16 +6,13 @@ class Header extends HTMLElement {
       console.debug('shadowRoot detected!')
     }
 
-    // create a Shadow root
     this.root = this.attachShadow({ mode: 'open' });
   }
 
-  // run some code when the component is ready
   connectedCallback() {
     this.root.innerHTML = this.render();
   }
 
-  // create templates that interpolate variables and HTML!
   render() {
     const imageUrl = new URL('../assets/greenwood-logo.jpg', import.meta.url);
 
