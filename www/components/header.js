@@ -14,8 +14,6 @@ class Header extends HTMLElement {
   }
 
   render() {
-    const imageUrl = new URL('../assets/greenwood-logo.jpg', import.meta.url);
-
     return `
       <style>
         .header {

@@ -16,8 +16,6 @@ export default class HomePage extends HTMLElement {
   }
 
   getTemplate() {
-    const imageUrl = new URL('./assets/greenwood-logo.jpg', import.meta.url);
-
     return `
       <wcc-header></wcc-header>
       <h1>Home Page</h1>
