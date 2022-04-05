@@ -1,7 +1,6 @@
 import fastify from 'fastify';
 import fastifyStatic from 'fastify-static';
 import { renderToString } from './lib/wcc.js';
-import HomePage from './www/index.js';
 
 const app = fastify({ logger: true });
 
@@ -23,10 +22,8 @@ app.get('/*', async (request, reply) => {
 
   console.debug({ url });
   console.debug({ pageRoute })
-  const Page = (await import(`./www/${pageRoute}.js`)).default;
 
-  console.debug({ Page });
-  const html = await renderToString(Page);
+  const html = await renderToString(new URL(`./www/${pageRoute}.js`, import.meta.url));
 
   reply
     .header('Content-Type', 'text/html; charset=utf-8')

@@ -10,6 +10,10 @@
     "start": "node ./server.js"
   },
   "dependencies": {
+    "acorn": "^8.7.0",
+    "acorn-walk": "^8.2.0"
+  },
+  "devDependencies": {
     "fastify": "^3.27.4",
     "fastify-static": "^4.6.1"
   }

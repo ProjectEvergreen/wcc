@@ -3,7 +3,7 @@ class Header extends HTMLElement {
     super();
 
     if(this.shadowRoot) {
-      console.debug('shadowRoot detected!')
+      console.debug('Header => shadowRoot detected!')
     }
 
     this.root = this.attachShadow({ mode: 'open' });
@@ -79,7 +79,7 @@ class Header extends HTMLElement {
         <div class="head-wrap">
           <div class="brand">
             <a href="/">
-              <img src="${imageUrl}" alt="Greenwood logo"/>
+              <img src="/www/assets/greenwood-logo.jpg" alt="Greenwood logo"/>
               <h4>My Personal Blog</h4>
             </a>
             <button>Button To Click</button>

@@ -1,11 +1,11 @@
-import { Header } from './components/header.js';
+import './components/header.js';
 
 export default class AboutPage extends HTMLElement {
   constructor() {
     super();
 
     if(this.shadowRoot) {
-      console.debug('shadowRoot detected!')
+      console.debug('AboutPage => shadowRoot detected!')
     }
 
     this.root = this.attachShadow({ mode: 'open' });
