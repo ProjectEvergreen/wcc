@@ -1,3 +1,4 @@
+import './components/footer.js';
 import './components/header.js';
 
 export default class AboutPage extends HTMLElement {
@@ -12,6 +13,7 @@ export default class AboutPage extends HTMLElement {
     this.root.innerHTML = `
       <wcc-header></wcc-header>
       <h1>About Page</h1>
+      <wcc-footer></wcc-footer>
     `;
   }
 }

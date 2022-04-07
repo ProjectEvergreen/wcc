@@ -17,13 +17,13 @@ app.register(fastifyStatic, {
 app.get('/*', async (request, reply) => {
   const { url } = request;
   const pageRoute = url === '/'
-    ? 'index'
+    ? '/index'
     : url;
 
   console.debug({ url });
   console.debug({ pageRoute })
 
-  const html = await renderToString(new URL(`./www/${pageRoute}.js`, import.meta.url));
+  const html = await renderToString(new URL(`./www${pageRoute}.js`, import.meta.url));
 
   reply
     .header('Content-Type', 'text/html; charset=utf-8')
@@ -43,7 +43,7 @@ app.get('/*', async (request, reply) => {
           </script>
 
           <script type="module">
-            import PageEntry from './www/${pageRoute}.js';
+            import PageEntry from './www${pageRoute}.js';
 
             customElements.define('page-entry', PageEntry);
           </script>
