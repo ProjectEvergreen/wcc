@@ -1,3 +1,6 @@
+// intentionally nested to test wcc nested dependency resolution logic
+import '../assets/navigation.js';
+
 class Header extends HTMLElement {
   constructor() {
     super();
@@ -21,20 +24,6 @@ class Header extends HTMLElement {
           min-height: 30px;
           padding: 10px;
           font-size: 1.2rem;
-        }
-
-        ul {
-          list-style-type: none;
-          color: #efefef;
-        }
-
-        ul li {
-          float: left;
-          width: 150px;
-        }
-
-        ul li a:visited {
-          color: #efefef;
         }
 
         .header h4 {
@@ -82,13 +71,9 @@ class Header extends HTMLElement {
             </a>
             <button>Button To Click</button>
           </div>
-          <nav>
-            <ul>
-              <li><a href="/">Home</a></li>
-              <li><a href="/about">About</a></li>
-              <li><a href="/artists">Artists</a></li>
-            <ul>
-          </nav>
+
+          <wcc-navigation></wcc-navigation>
+
           <div class="social">
             <a href="https://github.com/ProjectEvergreen/greenwood">
               <img
