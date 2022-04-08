@@ -7,13 +7,13 @@ export default class HomePage extends HTMLElement {
 
     if(this.shadowRoot) {
       console.debug('HomePage => shadowRoot detected!')
+    } else {
+      this.attachShadow({ mode: 'open' });
     }
-
-    this.root = this.attachShadow({ mode: 'open' });
   }
 
   connectedCallback() {
-    this.root.innerHTML = this.getTemplate();
+    this.shadowRoot.innerHTML = this.getTemplate();
   }
 
   getTemplate() {

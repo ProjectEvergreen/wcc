@@ -4,13 +4,13 @@ class Header extends HTMLElement {
 
     if(this.shadowRoot) {
       console.debug('Header => shadowRoot detected!')
+    } else {
+      this.attachShadow({ mode: 'open' });
     }
-
-    this.root = this.attachShadow({ mode: 'open' });
   }
 
   connectedCallback() {
-    this.root.innerHTML = this.render();
+    this.shadowRoot.innerHTML = this.render();
   }
 
   render() {

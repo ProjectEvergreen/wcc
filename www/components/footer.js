@@ -35,9 +35,9 @@ class Footer extends HTMLElement {
 
     if(this.shadowRoot) {
       console.debug('Footer => shadowRoot detected!')
+    } else {
+      this.attachShadow({ mode: 'open' });
     }
-
-    this.attachShadow({ mode: 'open' });
   }
 
   connectedCallback() {
