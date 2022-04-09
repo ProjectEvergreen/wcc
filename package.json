@@ -2,7 +2,7 @@
   "name": "wcc",
   "version": "0.0.1",
   "description": "Experimental native Web Components compiler.",
-  "main": "server.js",
+  "main": "lib/wcc.js",
   "type": "module",
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "license": "MIT",
