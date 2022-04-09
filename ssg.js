@@ -6,7 +6,7 @@ const distRoot = './dist';
 const pagesRoot = './www/pages';
 const entries = await fs.readdir(new URL(pagesRoot, import.meta.url));
 
-await fs.rm(distRoot, { recursive: true });
+await fs.rm(distRoot, { recursive: true, force: true });
 await fs.mkdir('./dist',  { recursive: true });
 await fse.copy('./www/assets', `${distRoot}/www/assets`)
 await fse.copy('./www/components', `${distRoot}/www/components`)
