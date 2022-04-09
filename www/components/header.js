@@ -5,15 +5,24 @@ class Header extends HTMLElement {
   constructor() {
     super();
 
+    console.debug('HEADER constructor + SHADOW ROOT', this.shadowRoot);
+
     if(this.shadowRoot) {
       console.debug('Header => shadowRoot detected!')
+      const button = this.shadowRoot.querySelector('button');
+
+      button.addEventListener('click', this.toggle);
     } else {
+      console.debug('Header => shadowRoot NOT detected')
       this.attachShadow({ mode: 'open' });
+      this.shadowRoot.innerHTML = this.render();
     }
+
+    console.debug('=====================');
   }
 
-  connectedCallback() {
-    this.shadowRoot.innerHTML = this.render();
+  toggle() {
+    alert('this.toggle clicked!')
   }
 
   render() {
@@ -59,6 +68,10 @@ class Header extends HTMLElement {
           display: inline-block;
           width: 90px;
           height: 20px;
+        }
+
+        button {
+          cursor: pointer;
         }
       </style>
 

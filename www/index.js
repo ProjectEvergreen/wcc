@@ -5,6 +5,8 @@ export default class HomePage extends HTMLElement {
   constructor() {
     super();
 
+    console.debug('HomePage constructor')
+
     if(this.shadowRoot) {
       console.debug('HomePage => shadowRoot detected!')
     } else {

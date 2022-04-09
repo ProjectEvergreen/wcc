@@ -28,28 +28,31 @@ app.get('/*', async (request, reply) => {
   reply
     .header('Content-Type', 'text/html; charset=utf-8')
     .send(`
+      <!DOCTYPE html>
       <html>
         <head>
           <title>WCC</title>
         </head>
         <body>
-          <page-entry>
+          <!-- <page-entry> -->
             ${html}
-          </page-entry>
+          <!-- </page-entry> -->
 
           <script type="module">
-            import { HydrateElement } from './lib/hydrate-element.js';
-            window.HydrateElement = HydrateElement;
+            // import { HydrateElement } from './lib/hydrate-element.js';
+            // window.HydrateElement = HydrateElement;
           </script>
 
           <script type="module">
             import PageEntry from './www${pageRoute}.js';
 
-            customElements.define('page-entry', PageEntry);
+            // this and the pageEntry effectively double bootstrapping everything
+            // so <page-entry> is not needed?
+            // customElements.define('page-entry', PageEntry);
           </script>
         </body>
       </html>
-    `);
+    `.trim());
 });
 
 const start = async () => {

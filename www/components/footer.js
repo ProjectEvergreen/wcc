@@ -33,15 +33,17 @@ class Footer extends HTMLElement {
   constructor() {
     super();
 
+    console.debug('Footer constructor + SHADOW ROOT', this.shadowRoot);
+
     if(this.shadowRoot) {
       console.debug('Footer => shadowRoot detected!')
     } else {
+      console.debug('Footer => shadowRoot NOT detected')
       this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
-  }
 
-  connectedCallback() {
-    this.shadowRoot.appendChild(template.content.cloneNode(true));
+    console.debug('=====================');
   }
 }
 
