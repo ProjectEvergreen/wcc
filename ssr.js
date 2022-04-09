@@ -16,14 +16,14 @@ app.register(fastifyStatic, {
 
 app.get('/*', async (request, reply) => {
   const { url } = request;
-  const pageRoute = url === '/'
-    ? '/index'
-    : url;
+  const pageRoute = url === '/' ? '/index' : url;
+  const entryPoint = `./www/pages${pageRoute}.js`
 
   console.debug({ url });
   console.debug({ pageRoute })
+  console.debug({ entryPoint })
 
-  const html = await renderToString(new URL(`./www${pageRoute}.js`, import.meta.url));
+  const html = await renderToString(new URL(entryPoint, import.meta.url));
 
   reply
     .header('Content-Type', 'text/html; charset=utf-8')
@@ -44,7 +44,7 @@ app.get('/*', async (request, reply) => {
           </script>
 
           <script type="module">
-            import PageEntry from './www${pageRoute}.js';
+            import PageEntry from '${entryPoint}';
 
             // this and the pageEntry effectively double bootstrapping everything
             // so <page-entry> is not needed?

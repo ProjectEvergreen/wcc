@@ -1,5 +1,5 @@
-import './components/footer.js';
-import './components/header.js';
+import '../components/footer.js';
+import '../components/header.js';
 
 export default class HomePage extends HTMLElement {
   constructor() {

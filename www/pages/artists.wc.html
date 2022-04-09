@@ -1,0 +1,34 @@
+<script>
+  export default class ArtistsPage extends HTMLElement {
+    constructor() {
+      super();
+
+      if(this.shadowRoot) {
+        console.debug('shadowRoot detected!')
+      }
+
+      // create a Shadow root
+      this.root = this.attachShadow({ mode: 'open' });
+    }
+
+    // run some code when the component is ready
+    connectedCallback() {
+      this.root.innerHTML = '<h1>Artists - TODO temple</h1>';
+    }
+  }
+</script>
+
+<template>
+  <h1>Artists Page</h1>
+  <p>Get some data!</p>
+</template>
+
+<style>
+ h1 {
+   color: red;
+ }
+
+ p {
+   color: blue;
+ }
+</style>
