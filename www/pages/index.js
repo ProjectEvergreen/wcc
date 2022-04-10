@@ -1,3 +1,4 @@
+import '../components/counter.js';
 import '../components/footer.js';
 import '../components/header.js';
 
@@ -22,6 +23,7 @@ export default class HomePage extends HTMLElement {
     return `
       <wcc-header></wcc-header>
       <h1>Home Page</h1>
+      <wcc-counter></wcc-counter>
       <wcc-footer></wcc-footer>
     `;
   }

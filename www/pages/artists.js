@@ -2,7 +2,7 @@ import '../components/footer.js';
 import '../components/header.js';
 
 export default class ArtistsPage extends HTMLElement {
-  constructor(data = {}) {
+  constructor(props = {}) {
     super();
 
     console.debug('ArtistsPage constructor', this.shadowRoot)
@@ -15,7 +15,7 @@ export default class ArtistsPage extends HTMLElement {
     } else {
       this.attachShadow({ mode: 'open' });
       console.debug(this.shadowRoot);
-      this.artists = data.artists || [];
+      this.artists = props.artists || [];
     }
 
     console.debug('=====================');
@@ -70,5 +70,3 @@ export async function getData() {
     ]
   }
 }
-
-// customElements.define('page-entry', ArtistsPage)
