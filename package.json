@@ -9,7 +9,7 @@
   "scripts": {
     "ssg": "node ./ssg.js",
     "ssg:serve": "node ./ssg.js && http-server ./dist",
-    "ssr": "node ./ssr.js",
+    "ssr": "nodemon --watch lib ./ssr.js",
     "start": "yarn ssr"
   },
   "dependencies": {
@@ -20,6 +20,7 @@
     "fastify": "^3.27.4",
     "fastify-static": "^4.6.1",
     "fs-extra": "^10.0.1",
-    "http-server": "^14.1.0"
+    "http-server": "^14.1.0",
+    "nodemon": "^2.0.15"
   }
 }
