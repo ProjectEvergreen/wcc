@@ -2,7 +2,7 @@ import fastify from 'fastify';
 import fastifyStatic from 'fastify-static';
 import { renderToString } from './lib/wcc.js';
 
-const app = fastify({ logger: false });
+const app = fastify({ logger: true });
 
 app.register(fastifyStatic, {
   root: new URL('./www', import.meta.url).pathname,
