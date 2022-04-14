@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "acorn": "^8.7.0",
-    "acorn-walk": "^8.2.0"
+    "acorn-walk": "^8.2.0",
+    "parse5": "^6.0.1"
   },
   "devDependencies": {
     "fastify": "^3.27.4",

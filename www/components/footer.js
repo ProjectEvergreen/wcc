@@ -1,8 +1,11 @@
+import './counter.js';
+
 const template = document.createElement('template');
 
 template.innerHTML = `
   <style>
     .footer {
+      color: white;
       position: fixed;
       bottom: 0;
       width: 100%;
@@ -20,9 +23,18 @@ template.innerHTML = `
       padding: 0;
       text-align: center;
     }
+
+    wcc-counter {
+      color: white;
+      margin: 10px auto;
+      display: block;
+      width: 50%;
+      text-align: center;
+    }
   </style>
 
   <footer class="footer">
+    <wcc-counter></wcc-counter>
     <h4>
       <a href="https://www.greenwoodjs.io/">My Blog &copy;${new Date().getFullYear()} &#9672 Built with GreenwoodJS</a>
     </h4>
@@ -45,6 +57,10 @@ class Footer extends HTMLElement {
 
     console.debug('=====================');
   }
+}
+
+export {
+  Footer
 }
 
 customElements.define('wcc-footer', Footer);

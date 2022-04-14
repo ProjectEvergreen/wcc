@@ -45,4 +45,8 @@ class Navigation extends HTMLElement {
   }
 }
 
+export {
+  Navigation
+}
+
 customElements.define('wcc-navigation', Navigation);
