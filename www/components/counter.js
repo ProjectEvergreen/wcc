@@ -4,17 +4,22 @@ class Counter extends HTMLElement {
 
     console.debug('Counter constructor + SHADOW ROOT', this.shadowRoot);
 
+    this.count = props.count || 0;
+
     if(this.shadowRoot) {
       console.debug('Counter => shadowRoot detected!')
       this.hydrate();
-    } else {
-      console.debug('Counter => shadowRoot NOT detected', props.count)
-      this.attachShadow({ mode: 'open' });
-      this.count = props.count || 0;
-      this.shadowRoot.innerHTML = this.render();
     }
 
     console.debug('=====================');
+  }
+
+  connectedCallback() {
+    if(!this.shadowRoot) {
+      console.debug('Counter => shadowRoot NOT detected', this.props)
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.innerHTML = this.render();
+    }
   }
 
   inc() {

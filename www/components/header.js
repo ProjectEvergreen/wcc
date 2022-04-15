@@ -12,13 +12,17 @@ class Header extends HTMLElement {
       const button = this.shadowRoot.querySelector('button');
 
       button.addEventListener('click', this.toggle);
-    } else {
+    }
+
+    console.debug('=====================');
+  }
+
+  connectedCallback() {
+    if(!this.shadowRoot) {
       console.debug('Header => shadowRoot NOT detected')
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.innerHTML = this.render();
     }
-
-    console.debug('=====================');
   }
 
   toggle() {

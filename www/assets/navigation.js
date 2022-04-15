@@ -35,13 +35,17 @@ class Navigation extends HTMLElement {
 
     if(this.shadowRoot) {
       console.debug('Navigation => shadowRoot detected!')
-    } else {
+    }
+
+    console.debug('=====================');
+  }
+
+  connectedCallback() {
+    if(!this.shadowRoot) {
       console.debug('Navigation => shadowRoot NOT detected!')
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
-
-    console.debug('=====================');
   }
 }
 
