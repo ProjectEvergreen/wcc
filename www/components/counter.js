@@ -2,40 +2,47 @@ class Counter extends HTMLElement {
   constructor(props = {}) {
     super();
 
+    console.debug('=====================');
     console.debug('Counter constructor + SHADOW ROOT', this.shadowRoot);
 
-    this.count = props.count || 0;
+    this.props = props;
 
     if(this.shadowRoot) {
       console.debug('Counter => shadowRoot detected!')
       this.hydrate();
     }
-
-    console.debug('=====================');
   }
 
   connectedCallback() {
     if(!this.shadowRoot) {
       console.debug('Counter => shadowRoot NOT detected', this.props)
+      this.setCount();
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.innerHTML = this.render();
     }
   }
 
+  setCount() {
+    this.count = this.hasAttribute('count')
+      ? parseInt(this.getAttribute('count'), 10)
+      : this.props.count
+        ? this.props.count
+        : 0;
+  }
+
   inc() {
-    this.count = this.count + 1;
+    this.count += 1;
     this.update();
   }
 
   dec() {
-    this.count = this.count - 1;
+    this.count -= 1;
     this.update();
   }
 
   hydrate() {
     console.debug('COUNTER => hydrate');
     this.count = parseInt(JSON.parse(this.shadowRoot.querySelector('script[type="application/json"').text).count);
-    console.debug('restore count', this.count)
 
     const buttonDec = this.shadowRoot.querySelector('button#dec');
     const buttonInc = this.shadowRoot.querySelector('button#inc');
