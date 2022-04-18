@@ -23,7 +23,23 @@ app.get('/*', async (request, reply) => {
   console.debug({ pageRoute })
   console.debug({ entryPoint })
 
-  const html = await renderToString(new URL(entryPoint, import.meta.url));
+  const { html, assets } = await renderToString(new URL(entryPoint, import.meta.url), false);
+  const lazyJs = [];
+  const eagerJs = [];
+
+  for(const asset in assets) {
+    const a = assets[asset];
+
+    a.tagName = asset;
+
+    if(a.moduleURL.href.endsWith('.js')) {
+      if(a.hydrate === 'lazy') {
+        lazyJs.push(a)
+      } else {
+        eagerJs.push(a)
+      }
+    }
+  }
 
   reply
     .header('Content-Type', 'text/html; charset=utf-8')
@@ -32,6 +48,45 @@ app.get('/*', async (request, reply) => {
       <html>
         <head>
           <title>WCC</title>
+          ${
+            eagerJs.map(script => {
+              return `<script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>`
+            }).join('\n')
+          }
+
+          ${
+            lazyJs.map(script => {
+              return `
+                <script type="module">
+                  let initialized = false;
+
+                  window.addEventListener('load', () => {
+                    let options = {
+                      root: null,
+                      rootMargin: '20px',
+                      threshold: 1.0
+                    }
+
+                    let callback = (entries, observer) => {
+                      entries.forEach(entry => {
+                        console.debug({ entry })
+                        if(!initialized && entry.isIntersecting) {
+                          alert('Intersected ${script.tagName}, time to hydrate!!!');
+                          initialized = true;
+                          import('${script.moduleURL.pathname.replace(process.cwd(), '')}')
+                        }
+                      });
+                    }
+
+                    let observer = new IntersectionObserver(callback, options);
+                    let target = document.querySelector('${script.tagName}');
+
+                    observer.observe(target);
+                  })
+                </script>
+              `
+            }).join('\n')
+          }
         </head>
         <body>
           <!-- <page-entry> -->
@@ -44,7 +99,7 @@ app.get('/*', async (request, reply) => {
           </script>
 
           <script type="module">
-            import PageEntry from '${entryPoint}';
+            // import PageEntry from '${entryPoint}';
 
             // this and the pageEntry effectively double bootstrapping everything
             // so <page-entry> is not needed?

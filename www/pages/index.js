@@ -21,13 +21,21 @@ export default class HomePage extends HTMLElement {
 
   getTemplate() {
     return `
+      <style>
+        p#spacer {
+          height: 2000px;
+        }
+      </style>
+
       <wcc-header></wcc-header>
 
       <h1>Home Page</h1>
       <wcc-counter></wcc-counter>
       <wcc-counter count="5"></wcc-counter>
 
-      <wcc-footer></wcc-footer>
+      <p id="spacer"></p>
+
+      <wcc-footer hydrate="lazy"></wcc-footer>
     `;
   }
 }

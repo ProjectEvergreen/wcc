@@ -13,7 +13,7 @@ await fse.copy('./www/components', `${distRoot}/www/components`)
 await fse.copy('./www/pages', `${distRoot}/www/pages`)
 
 for (const entry of entries.filter(entry => entry.endsWith('.js'))) {
-  const html = await renderToString(new URL(`${pagesRoot}/${entry}`, import.meta.url));
+  const { html } = await renderToString(new URL(`${pagesRoot}/${entry}`, import.meta.url), false);
 
   // bundle / copy dependency files
   await fs.writeFile(new URL(`${distRoot}/${entry.replace('.js', '.html')}`, import.meta.url), `

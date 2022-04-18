@@ -6,7 +6,6 @@ template.innerHTML = `
   <style>
     .footer {
       color: white;
-      position: fixed;
       bottom: 0;
       width: 100%;
       background-color: #192a27;
