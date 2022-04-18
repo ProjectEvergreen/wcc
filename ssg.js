@@ -37,7 +37,7 @@ for (const entry of entries.filter(entry => entry.endsWith('.js'))) {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>WCC</title>
+        <title>WCC - SSG</title>
 
         ${
           eagerJs.map(script => {

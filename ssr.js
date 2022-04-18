@@ -3,6 +3,7 @@ import fastifyStatic from 'fastify-static';
 import { renderToString } from './lib/wcc.js';
 
 const app = fastify({ logger: true });
+const port = 3000;
 
 app.register(fastifyStatic, {
   root: new URL('./www', import.meta.url).pathname,
@@ -47,7 +48,7 @@ app.get('/*', async (request, reply) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>WCC</title>
+          <title>WCC - SSR</title>
           ${
             eagerJs.map(script => {
               return `<script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>`
@@ -112,7 +113,7 @@ app.get('/*', async (request, reply) => {
 
 const start = async () => {
   try {
-    await app.listen(3000)
+    await app.listen(port)
   } catch (err) {
     app.log.error(err)
     process.exit(1)
