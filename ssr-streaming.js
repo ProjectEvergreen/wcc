@@ -1,7 +1,7 @@
 import fastify from 'fastify';
 import fastifyStatic from 'fastify-static';
 import path from 'path';
-import { Readable } from 'stream';
+import stream, { Readable } from 'stream';
 import { renderToString } from './lib/wcc.js';
 
 const app = fastify({ logger: true });
@@ -17,7 +17,7 @@ app.register(fastifyStatic, {
   decorateReply: false
 })
 
-function* renderPageStreaming(html, assets, data) {
+function* renderPageStreaming(html, assets) {
   const lazyJs = [];
   const eagerJs = [];
 
@@ -44,7 +44,10 @@ function* renderPageStreaming(html, assets, data) {
   yield `
     ${
       eagerJs.map(script => {
-        return `<script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>`
+        return `
+          <link rel="preload" href="${script.moduleURL.pathname.replace(process.cwd(), '')}" as="script" crossorigin>
+          <script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>
+        `
       }).join('\n')
     }
   `;
@@ -87,83 +90,459 @@ function* renderPageStreaming(html, assets, data) {
   yield `
     </head>
     <body>
+    <h1>+++++++++++++Start of Stream++++++++++++++</h1>
+    ${html}
+    <h1>+++++++++++++Start of Stream++++++++++++++</h1>
   `
   
   yield `
     ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
+    ${html}
   `
 
   yield `
-      </body>
-    </html>
-  `;
-}
+    <h1>+++++++++++++End of Stream++++++++++++++</h1>
+  `
 
-async function renderPage(html, assets, data) {
-  const lazyJs = [];
-  const eagerJs = [];
-
-  for(const asset in assets) {
-    const a = assets[asset];
-
-    a.tagName = asset;
-
-    if(a.moduleURL.href.endsWith('.js')) {
-      if(a.hydrate === 'lazy') {
-        lazyJs.push(a)
-      } else {
-        eagerJs.push(a)
-      }
-    }
-  }
-
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>WCC - Streaming SSR</title>
-        ${
-          eagerJs.map(script => {
-            return `<script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>`
-          }).join('\n')
-        }
-
-        ${
-          lazyJs.map(script => {
-            return `
-              <script type="module">
-                let initialized = false;
-
-                window.addEventListener('load', () => {
-                  let options = {
-                    root: null,
-                    rootMargin: '20px',
-                    threshold: 1.0
-                  }
-
-                  let callback = (entries, observer) => {
-                    entries.forEach(entry => {
-                      console.debug({ entry })
-                      if(!initialized && entry.isIntersecting) {
-                        alert('Intersected ${script.tagName}, time to hydrate!!!');
-                        initialized = true;
-                        import('${script.moduleURL.pathname.replace(process.cwd(), '')}')
-                      }
-                    });
-                  }
-
-                  let observer = new IntersectionObserver(callback, options);
-                  let target = document.querySelector('${script.tagName}');
-
-                  observer.observe(target);
-                })
-              </script>
-            `
-          }).join('\n')
-        }
-      </head>
-      <body>
-        ${html}
+  yield `
       </body>
     </html>
   `;
@@ -181,26 +560,26 @@ app.get('/*', async (request, reply) => {
     console.debug({ entryPoint })
 
     const { html, assets } = await renderToString(new URL(entryPoint, import.meta.url), false);
-    // const contents = renderPage(html, assets);
-    // const chunks = [];
 
-    // for(const chunk of contents) {
-    //   chunks.push(chunk)
-    // }
+    // https://github.com/fastify/fastify/issues/805#issuecomment-369172154
+    const buffer = new stream.Readable();
+    buffer._read = ()=>{};
 
-    // console.debug({ chunks });
+    for(const data of renderPageStreaming(html, assets)) {
+      buffer.push(data);
+    }
 
-    // const readable = Readable.from(chunks)
+    buffer.push(null)
 
-    // console.debug({ readable });
+    reply.type('text/html').send(buffer)
 
     // TODO - related to favicon?
     // Promise may not be fulfilled with 'undefined' when statusCode is not 204",
     // "stack":"FastifyError: Promise may not be fulfilled with 'undefined' when statusCode is not 204
-    reply
-      .header('Content-Type', 'text/html; charset=utf-8')
-      .header('Transfer-Encoding', 'chunked')
-      .send(Readable.from((await renderPage(html, assets))));
+    // reply
+    //   .header('Content-Type', 'text/html; charset=utf-8')
+    //   .header('Transfer-Encoding', 'chunked')
+    //   .send(Readable.from(await renderPage(html, assets)));
   }
 });
 
