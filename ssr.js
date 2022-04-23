@@ -49,6 +49,9 @@ app.get('/*', async (request, reply) => {
       <html>
         <head>
           <title>WCC - SSR</title>
+          
+          <script src="./lib/runtime.js"></script>
+
           ${
             eagerJs.map(script => {
               return `<script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>`;
