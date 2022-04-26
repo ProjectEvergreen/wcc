@@ -5,12 +5,12 @@ export default class ArtistsPage extends HTMLElement {
   constructor(props = {}) {
     super();
 
-    console.debug('ArtistsPage constructor', this.shadowRoot)
+    console.debug('ArtistsPage constructor', this.shadowRoot);
 
-    if(this.shadowRoot) {
-      console.debug('ArtistsPage => shadowRoot detected!')
+    if (this.shadowRoot) {
+      console.debug('ArtistsPage => shadowRoot detected!');
       const artists = JSON.parse(this.shadowRoot.querySelector('script[type="application/json"').text);
-      console.log("Found SSR artists with length", artists.length);
+      console.log('Found SSR artists with length', artists.length);
       this.artists = artists;
     } else {
       this.attachShadow({ mode: 'open' });
@@ -25,9 +25,10 @@ export default class ArtistsPage extends HTMLElement {
     this.shadowRoot.innerHTML = this.getTemplate();
   }
 
+  /* eslint-disable indent */
   getTemplate() {
     return `
-      <script type="application/json">
+      <script type='application/json'>
         ${JSON.stringify(this.artists)}
       </script>
 
@@ -49,7 +50,7 @@ export default class ArtistsPage extends HTMLElement {
             return `
               <tr>
                 <td><h1>${name}</h1></td>
-                <td><img src="${imageUrl}" alt="${name}" loading="lazy"/></td>
+                <td><img src='${imageUrl}' alt='${name}' loading='lazy'/></td>
               </tr>
             `;
           }).join('\n')}
@@ -59,14 +60,15 @@ export default class ArtistsPage extends HTMLElement {
       <wcc-footer></wcc-footer>
     `;
   }
+  /* eslint-enable indent */
 }
 
 export async function getData() {
   return {
-    artists:   [
-      { id: "1", name: "Analog", imageUrl: "//d34k5cjnk2rcze.cloudfront.net/images/artists/analog.jpg" },
-      { id: "2", name: "Electro Calrissian", imageUrl: "//d34k5cjnk2rcze.cloudfront.net/images/artists/electro-calrissian.jpg" },
-      { id: "3", name: "Rory Boyan", imageUrl: "//d34k5cjnk2rcze.cloudfront.net/images/artists/rory.jpg" }
+    artists: [
+      { id: '1', name: 'Analog', imageUrl: '//d34k5cjnk2rcze.cloudfront.net/images/artists/analog.jpg' },
+      { id: '2', name: 'Electro Calrissian', imageUrl: '//d34k5cjnk2rcze.cloudfront.net/images/artists/electro-calrissian.jpg' },
+      { id: '3', name: 'Rory Boyan', imageUrl: '//d34k5cjnk2rcze.cloudfront.net/images/artists/rory.jpg' }
     ]
-  }
+  };
 }

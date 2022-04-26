@@ -5,8 +5,8 @@ export default class AboutPage extends HTMLElement {
   constructor() {
     super();
 
-    if(this.shadowRoot) {
-      console.debug('AboutPage => shadowRoot detected!')
+    if (this.shadowRoot) {
+      console.debug('AboutPage => shadowRoot detected!');
     } else {
       this.attachShadow({ mode: 'open' });
     }

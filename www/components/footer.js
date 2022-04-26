@@ -46,16 +46,16 @@ class Footer extends HTMLElement {
 
     console.debug('Footer constructor + SHADOW ROOT', this.shadowRoot);
 
-    if(this.shadowRoot) {
-      console.debug('Footer => shadowRoot detected!')
+    if (this.shadowRoot) {
+      console.debug('Footer => shadowRoot detected!');
     }
 
     console.debug('=====================');
   }
 
   connectedCallback() {
-    if(!this.shadowRoot) {
-      console.debug('Footer => shadowRoot NOT detected')
+    if (!this.shadowRoot) {
+      console.debug('Footer => shadowRoot NOT detected');
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
@@ -64,6 +64,6 @@ class Footer extends HTMLElement {
 
 export {
   Footer
-}
+};
 
 customElements.define('wcc-footer', Footer);

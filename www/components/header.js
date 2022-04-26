@@ -7,8 +7,8 @@ class Header extends HTMLElement {
 
     console.debug('HEADER constructor + SHADOW ROOT', this.shadowRoot);
 
-    if(this.shadowRoot) {
-      console.debug('Header => shadowRoot detected!')
+    if (this.shadowRoot) {
+      console.debug('Header => shadowRoot detected!');
       const button = this.shadowRoot.querySelector('button');
 
       button.addEventListener('click', this.toggle);
@@ -18,15 +18,15 @@ class Header extends HTMLElement {
   }
 
   connectedCallback() {
-    if(!this.shadowRoot) {
-      console.debug('Header => shadowRoot NOT detected')
+    if (!this.shadowRoot) {
+      console.debug('Header => shadowRoot NOT detected');
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.innerHTML = this.render();
     }
   }
 
   toggle() {
-    alert('this.toggle clicked!')
+    alert('this.toggle clicked!');
   }
 
   render() {
@@ -107,6 +107,6 @@ class Header extends HTMLElement {
 
 export {
   Header
-}
+};
 
 customElements.define('wcc-header', Header);
