@@ -16,6 +16,8 @@ async function renderComponentRoots(tree) {
 
       // if there are no nodes / content, it is an "empty" tag, e.g. <wcc-header></wcc-header>
       // we can just get the declarative shadow root right away
+      // TODO safeguard against non-declared custom elements, e.g. using <my-element></my-element> without actually import-ing it first
+      // or else below destructuring will break
       if (node.childNodes.length === 0) {
         const { tagName } = node;
         const { moduleURL } = deps[tagName];
@@ -74,12 +76,14 @@ async function registerDependencies(moduleURL) {
   });
 }
 
+// TODO assumes top level component is using a default export
 async function initializeCustomElement(elementURL, tagName, attrs = []) {
   await registerDependencies(elementURL);
 
   const element = tagName
     ? customElements.get(tagName)
     : (await import(elementURL)).default;
+  console.debug({ element });
   const dataLoader = (await import(elementURL)).getData;
   const data = dataLoader ? await dataLoader() : {};
   const elementInstance = new element(data); // eslint-disable-line new-cap
@@ -99,7 +103,7 @@ async function initializeCustomElement(elementURL, tagName, attrs = []) {
 
 async function renderToString(elementURL, fragment = true) {
   const elementInstance = await initializeCustomElement(elementURL);
-  const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots: fragment });
+  const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots: false });
   const elementTree = parseFragment(elementHtml);
   const finalTree = await renderComponentRoots(elementTree);
 

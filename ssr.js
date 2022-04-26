@@ -1,6 +1,6 @@
 import fastify from 'fastify';
 import fastifyStatic from 'fastify-static';
-import { renderToString } from './lib/wcc.js';
+import { renderToString } from './src/wcc.js';
 
 const app = fastify({ logger: true });
 const port = 3000;
