@@ -7,6 +7,7 @@
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "license": "MIT",
   "scripts": {
+    "clean": "rimraf ./dist",
     "lint": "eslint \"*.*js\" \"./lib/**/**/*.js\" \"./www/**/**/*.js\"",
     "ssg": "node ./ssg.js",
     "ssg:serve": "node ./ssg.js && http-server ./dist",
@@ -27,6 +28,7 @@
     "fastify-static": "^4.6.1",
     "fs-extra": "^10.0.1",
     "http-server": "^14.1.0",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "rimraf": "^3.0.2"
   }
 }
