@@ -12,6 +12,7 @@
     "ssg": "node ./ssg.js",
     "ssg:serve": "node ./ssg.js && http-server ./dist",
     "ssr": "nodemon --watch lib --watch www ./ssr.js",
+    "streaming": "nodemon --watch lib --watch www ./ssr-streaming.js",
     "start": "yarn ssr"
   },
   "dependencies": {
