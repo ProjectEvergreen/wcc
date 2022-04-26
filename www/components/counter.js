@@ -7,15 +7,15 @@ class Counter extends HTMLElement {
 
     this.props = props;
 
-    if(this.shadowRoot) {
-      console.debug('Counter => shadowRoot detected!')
+    if (this.shadowRoot) {
+      console.debug('Counter => shadowRoot detected!');
       this.hydrate();
     }
   }
 
   connectedCallback() {
-    if(!this.shadowRoot) {
-      console.debug('Counter => shadowRoot NOT detected', this.props)
+    if (!this.shadowRoot) {
+      console.debug('Counter => shadowRoot NOT detected', this.props);
       this.setCount();
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.innerHTML = this.render();
@@ -42,7 +42,7 @@ class Counter extends HTMLElement {
 
   hydrate() {
     console.debug('COUNTER => hydrate');
-    this.count = parseInt(JSON.parse(this.shadowRoot.querySelector('script[type="application/json"').text).count);
+    this.count = parseInt(JSON.parse(this.shadowRoot.querySelector('script[type="application/json"').text).count, 10);
 
     const buttonDec = this.shadowRoot.querySelector('button#dec');
     const buttonInc = this.shadowRoot.querySelector('button#inc');
@@ -72,12 +72,12 @@ class Counter extends HTMLElement {
 
 export {
   Counter
-}
+};
 
 export async function getData() {
   return {
     count: Math.floor(Math.random() * (100 - 0 + 1) + 0)
-  }
+  };
 }
 
 customElements.define('wcc-counter', Counter);

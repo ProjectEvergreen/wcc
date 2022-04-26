@@ -6,10 +6,10 @@ export default class HomePage extends HTMLElement {
   constructor() {
     super();
 
-    console.debug('HomePage constructor')
+    console.debug('HomePage constructor');
 
-    if(this.shadowRoot) {
-      console.debug('HomePage => shadowRoot detected!')
+    if (this.shadowRoot) {
+      console.debug('HomePage => shadowRoot detected!');
     } else {
       this.attachShadow({ mode: 'open' });
     }

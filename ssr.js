@@ -8,36 +8,36 @@ const port = 3000;
 app.register(fastifyStatic, {
   root: new URL('./www', import.meta.url).pathname,
   prefix: '/www'
-})
+});
 app.register(fastifyStatic, {
   root: new URL('./lib', import.meta.url).pathname,
   prefix: '/lib',
   decorateReply: false
-})
+});
 
 app.get('/*', async (request, reply) => {
   const { url } = request;
   const pageRoute = url === '/' ? '/index' : url;
-  const entryPoint = `./www/pages${pageRoute}.js`
+  const entryPoint = `./www/pages${pageRoute}.js`;
 
   console.debug({ url });
-  console.debug({ pageRoute })
-  console.debug({ entryPoint })
+  console.debug({ pageRoute });
+  console.debug({ entryPoint });
 
   const { html, assets } = await renderToString(new URL(entryPoint, import.meta.url), false);
   const lazyJs = [];
   const eagerJs = [];
 
-  for(const asset in assets) {
+  for (const asset in assets) {
     const a = assets[asset];
 
     a.tagName = asset;
 
-    if(a.moduleURL.href.endsWith('.js')) {
-      if(a.hydrate === 'lazy') {
-        lazyJs.push(a)
+    if (a.moduleURL.href.endsWith('.js')) {
+      if (a.hydrate === 'lazy') {
+        lazyJs.push(a);
       } else {
-        eagerJs.push(a)
+        eagerJs.push(a);
       }
     }
   }
@@ -51,7 +51,7 @@ app.get('/*', async (request, reply) => {
           <title>WCC - SSR</title>
           ${
             eagerJs.map(script => {
-              return `<script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>`
+              return `<script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>`;
             }).join('\n')
           }
 
@@ -85,7 +85,7 @@ app.get('/*', async (request, reply) => {
                     observer.observe(target);
                   })
                 </script>
-              `
+              `;
             }).join('\n')
           }
         </head>
@@ -113,11 +113,11 @@ app.get('/*', async (request, reply) => {
 
 const start = async () => {
   try {
-    await app.listen(port)
+    await app.listen(port);
   } catch (err) {
-    app.log.error(err)
-    process.exit(1)
+    app.log.error(err);
+    process.exit(1); // eslint-disable-line no-process-exit
   }
-}
+};
 
-start()
+start();

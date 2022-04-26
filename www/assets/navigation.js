@@ -33,16 +33,16 @@ class Navigation extends HTMLElement {
 
     console.debug('Navigation constructor + SHADOW ROOT', this.shadowRoot);
 
-    if(this.shadowRoot) {
-      console.debug('Navigation => shadowRoot detected!')
+    if (this.shadowRoot) {
+      console.debug('Navigation => shadowRoot detected!');
     }
 
     console.debug('=====================');
   }
 
   connectedCallback() {
-    if(!this.shadowRoot) {
-      console.debug('Navigation => shadowRoot NOT detected!')
+    if (!this.shadowRoot) {
+      console.debug('Navigation => shadowRoot NOT detected!');
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
@@ -51,6 +51,6 @@ class Navigation extends HTMLElement {
 
 export {
   Navigation
-}
+};
 
 customElements.define('wcc-navigation', Navigation);

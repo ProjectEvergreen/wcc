@@ -7,10 +7,10 @@ const pagesRoot = './www/pages';
 const entries = await fs.readdir(new URL(pagesRoot, import.meta.url));
 
 await fs.rm(distRoot, { recursive: true, force: true });
-await fs.mkdir('./dist',  { recursive: true });
-await fse.copy('./www/assets', `${distRoot}/www/assets`)
-await fse.copy('./www/components', `${distRoot}/www/components`)
-await fse.copy('./www/pages', `${distRoot}/www/pages`)
+await fs.mkdir('./dist', { recursive: true });
+await fse.copy('./www/assets', `${distRoot}/www/assets`);
+await fse.copy('./www/components', `${distRoot}/www/components`);
+await fse.copy('./www/pages', `${distRoot}/www/pages`);
 
 for (const entry of entries.filter(entry => entry.endsWith('.js'))) {
   const { html, assets } = await renderToString(new URL(`${pagesRoot}/${entry}`, import.meta.url), false);
@@ -18,16 +18,16 @@ for (const entry of entries.filter(entry => entry.endsWith('.js'))) {
   const lazyJs = [];
   const eagerJs = [];
 
-  for(const asset in assets) {
+  for (const asset in assets) {
     const a = assets[asset];
 
     a.tagName = asset;
 
-    if(a.moduleURL.href.endsWith('.js')) {
-      if(a.hydrate === 'lazy') {
-        lazyJs.push(a)
+    if (a.moduleURL.href.endsWith('.js')) {
+      if (a.hydrate === 'lazy') {
+        lazyJs.push(a);
       } else {
-        eagerJs.push(a)
+        eagerJs.push(a);
       }
     }
   }
@@ -41,7 +41,7 @@ for (const entry of entries.filter(entry => entry.endsWith('.js'))) {
 
         ${
           eagerJs.map(script => {
-            return `<script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>`
+            return `<script type="module" src="${script.moduleURL.pathname.replace(process.cwd(), '')}"></script>`;
           }).join('\n')
         }
 
@@ -75,7 +75,7 @@ for (const entry of entries.filter(entry => entry.endsWith('.js'))) {
                   observer.observe(target);
                 })
               </script>
-            `
+            `;
           }).join('\n')
         }
       </head>
@@ -87,5 +87,5 @@ for (const entry of entries.filter(entry => entry.endsWith('.js'))) {
         </script>
       </body>
     </html>
-  `.trim())
+  `.trim());
 }
