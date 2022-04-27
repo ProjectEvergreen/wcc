@@ -13,7 +13,7 @@
     "ssg:serve": "node ./ssg.js && http-server ./dist",
     "ssr": "nodemon --watch src --watch www ./ssr.js",
     "start": "yarn ssr",
-    "test": "c8 mocha",
+    "test": "c8 mocha  --parallel",
     "test:tdd": "yarn test --watch"
   },
   "dependencies": {
