@@ -10,8 +10,8 @@ app.register(fastifyStatic, {
   prefix: '/www'
 });
 app.register(fastifyStatic, {
-  root: new URL('./lib', import.meta.url).pathname,
-  prefix: '/lib',
+  root: new URL('./src', import.meta.url).pathname,
+  prefix: '/src',
   decorateReply: false
 });
 
@@ -27,6 +27,7 @@ app.get('/*', async (request, reply) => {
   const { html, assets } = await renderToString(new URL(entryPoint, import.meta.url), false);
   const lazyJs = [];
   const eagerJs = [];
+  const hydrateJs = [];
 
   for (const asset in assets) {
     const a = assets[asset];
@@ -36,6 +37,8 @@ app.get('/*', async (request, reply) => {
     if (a.moduleURL.href.endsWith('.js')) {
       if (a.hydrate === 'lazy') {
         lazyJs.push(a);
+      } else if(a.__hydrate__) {
+        hydrateJs.push(a.__hydrate__);
       } else {
         eagerJs.push(a);
       }
@@ -50,7 +53,17 @@ app.get('/*', async (request, reply) => {
         <head>
           <title>WCC - SSR</title>
           
-          <script src="./lib/runtime.js"></script>
+          <!-- <script src="./src/runtime.js"></script> -->
+
+          ${
+            hydrateJs.map(f => {
+              return `
+                <script type="module">
+                  console.debug("${f}");
+                </script>
+              `
+            })
+          }
 
           ${
             eagerJs.map(script => {

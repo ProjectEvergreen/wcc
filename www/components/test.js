@@ -2,12 +2,11 @@ class TestComponent extends HTMLElement {
   constructor() {
     super()
 
-    // TODO have wcc skip over mode / attachShadow, innerHTML, connectedCallback, etc
     this.attachShadow({ mode: 'open' });
   }
 
-  static __secret() {
-    console.debug('sssshhh!  this is a secret :)')
+  static __hydrate__() {
+    console.debug('special __hydrate__ function from TestComponent :)')
   }
 }
 

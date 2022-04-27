@@ -18,9 +18,9 @@ const backupDefine = customElements.define.bind(window.customElements);
 window.customElements.define = (tagName, BaseClass) => {
   console.debug('intercepted customElement.define', { tagName, BaseClass });
   
-  if (BaseClass.__secret) { 
+  if (BaseClass.__secret) {
     console.debug('hmmmm... wonder what could we do here????');
-    BaseClass.__secret(); 
+    BaseClass.__secret();
   }
 
   backupDefine(tagName, BaseClass);

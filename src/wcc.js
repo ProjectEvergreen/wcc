@@ -7,7 +7,9 @@ import { parseFragment, serialize } from 'parse5';
 
 import fs from 'node:fs/promises';
 
+// TODO better data structure for deps and hydrate function?
 const deps = [];
+const hydrateFunctions = new Map();
 
 async function renderComponentRoots(tree) {
   for (const node of tree.childNodes) {
@@ -52,17 +54,37 @@ async function registerDependencies(moduleURL) {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
+
+    // walk custom element class for internal methods to expose at runtime
+    // for supporting hydration and lazy loading strategies
+    async ClassDeclaration(node) {
+      if (node.superClass.name === 'HTMLElement') {
+        const name = node.id.name;
+
+        // find __hydrate__ method
+        node.body.body.forEach((n) => {
+          if(n.type === 'MethodDefinition' && n.static && n.key.name === '__hydrate__') {
+            const innerFunction = moduleContents.slice(n.start, n.end);
+            hydrateFunctions[name] = innerFunction.replace('static __hydrate__', '');
+          }
+        })
+      }
+    },
+
+    // walk import statements to find other custom element definitions
     async ImportDeclaration(node) {
       const dependencyModuleURL = new URL(node.source.value, moduleURL);
 
       await registerDependencies(dependencyModuleURL);
     },
+
+    // find customElement.define calls and track relevant metadata
     async ExpressionStatement(node) {
       const { expression } = node;
 
       // TODO don't need to update if it already exists
       if (expression.type === 'CallExpression' && expression.callee && expression.callee.object 
-        && expression.callee.property && expression.callee.object.name === 'customElements' 
+        && expression.callee.property && expression.callee.object.name === 'customElements'
         && expression.callee.property.name === 'define') {
         
         const tagName = node.expression.arguments[0].value;
@@ -107,6 +129,15 @@ async function renderToString(elementURL, fragment = true) {
   const finalTree = await renderComponentRoots(elementTree);
 
   elementInstance.shadowRoot.innerHTML = serialize(finalTree);
+
+  // link custom element definitions with their __hydrate__ function
+  for(const f in hydrateFunctions) {
+    for(const d in deps) {
+      if(f === deps[d].instanceName) {
+        deps[d].__hydrate__ = hydrateFunctions[f].replace(/\n/g, '')
+      }
+    };
+  }
 
   return {
     html: elementInstance.getInnerHTML({ includeShadowRoots: fragment }),
