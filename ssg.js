@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import fse from 'fs-extra';
-import { renderToString } from './lib/wcc.js';
+import { renderToString } from './src/wcc.js';
 
 const distRoot = './dist';
 const pagesRoot = './www/pages';

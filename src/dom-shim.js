@@ -140,5 +140,6 @@ globalThis.customElements = {
   }
 };
 
-const HydrateElement = await import('./hydrate-element.js').HydrateElement;
-globalThis.HydrateElement = HydrateElement;
+// TODO
+// const HydrateElement = await import('./hydrate-element.js').HydrateElement;
+// globalThis.HydrateElement = HydrateElement;

@@ -1,0 +1,28 @@
+{
+  "all": true,
+
+  "include": [
+    "src/**/**/*.js"
+  ],
+
+  "reporter": [
+    "cobertura",
+    "html",
+    "text",
+    "text-summary"
+  ],
+
+  "checkCoverage": true,
+
+  "statements": 90,
+  "branches": 90,
+  "functions": 90,
+  "lines": 90,
+
+  "watermarks": {
+    "statements": [75, 85],
+    "branches": [75, 85],
+    "functions": [75, 85],
+    "lines": [75, 85]
+  }
+}
