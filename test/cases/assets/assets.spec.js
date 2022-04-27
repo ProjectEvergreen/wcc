@@ -35,19 +35,19 @@ describe('Run WCC For ', function() {
       expect(Object.keys(assetMetadata).length).to.equal(3);
     });
 
-    it('should return the footer module with a hydrate hint', function() {
-      const hydrateScripts = Object.entries(assetMetadata)
-        .filter(asset => asset[1].hydrate === 'lazy');
-
-      expect(hydrateScripts[0][0]).to.equal('wcc-footer');
-    });
-
     it('should have the correct attributes for each asset', function() {
       Object.entries(assetMetadata).forEach((asset) => {
         expect(asset[0]).to.not.be.undefined;
         expect(asset[1].instanceName).to.not.be.undefined;
         expect(asset[1].moduleURL).to.not.be.undefined;
-      })
+      });
+    });
+
+    it('should return the footer module with a hydrate hint', function() {
+      const hydrateScripts = Object.entries(assetMetadata)
+        .filter(asset => asset[1].hydrate === 'lazy');
+
+      expect(hydrateScripts[0][0]).to.equal('wcc-footer');
     });
   });
 });
