@@ -83,7 +83,6 @@ async function initializeCustomElement(elementURL, tagName, attrs = []) {
   const element = tagName
     ? customElements.get(tagName)
     : (await import(elementURL)).default;
-  console.debug({ element });
   const dataLoader = (await import(elementURL)).getData;
   const data = dataLoader ? await dataLoader() : {};
   const elementInstance = new element(data); // eslint-disable-line new-cap
