@@ -30,13 +30,13 @@ export default class HomePage extends HTMLElement {
 
       <wcc-header></wcc-header>
 
-      <wcc-test></wcc-test>
-
       <h1>Home Page</h1>
       <wcc-counter></wcc-counter>
       <wcc-counter count="5"></wcc-counter>
 
       <p id="spacer"></p>
+
+      <wcc-test></wcc-test>
 
       <wcc-footer hydrate="lazy"></wcc-footer>
     `;

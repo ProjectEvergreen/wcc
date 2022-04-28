@@ -135,7 +135,7 @@ async function renderToString(elementURL, fragment = true) {
   for(const f in hydrateFunctions) {
     for(const d in deps) {
       if(f === deps[d].instanceName) {
-        deps[d].__hydrate__ = hydrateFunctions[f].replace(/\n/g, '')
+        deps[d].__hydrate__ = hydrateFunctions[f];
       }
     };
   }

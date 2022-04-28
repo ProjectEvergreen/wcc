@@ -59,7 +59,6 @@ app.get('/*', async (request, reply) => {
             hydrateJs.map(f => {
               return `
                 <script type="module">
-                  console.debug("${f}");
                   ${f}
                 </script>
               `
