@@ -60,6 +60,7 @@ app.get('/*', async (request, reply) => {
               return `
                 <script type="module">
                   console.debug("${f}");
+                  ${f}
                 </script>
               `
             })

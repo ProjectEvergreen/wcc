@@ -65,7 +65,8 @@ async function registerDependencies(moduleURL) {
         node.body.body.forEach((n) => {
           if(n.type === 'MethodDefinition' && n.static && n.key.name === '__hydrate__') {
             const innerFunction = moduleContents.slice(n.start, n.end);
-            hydrateFunctions[name] = innerFunction.replace('static __hydrate__', '');
+
+            hydrateFunctions[name] = `(${innerFunction.replace('static __hydrate__()', '() => ')})()`;
           }
         })
       }
