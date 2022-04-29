@@ -10,7 +10,7 @@ await fs.rm(distRoot, { recursive: true, force: true });
 await fs.mkdir('./dist', { recursive: true });
 await fse.copy('./www/assets', `${distRoot}/www/assets`);
 await fse.copy('./www/components', `${distRoot}/www/components`);
-await fse.copy('./www/pages', `${distRoot}/www/pages`);
+// await fse.copy('./docs/pages', `${distRoot}/www/pages`);
 
 for (const entry of entries.filter(entry => entry.endsWith('.js'))) {
   const { html, assets } = await renderToString(new URL(`${pagesRoot}/${entry}`, import.meta.url), false);
@@ -33,7 +33,11 @@ for (const entry of entries.filter(entry => entry.endsWith('.js'))) {
   }
 
   // bundle / copy dependency files
-  await fs.writeFile(new URL(`${distRoot}/${entry.replace('.js', '.html')}`, import.meta.url), `
+  const route = entry.replace('.js', '');
+  const outputPath = route === 'index' ? '' : `${route}/`;
+
+  await fs.mkdir(`./dist/${outputPath}`, { recursive: true });
+  await fs.writeFile(new URL(`${distRoot}/${outputPath}/index.html`, import.meta.url), `
     <!DOCTYPE html>
     <html>
       <head>

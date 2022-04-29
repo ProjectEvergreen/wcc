@@ -1,15 +1,18 @@
-name: Continuous Integration Windows
+name: Master Integration
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
 
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       matrix:
-        node: [14, 16]
+        node: [16]
 
     steps:
     - uses: actions/checkout@v1
@@ -20,12 +23,6 @@ jobs:
     - name: Installing project dependencies
       run: |
         yarn install --frozen-lockfile
-    - name: Lint
-      run: |
-        yarn lint
-    - name: Test
-      run: |
-        yarn test --parallel
     - name: Build
       run: |
         yarn clean && yarn build
