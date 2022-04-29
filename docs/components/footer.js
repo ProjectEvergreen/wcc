@@ -1,5 +1,3 @@
-import './counter.js';
-
 const template = document.createElement('template');
 
 template.innerHTML = `
@@ -22,18 +20,9 @@ template.innerHTML = `
       padding: 0;
       text-align: center;
     }
-
-    wcc-counter {
-      color: white;
-      margin: 10px auto;
-      display: block;
-      width: 50%;
-      text-align: center;
-    }
   </style>
 
   <footer class="footer">
-    <wcc-counter></wcc-counter>
     <h4>
       <a href="https://www.greenwoodjs.io/">My Blog &copy;${new Date().getFullYear()} &#9672 Built with GreenwoodJS</a>
     </h4>
@@ -41,21 +30,8 @@ template.innerHTML = `
 `;
 
 class Footer extends HTMLElement {
-  constructor() {
-    super();
-
-    console.debug('Footer constructor + SHADOW ROOT', this.shadowRoot);
-
-    if (this.shadowRoot) {
-      console.debug('Footer => shadowRoot detected!');
-    }
-
-    console.debug('=====================');
-  }
-
   connectedCallback() {
     if (!this.shadowRoot) {
-      console.debug('Footer => shadowRoot NOT detected');
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(template.content.cloneNode(true));
     }

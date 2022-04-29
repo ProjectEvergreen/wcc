@@ -28,18 +28,6 @@ template.innerHTML = `
 `;
 
 class Navigation extends HTMLElement {
-  constructor() {
-    super();
-
-    console.debug('Navigation constructor + SHADOW ROOT', this.shadowRoot);
-
-    if (this.shadowRoot) {
-      console.debug('Navigation => shadowRoot detected!');
-    }
-
-    console.debug('=====================');
-  }
-
   connectedCallback() {
     if (!this.shadowRoot) {
       console.debug('Navigation => shadowRoot NOT detected!');
