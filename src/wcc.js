@@ -21,7 +21,7 @@ async function renderComponentRoots(tree) {
 
       // TODO safeguard against non-declared custom elements, e.g. using <my-element></my-element>
       // without it actually import-ing it first, or else below destructuring will break
-      node.childNodes = node.childNodes.length === 0 ? shadowRootTree.childNodes : [...shadowRootTree.childNodes, ...node.childNodes]
+      node.childNodes = node.childNodes.length === 0 ? shadowRootTree.childNodes : [...shadowRootTree.childNodes, ...node.childNodes];
     }
 
     if (node.childNodes && node.childNodes.length > 0) {
