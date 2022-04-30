@@ -21,8 +21,8 @@ template.innerHTML = `
   <nav>
     <ul>
       <li><a href="/">Home</a></li>
-      <li><a href="/about">About</a></li>
-      <li><a href="/artists">Artists</a></li>
+      <li><a href="/docs">Docs</a></li>
+      <li><a href="/examples">Examples</a></li>
     <ul>
   </nav>
 `;

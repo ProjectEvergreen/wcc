@@ -1,5 +1,5 @@
-## Documentation
+# Documentation
 
-### Conventions
+## Conventions
 - customElements.define
 - `export default`
