@@ -25,7 +25,7 @@ jobs:
         yarn lint
     - name: Test
       run: |
-        yarn test
+        yarn test --parallel
     - name: Build
       run: |
         yarn clean && yarn ssg
