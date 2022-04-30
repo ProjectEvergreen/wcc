@@ -1,4 +1,4 @@
-import '../components/my-paragraph.js';
+import '../components/paragraph.js';
 
 export default class HomePage extends HTMLElement {
   connectedCallback() {
