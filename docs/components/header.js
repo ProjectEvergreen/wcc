@@ -5,9 +5,9 @@ const template = document.createElement('template');
 template.innerHTML = `
   <style>
     .header {
-      background-color: #192a27;
+      background-color: var(--color-primary);
       min-height: 30px;
-      padding: 10px;
+      padding: 5px;
       font-size: 1.2rem;
     }
 
@@ -24,30 +24,22 @@ template.innerHTML = `
       flex-wrap: wrap;
     }
 
-    .brand {
-      justify-items: left;
-      padding: 10px;
-    }
-
-    .brand img {
-      float:left;
-      height: 30px;
-      width: 30px;
+    .head-wrap > div {
+      flex-grow: 1;
+      width: 33%;
+      min-height: 60px;
     }
 
     .header .social {
-      margin-left:auto;
       text-align: right;
+      padding: 10px 10px 0 0;
     }
 
     .header img.github-badge {
       display: inline-block;
+      align-items: right;
       width: 90px;
       height: 20px;
-    }
-
-    button {
-      cursor: pointer;
     }
   </style>
 
@@ -55,18 +47,19 @@ template.innerHTML = `
     <div class="head-wrap">
       <div class="brand">
         <a href="/">
-          <img src="/www/assets/greenwood-logo.jpg" alt="Greenwood logo"/>
-          <h4>WCC</h4>
+          <img src="/www/assets/wcc-logo.jpg" alt="WCC logo"/>
         </a>
       </div>
 
-      <wcc-navigation></wcc-navigation>
+      <div>
+        <wcc-navigation></wcc-navigation>
+      </div>
 
       <div class="social">
-        <a href="https://github.com/ProjectEvergreen/greenwood">
+        <a href="https://github.com/ProjectEvergreen/wcc">
           <img
-            src="https://img.shields.io/github/stars/ProjectEvergreen/greenwood.svg?style=social&logo=github&label=github"
-            alt="Greenwood GitHub badge"
+            src="https://img.shields.io/github/stars/ProjectEvergreen/wcc.svg?style=social&logo=github&label=github"
+            alt="WCC GitHub badge"
             class="github-badge"/>
         </a>
       </div>

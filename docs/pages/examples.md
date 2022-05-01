@@ -1,3 +1,3 @@
-## Examples
+# Examples
 
 This is the example page.

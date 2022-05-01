@@ -6,7 +6,7 @@ template.innerHTML = `
       color: white;
       bottom: 0;
       width: 100%;
-      background-color: #192a27;
+      background-color: var(--color-primary);
       min-height: 30px;
       padding-top: 10px;
     }

@@ -5,10 +5,24 @@ const template = document.createElement('template');
 
 template.innerHTML = `
   <style>
+    :root {
+      --color-primary: #367588;
+      --color-secondary: #E5E4E2;
+    }
+
     * {
       margin: 0;
       padding: 0;
-      color: red;
+      background-color: var(--color-secondary);
+    }
+
+    #content {
+      width: 70%;
+      margin: 3% auto;
+      padding: 2%;
+      border: 1px solid #020202;
+      border-radius: 5px;
+      filter: drop-shadow(5px 5px 5px #367588);
     }
   </style>
 
@@ -17,7 +31,7 @@ template.innerHTML = `
       <wcc-header></wcc-header>
     </section>
 
-    <section>
+    <section id="content">
       <slot name="content"></slot>
     </section>
 

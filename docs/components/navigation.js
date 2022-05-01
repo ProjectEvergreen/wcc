@@ -10,7 +10,7 @@ template.innerHTML = `
 
     ul li {
       float: left;
-      width: 150px;
+      width: 33%;
     }
 
     ul li a:visited {
