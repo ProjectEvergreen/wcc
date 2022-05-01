@@ -1,6 +1,7 @@
 import '../components/counter.js';
 import '../components/footer.js';
 import '../components/header.js';
+import '../components/test.js';
 
 export default class HomePage extends HTMLElement {
   constructor() {
@@ -34,6 +35,8 @@ export default class HomePage extends HTMLElement {
       <wcc-counter count="5"></wcc-counter>
 
       <p id="spacer"></p>
+
+      <wcc-test></wcc-test>
 
       <wcc-footer hydrate="lazy"></wcc-footer>
     `;
