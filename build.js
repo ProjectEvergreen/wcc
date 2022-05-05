@@ -19,14 +19,21 @@ async function init() {
   // await fse.copy('./docs/pages', `${distRoot}/www/pages`);
 
   for (const page of pages) {
-    const markdown = await fs.readFile(new URL(`${pagesRoot}/${page}`, import.meta.url), 'utf-8');
-    const content = await unified()
+    // for now, just repurposing the README for home page content
+    const isHomePage = page === 'index.md';
+    const pageLocation = isHomePage ? './README.md' : `${pagesRoot}/${page}`;
+    const markdown = await fs.readFile(new URL(pageLocation, import.meta.url), 'utf-8');
+    let content = (await unified()
       .use(remarkParse)
       .use(remarkRehype, { allowDangerousHtml: true })
       .use(rehypeRaw)
       .use(rehypeStringify)
-      .process(markdown);
-    console.debug({ content });
+      .process(markdown)).value;
+
+    if (isHomePage) {
+      const contentFilter = content.substring(content.indexOf('<h1>wcc</h1>'), content.indexOf('<h2>Overview</h2>') + 17);
+      content = content.replace(contentFilter, '');
+    }
     
     const { html } = await renderToString(new URL('./docs/index.js', import.meta.url), false);
 

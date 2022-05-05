@@ -7,7 +7,7 @@ template.innerHTML = `
   <style>
     :root {
       --color-primary: #367588;
-      --color-secondary: #E5E4E2;
+      --color-secondary: #e5e4e2;
     }
 
     * {
@@ -23,6 +23,11 @@ template.innerHTML = `
       border: 1px solid #020202;
       border-radius: 5px;
       filter: drop-shadow(5px 5px 5px #367588);
+    }
+
+    p, h1, h2, ul, ol {
+      margin: 8px;
+      padding: 8px;
     }
   </style>
 
