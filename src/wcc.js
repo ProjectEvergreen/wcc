@@ -12,24 +12,16 @@ const deps = [];
 async function renderComponentRoots(tree) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
-      console.debug('WE HAVE A CUSTOM ELEMENT !!!!!!!!!!!!!!');
+      const { tagName } = node;
+      const { moduleURL } = deps[tagName];
+      const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs);
 
-      // if there are no nodes / content, it is an "empty" tag, e.g. <wcc-header></wcc-header>
-      // we can just get the declarative shadow root right away
-      // TODO safeguard against non-declared custom elements, e.g. using <my-element></my-element> without actually import-ing it first
-      // or else below destructuring will break
-      if (node.childNodes.length === 0) {
-        const { tagName } = node;
-        const { moduleURL } = deps[tagName];
-        const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs);
+      const shadowRootHtml = elementInstance.getInnerHTML({ includeShadowRoots: true });
+      const shadowRootTree = parseFragment(shadowRootHtml);
 
-        const shadowRootHtml = elementInstance.getInnerHTML({ includeShadowRoots: true });
-        const shadowRootTree = parseFragment(shadowRootHtml);
-
-        node.childNodes = shadowRootTree.childNodes;
-      }
-
-      // TODO handle inner content like text or <slot>
+      // TODO safeguard against non-declared custom elements, e.g. using <my-element></my-element>
+      // without it actually import-ing it first, or else below destructuring will break
+      node.childNodes = node.childNodes.length === 0 ? shadowRootTree.childNodes : [...shadowRootTree.childNodes, ...node.childNodes];
     }
 
     if (node.childNodes && node.childNodes.length > 0) {
