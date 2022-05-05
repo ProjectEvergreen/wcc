@@ -9,7 +9,7 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "lint": "eslint \"*.*js\" \"./src/**/**/*.js\" \"./test/**/**/*.js\"",
-    "develop": "yarn clean && concurrently \"nodemon --watch src --watch docs ./build.js\" \"http-server ./dist --open\"",
+    "develop": "yarn clean && concurrently \"nodemon --watch src --watch docs -e js,md,css,html ./build.js\" \"http-server ./dist --open\"",
     "build": "node ./build.js",
     "serve": "yarn clean && node ./build.js && http-server ./dist --open",
     "example:ssg": "node ./examples/ssg.js",
