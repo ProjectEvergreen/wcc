@@ -1,6 +1,6 @@
 /*
  * Use Case
- * Run wcc against custom elements with declarative shadow dom and get the asset graph.
+ * Run wcc against custom elements with declarative shadow dom and get the metadata graph.
  *
  * User Result
  * Should return the expected asset graph and entries.
@@ -21,13 +21,13 @@ import { renderToString } from '../../../src/wcc.js';
 const expect = chai.expect;
 
 describe('Run WCC For ', function() {
-  const LABEL = 'Assets graph and metadata';
+  const LABEL = 'Metadata graph';
   let assetMetadata;
 
   before(async function() {
-    const { assets } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
+    const { metadata } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
     
-    assetMetadata = assets;
+    assetMetadata = metadata;
   });
 
   describe(LABEL, function() {

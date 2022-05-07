@@ -6,11 +6,15 @@ template.innerHTML = `
     ul {
       list-style-type: none;
       color: #efefef;
+      overflow: auto;
+      grid-column: 1 / -1;
     }
 
     ul li {
       float: left;
-      width: 150px;
+      width: 33%;
+      text-align: center;
+      margin: 10px 0;
     }
 
     ul li a:visited {
@@ -21,28 +25,15 @@ template.innerHTML = `
   <nav>
     <ul>
       <li><a href="/">Home</a></li>
-      <li><a href="/about">About</a></li>
-      <li><a href="/artists">Artists</a></li>
+      <li><a href="/docs">Docs</a></li>
+      <li><a href="/examples">Examples</a></li>
     <ul>
   </nav>
 `;
 
 class Navigation extends HTMLElement {
-  constructor() {
-    super();
-
-    console.debug('Navigation constructor + SHADOW ROOT', this.shadowRoot);
-
-    if (this.shadowRoot) {
-      console.debug('Navigation => shadowRoot detected!');
-    }
-
-    console.debug('=====================');
-  }
-
   connectedCallback() {
     if (!this.shadowRoot) {
-      console.debug('Navigation => shadowRoot NOT detected!');
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(template.content.cloneNode(true));
     }

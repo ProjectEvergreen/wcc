@@ -1,0 +1,9 @@
+[build]
+  publish = "dist/"
+  command = "yarn build"
+
+[build.processing]
+  skip_processing = true
+
+[build.environment]
+  NODE_VERSION = "16.13.2"

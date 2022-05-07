@@ -28,4 +28,4 @@ jobs:
         yarn test --parallel
     - name: Build
       run: |
-        yarn clean && yarn ssg
+        yarn clean && yarn build
