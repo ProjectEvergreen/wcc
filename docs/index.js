@@ -12,6 +12,10 @@ template.innerHTML = `
     main {
       margin-bottom: 20px;
     }
+
+    a:visited {
+      color: var(--accent);
+    }
   </style>
 
   <wcc-header></wcc-header>
