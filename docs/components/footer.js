@@ -3,24 +3,20 @@ const template = document.createElement('template');
 template.innerHTML = `
   <style>
     footer {
-      bottom: 0;
-      width: 100%;
       background-color: var(--accent);
       min-height: 30px;
-      padding-top: 10px;
+      padding: 10px 0;
       grid-column: 1 / -1;
-    }
-
-    footer a {
-      color: #efefef;
-      text-decoration: none;
+      text-align: center;
     }
 
     footer h4 {
-      width: 90%;
       margin: 0 auto;
-      padding: 0;
-      text-align: center;
+    }
+
+    footer a:visited {
+      color: var(--text);
+      text-decoration: none;
     }
   </style>
 

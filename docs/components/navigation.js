@@ -3,22 +3,21 @@ const template = document.createElement('template');
 
 template.innerHTML = `
   <style>
-    ul {
+    nav ul {
       list-style-type: none;
-      color: #efefef;
       overflow: auto;
       grid-column: 1 / -1;
     }
 
-    ul li {
+    nav ul li {
       float: left;
       width: 33%;
       text-align: center;
       margin: 10px 0;
     }
 
-    ul li a:visited {
-      color: #efefef;
+    nav ul li a, nav ul li a:visited {
+      color: var(--text);
     }
   </style>
 

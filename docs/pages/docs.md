@@ -72,6 +72,7 @@ export async function getData() {
 > _See our [examples page](/examples/) for more info._
 
 ## Conventions
+
 - Make sure to define your custom elements with `customElements.define`
 - Make sure to `export default` your custom element base class
 - Avoid [touching the DOM in `constructor` methods](https://twitter.com/techytacos/status/1514029967981494280)
