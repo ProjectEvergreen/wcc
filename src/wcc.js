@@ -102,7 +102,7 @@ async function renderToString(elementURL, fragment = true) {
 
   return {
     html: elementInstance.getInnerHTML({ includeShadowRoots: fragment }),
-    assets: deps
+    metadata: deps
   };
 }
 

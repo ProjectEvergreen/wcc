@@ -8,6 +8,10 @@ template.innerHTML = `
     :root {
       --accent: #367588;
     }
+
+    main {
+      margin-bottom: 20px;
+    }
   </style>
 
   <wcc-header></wcc-header>

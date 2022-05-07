@@ -22,14 +22,14 @@ In addition, WCC hopes to provide a surface area to explore patterns around [str
 
 ## Key Features
 
-* Supports the following `HTMLElement` lifecycles and methods on the server side
+1. Supports the following `HTMLElement` lifecycles and methods on the server side
     - `connectedCallback`
     - `attachShadow`
     - `innerHTML`
     - `[get|set|has]Attribute`
-* Recursive rendering of nested custom elements
-* Optional Declarative Shadow DOM (for producing purely content driven static pages)
-* Provides asset metadata and runtime hints to support client-side hydration and lazy loading strategies
+1. Recursive rendering of nested custom elements
+1. Optional Declarative Shadow DOM (for producing purely content driven static pages)
+1. Metadata and runtime hints to support progressive hydration and lazy loading strategies
 
 ## Installation
 
