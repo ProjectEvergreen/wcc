@@ -68,7 +68,7 @@ async function init() {
         <head>
           <title>Web Components Compiler (WCC)</title>
           <meta property="og:title" content="Web Components Compiler (WCC)"/>
-
+          <link rel="stylesheet" href="https://unpkg.com/simpledotcss@2.1.0/simple.min.css">
         </head>
 
         <body>

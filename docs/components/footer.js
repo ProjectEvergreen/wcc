@@ -2,19 +2,21 @@ const template = document.createElement('template');
 
 template.innerHTML = `
   <style>
-    .footer {
-      color: white;
+    footer {
       bottom: 0;
       width: 100%;
-      background-color: var(--color-primary);
+      background-color: var(--accent);
       min-height: 30px;
       padding-top: 10px;
+      grid-column: 1 / -1;
     }
-    .footer a {
+
+    footer a {
       color: #efefef;
       text-decoration: none;
     }
-    .footer h4 {
+
+    footer h4 {
       width: 90%;
       margin: 0 auto;
       padding: 0;
@@ -22,9 +24,9 @@ template.innerHTML = `
     }
   </style>
 
-  <footer class="footer">
+  <footer>
     <h4>
-      <a href="https://www.greenwoodjs.io/">My Blog &copy;${new Date().getFullYear()} &#9672 Built with GreenwoodJS</a>
+      <a href="https://projectevergreen.github.io">WCC &#9672 Project Evergreen</a>
     </h4>
   </footer>
 `;

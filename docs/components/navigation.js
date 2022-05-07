@@ -6,11 +6,15 @@ template.innerHTML = `
     ul {
       list-style-type: none;
       color: #efefef;
+      overflow: auto;
+      grid-column: 1 / -1;
     }
 
     ul li {
       float: left;
       width: 33%;
+      text-align: center;
+      margin: 10px 0;
     }
 
     ul li a:visited {
@@ -30,7 +34,6 @@ template.innerHTML = `
 class Navigation extends HTMLElement {
   connectedCallback() {
     if (!this.shadowRoot) {
-      console.debug('Navigation => shadowRoot NOT detected!');
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(template.content.cloneNode(true));
     }
