@@ -15,7 +15,7 @@
  * 
  * Config
  * {
- *   includeShadowRoots: false
+ *   lightMode: true
  * }
  */
 
@@ -26,12 +26,12 @@ import { renderToString } from '../../../src/wcc.js';
 const expect = chai.expect;
 
 describe('Run WCC For ', function() {
-  const LABEL = 'Nested Custom Element w/ no rendered Shadow Roots';
+  const LABEL = 'Nested Custom Element w/ no using Light Mode configuration';
   let dom;
 
   before(async function() {
     const { html } = await renderToString(new URL('./src/pages/index.js', import.meta.url), {
-      includeShadowRoots: false
+      lightMode: true
     });
 
     dom = new JSDOM(html);
