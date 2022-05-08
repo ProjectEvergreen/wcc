@@ -99,14 +99,16 @@ async function renderToString(elementURL, options = {}) {
   const elementInstance = await initializeCustomElement(elementURL);
   // invert includeShadowRoots at the top level to double `<template>` tag wrapping top level content
   // this is useful in conjunction with a WC used as a page, where we only want its content, not necessarily its template
-  const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots: unwrapTopLevelShadowRoot ? !unwrapTopLevelShadowRoot : unwrapTopLevelShadowRoot });
+  const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots });
   const elementTree = parseFragment(elementHtml);
   const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
 
-  elementInstance.shadowRoot.innerHTML = serialize(finalTree);
+  // elementInstance.shadowRoot.innerHTML = serialize(finalTree);
+
+  console.debug(serialize(finalTree));
 
   return {
-    html: elementInstance.getInnerHTML({ includeShadowRoots }),
+    html: serialize(finalTree),
     metadata: definitions
   };
 }
