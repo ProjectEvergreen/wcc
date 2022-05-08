@@ -3,7 +3,7 @@ import './dom-shim.js';
 
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
-import { parseFragment, serialize } from 'parse5';
+import { parse, parseFragment, serialize } from 'parse5';
 
 import fs from 'node:fs/promises';
 
@@ -108,8 +108,21 @@ async function renderToString(elementURL, options = {}) {
   };
 }
 
-// TODO renderToStream
+async function renderFromHTML(html, elements = []) {
+  for (const url of elements) {
+    await initializeCustomElement(url);
+  }
+
+  const elementTree = parse(html);
+  const finalTree = await renderComponentRoots(elementTree);
+
+  return {
+    html: serialize(finalTree),
+    metadata: deps
+  };
+}
 
 export {
-  renderToString
+  renderToString,
+  renderFromHTML
 };
