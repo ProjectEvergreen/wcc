@@ -11,15 +11,74 @@ This function takes a `URL` to a JavaScript file that defines a custom element, 
 const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
 ```
 
+```js
+// index.js
+import './components/footer.js';
+import './components/header.js';
+
+const template = document.createElement('template');
+
+template.innerHTML = `
+  <style>
+    :root {
+      --accent: #367588;
+    }
+  </style>
+
+  <wcc-header></wcc-header>
+
+  <main>
+    <h1>My Blog Postr</h1>
+  </main>
+
+  <wcc-footer></wcc-footer>
+`;
+
+class Home extends HTMLElement {
+
+  connectedCallback() {
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(template.content.cloneNode(true));
+    }
+  }
+}
+
+export default Home;
+```
+
 #### Options
 
 `renderToString` also supports a second parameter that is an object, called `options`, which supports the following configurations:
 
 - `lightMode`: For more static outcomes (e.g. no declarative shadow DOM), this option will omit all wrapping `<template shadowroot="...">` tags when rendering out custom elements.  Useful for static sites or working with global CSS libraries.
 
+### `renderFromHTML`
+
+This function takes a string of HTML and an array of any top-level custom elements used with `import`, and returns the static HTML output of the rendered content.
+
+```js
+const { html } = await renderToString(`
+  <html>
+    <head>
+      <title>WCC</title>
+    </head>
+    <body>
+      <wcc-header></wcc-header>
+      <h1>Home Page</h1>
+      <wcc-footer></wcc-footer>
+    </body>
+  </html>
+`, 
+[
+  new URL('./src/components/footer.js', import.meta.url),
+  new URL('./src/components/header.js', import.meta.url)
+]);
+```
+
 ## Metadata
 
-`renderToString` returns not only HTML, but also metadata about all the custom elements registered as part of rendering the top level custom element.
+`renderToString` and `renderFromHTML` returns not only HTML, but also metadata about all the custom elements registered as part of rendering the top level custom element.
 
 ```js
 const { metadata } = await renderToString(new URL('./src/index.js', import.meta.url));
