@@ -11,7 +11,7 @@ async function init() {
   const distRoot = './dist';
   const pagesRoot = './docs/pages';
   const pages = await fs.readdir(new URL(pagesRoot, import.meta.url));
-  const { html, metadata } = await renderToString(new URL('./docs/index.js', import.meta.url), false);
+  const { html } = await renderToString(new URL('./docs/index.js', import.meta.url), false);
 
   // await fs.rm(distRoot, { recursive: true, force: true });
   // await fs.mkdir('./dist', { recursive: true });
