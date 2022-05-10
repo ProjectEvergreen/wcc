@@ -11,6 +11,7 @@ async function init() {
   const distRoot = './dist';
   const pagesRoot = './docs/pages';
   const pages = await fs.readdir(new URL(pagesRoot, import.meta.url));
+  const { html, metadata } = await renderToString(new URL('./docs/index.js', import.meta.url), false);
 
   // await fs.rm(distRoot, { recursive: true, force: true });
   // await fs.mkdir('./dist', { recursive: true });
@@ -34,9 +35,8 @@ async function init() {
       const contentFilter = content.substring(content.indexOf('<h1>wcc</h1>'), content.indexOf('<h2>Overview</h2>') + 17);
       content = content.replace(contentFilter, '');
     }
-    
-    const { html } = await renderToString(new URL('./docs/index.js', import.meta.url), false);
 
+    console.debug({ metadata });
     // const lazyJs = [];
     // const eagerJs = [];
 
