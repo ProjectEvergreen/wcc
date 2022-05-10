@@ -25,9 +25,6 @@ describe('Run WCC For ', function() {
 
   before(async function() {
     const { metadata } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
-    
-    console.debug({ metadata });
-    console.debug('the keyyyyyssss!!!!', Object.keys(metadata));
 
     assetMetadata = metadata;
   });
