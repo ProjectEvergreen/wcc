@@ -36,7 +36,6 @@ async function init() {
       content = content.replace(contentFilter, '');
     }
 
-    console.debug({ metadata });
     // const lazyJs = [];
     // const eagerJs = [];
 

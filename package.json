@@ -15,7 +15,7 @@
     "example:ssg": "node ./examples/ssg.js",
     "example:ssr": "node ./examples/ssr.js",
     "start": "yarn develop",
-    "test": "c8 mocha",
+    "test": "c8 mocha --parallel",
     "test:tdd": "yarn test --watch"
   },
   "dependencies": {
