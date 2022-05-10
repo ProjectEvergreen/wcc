@@ -7,7 +7,7 @@ import { parseFragment, serialize } from 'parse5';
 
 import fs from 'node:fs/promises';
 
-const deps = [];
+let deps;
 
 async function renderComponentRoots(tree) {
   for (const node of tree.childNodes) {
@@ -93,6 +93,8 @@ async function initializeCustomElement(elementURL, tagName, attrs = []) {
 }
 
 async function renderToString(elementURL, fragment = true) {
+  deps = [];
+
   const elementInstance = await initializeCustomElement(elementURL);
   const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots: false });
   const elementTree = parseFragment(elementHtml);
