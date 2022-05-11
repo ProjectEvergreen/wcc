@@ -11,6 +11,11 @@ This function takes a `URL` to a JavaScript file that defines a custom element, 
 const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
 ```
 
+#### Options
+
+`renderToString` also supports a second parameter that is an object, called `options`, which supports the following configurations:
+
+- `lightMode`: For more static outcomes (e.g. no declarative shadow DOM), this option will omit all wrapping `<template shadowroot="...">` tags when rendering out custom elements.  Useful for static sites or working with global CSS libraries.
 
 ## Metadata
 
@@ -72,6 +77,7 @@ export async function getData() {
 > _See our [examples page](/examples/) for more info._
 
 ## Conventions
+
 - Make sure to define your custom elements with `customElements.define`
 - Make sure to `export default` your custom element base class
 - Avoid [touching the DOM in `constructor` methods](https://twitter.com/techytacos/status/1514029967981494280)
