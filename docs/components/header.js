@@ -22,24 +22,31 @@ template.innerHTML = `
       width: 90px;
       height: 20px;
     }
+
+    header div.container {
+      max-width: 1200px;
+      margin: auto;
+    }
   </style>
 
   <header>
-    <div>
-      <a href="/">
-        <img src="/www/assets/wcc-logo.jpg" alt="WCC logo" class="logo"/>
-      </a>
+    <div class="container">
+      <div>
+        <a href="/">
+          <img src="/www/assets/wcc-logo.jpg" alt="WCC logo" class="logo"/>
+        </a>
 
-      <a href="https://github.com/ProjectEvergreen/wcc" class="social">
-        <img
-          src="https://img.shields.io/github/stars/ProjectEvergreen/wcc.svg?style=social&logo=github&label=github"
-          alt="WCC GitHub badge"
-          class="github-badge"
-        />
-      </a>
+        <a href="https://github.com/ProjectEvergreen/wcc" class="social">
+          <img
+            src="https://img.shields.io/github/stars/ProjectEvergreen/wcc.svg?style=social&logo=github&label=github"
+            alt="WCC GitHub badge"
+            class="github-badge"
+          />
+        </a>
+      </div>
+
+      <wcc-navigation></wcc-navigation>
     </div>
-
-    <wcc-navigation></wcc-navigation>
   </header>
 `;
 

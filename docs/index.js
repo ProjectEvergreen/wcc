@@ -9,8 +9,14 @@ template.innerHTML = `
       --accent: #367588;
     }
 
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
     main {
-      margin-bottom: 20px;
+      max-width: 1200px;
+      margin: 20px auto;
     }
 
     a:visited {
@@ -25,8 +31,6 @@ template.innerHTML = `
   </main>
 
   <wcc-footer></wcc-footer>
-
-  </main>
 `;
 
 class Home extends HTMLElement {
