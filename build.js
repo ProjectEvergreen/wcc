@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import rehypePrism from '@mapbox/rehype-prism';
 import rehypeStringify from 'rehype-stringify';
 import rehypeRaw from 'rehype-raw';
 import remarkParse from 'remark-parse';
@@ -8,6 +9,7 @@ import { unified } from 'unified';
 import { renderToString } from './src/wcc.js';
 
 async function init() {
+  const nodeModulesRoot = new URL('./node_modules', import.meta.url);
   const distRoot = './dist';
   const pagesRoot = './docs/pages';
   const pages = await fs.readdir(new URL(pagesRoot, import.meta.url));
@@ -15,11 +17,14 @@ async function init() {
     lightMode: true
   });
 
-  // await fs.rm(distRoot, { recursive: true, force: true });
-  // await fs.mkdir('./dist', { recursive: true });
+  await fs.rm(distRoot, { recursive: true, force: true});
+  await fs.mkdir('./dist', { recursive: true });
   // await fse.copy('./www/assets', `${distRoot}/www/assets`);
   // await fse.copy('./www/components', `${distRoot}/www/components`);
   // await fse.copy('./docs/pages', `${distRoot}/www/pages`);
+
+  await fs.copyFile(new URL('./node_modules/prismjs/themes/prism.css', import.meta.url), new URL(`${distRoot}/prism.css`, import.meta.url))
+  await fs.copyFile(new URL('./node_modules/simple.css/dist/simple.min.css', import.meta.url), new URL(`${distRoot}/simple.min.css`, import.meta.url))
 
   for (const page of pages) {
     // for now, just repurposing the README for home page content
@@ -30,6 +35,7 @@ async function init() {
       .use(remarkParse)
       .use(remarkRehype, { allowDangerousHtml: true })
       .use(rehypeRaw)
+      .use(rehypePrism)
       .use(rehypeStringify)
       .process(markdown)).value;
 
@@ -65,11 +71,13 @@ async function init() {
     await fs.writeFile(new URL(`${distRoot}/${outputPath}/index.html`, import.meta.url), `
       <!DOCTYPE html>
       <html lang="en" prefix="og:http://ogp.me/ns#">
-      
+
         <head>
           <title>WCC - Web Components Compiler</title>
           <meta property="og:title" content="Web Components Compiler (WCC)"/>
-          <link rel="stylesheet" href="https://unpkg.com/simpledotcss@2.1.0/simple.min.css">
+
+          <link href="/prism.css" rel="stylesheet" />
+          <link rel="stylesheet" href="/simple.min.css">
         </head>
 
         <body>
