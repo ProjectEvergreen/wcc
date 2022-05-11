@@ -23,6 +23,7 @@ In addition, WCC hopes to provide a surface area to explore patterns around [str
 ## Key Features
 
 1. Supports the following `HTMLElement` lifecycles and methods on the server side
+    - `constructor`
     - `connectedCallback`
     - `attachShadow`
     - `innerHTML`
