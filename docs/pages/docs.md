@@ -1,9 +1,8 @@
 # Documentation
 
-
 ## API
 
-### `renderToString`
+### renderToString
 
 This function takes a `URL` to a JavaScript file that defines a custom element, and returns the static HTML output of its rendered contents.
 
@@ -11,15 +10,83 @@ This function takes a `URL` to a JavaScript file that defines a custom element, 
 const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
 ```
 
-#### Options
+```js
+// index.js
+import './components/footer.js';
+import './components/header.js';
 
-`renderToString` also supports a second parameter that is an object, called `options`, which supports the following configurations:
+const template = document.createElement('template');
+
+template.innerHTML = `
+  <style>
+    :root {
+      --accent: #367588;
+    }
+  </style>
+
+  <wcc-header></wcc-header>
+
+  <main>
+    <h1>My Blog Post</h1>
+  </main>
+
+  <wcc-footer></wcc-footer>
+`;
+
+class Home extends HTMLElement {
+
+  connectedCallback() {
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(template.content.cloneNode(true));
+    }
+  }
+}
+
+export default Home;
+```
+
+### renderFromHTML
+
+This function takes a string of HTML and an array of any top-level custom elements used with `import`, and returns the static HTML output of the rendered content.
+
+```js
+const { html } = await renderToString(`
+  <html>
+    <head>
+      <title>WCC</title>
+    </head>
+    <body>
+      <wcc-header></wcc-header>
+      <h1>Home Page</h1>
+      <wcc-footer></wcc-footer>
+    </body>
+  </html>
+`, 
+[
+  new URL('./src/components/footer.js', import.meta.url),
+  new URL('./src/components/header.js', import.meta.url)
+]);
+```
+
+### Options
+
+`renderToString` and `renderFromHTML` also supports a second and third parameter respectively, that is an object, called `options`
+```js
+// default values
+{
+  lightMode: false
+}
+```
+
+It supports the following configuration(s):
 
 - `lightMode`: For more static outcomes (e.g. no declarative shadow DOM), this option will omit all wrapping `<template shadowroot="...">` tags when rendering out custom elements.  Useful for static sites or working with global CSS libraries.
 
+
 ## Metadata
 
-`renderToString` returns not only HTML, but also metadata about all the custom elements registered as part of rendering the top level custom element.
+`renderToString` and `renderFromHTML` return not only HTML, but also metadata about all the custom elements registered as part of rendering the top level custom element.
 
 ```js
 const { metadata } = await renderToString(new URL('./src/index.js', import.meta.url));
@@ -61,7 +128,7 @@ The benefit is that this hint can be used to defer loading of these scripts by u
 > _See our [examples page](/examples/) for more info._
 
 
-## `getData`
+## Data
 
 To further support SSR and hydration scenarios where data is involved, a file with a custom element definition can also export a `getData` function to inject into the custom elements constructor at server render time, as "props".  This can be serialized right into the component's Shadow DOM!
 

@@ -3,7 +3,7 @@ import './dom-shim.js';
 
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
-import { parseFragment, serialize } from 'parse5';
+import { parse, parseFragment, serialize } from 'parse5';
 
 import fs from 'node:fs/promises';
 
@@ -94,6 +94,7 @@ async function initializeCustomElement(elementURL, tagName, attrs = []) {
 
 async function renderToString(elementURL, options = {}) {
   definitions = [];
+
   const { lightMode = false } = options;
   const includeShadowRoots = !lightMode;
 
@@ -108,8 +109,26 @@ async function renderToString(elementURL, options = {}) {
   };
 }
 
-// TODO renderToStream
+async function renderFromHTML(html, elements = [], options = {}) {
+  definitions = [];
+
+  const { lightMode = false } = options;
+  const includeShadowRoots = !lightMode;
+
+  for (const url of elements) {
+    await initializeCustomElement(url);
+  }
+
+  const elementTree = parse(html);
+  const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
+
+  return {
+    html: serialize(finalTree),
+    metadata: definitions
+  };
+}
 
 export {
-  renderToString
+  renderToString,
+  renderFromHTML
 };
