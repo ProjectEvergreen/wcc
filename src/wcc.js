@@ -7,13 +7,13 @@ import { parseFragment, serialize } from 'parse5';
 
 import fs from 'node:fs/promises';
 
-let deps;
+let definitions;
 
 async function renderComponentRoots(tree) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
       const { tagName } = node;
-      const { moduleURL } = deps[tagName];
+      const { moduleURL } = definitions[tagName];
       const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs);
 
       const shadowRootHtml = elementInstance.getInnerHTML({ includeShadowRoots: true });
@@ -59,7 +59,7 @@ async function registerDependencies(moduleURL) {
         
         const tagName = node.expression.arguments[0].value;
 
-        deps[tagName] = {
+        definitions[tagName] = {
           instanceName: node.expression.arguments[1].name,
           moduleURL
         };
@@ -83,7 +83,7 @@ async function initializeCustomElement(elementURL, tagName, attrs = []) {
     elementInstance.setAttribute(attr.name, attr.value);
 
     if (attr.name === 'hydrate') {
-      deps[tagName].hydrate = attr.value;
+      definitions[tagName].hydrate = attr.value;
     }
   });
 
@@ -93,7 +93,7 @@ async function initializeCustomElement(elementURL, tagName, attrs = []) {
 }
 
 async function renderToString(elementURL, fragment = true) {
-  deps = [];
+  definitions = [];
 
   const elementInstance = await initializeCustomElement(elementURL);
   const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots: false });
@@ -104,7 +104,7 @@ async function renderToString(elementURL, fragment = true) {
 
   return {
     html: elementInstance.getInnerHTML({ includeShadowRoots: fragment }),
-    metadata: deps
+    metadata: definitions
   };
 }
 
