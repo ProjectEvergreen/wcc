@@ -14,7 +14,6 @@
  *   pages/
  *     index.js
  */
-
 import chai from 'chai';
 import { renderToString } from '../../../src/wcc.js';
 
@@ -26,7 +25,7 @@ describe('Run WCC For ', function() {
 
   before(async function() {
     const { metadata } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
-    
+
     assetMetadata = metadata;
   });
 
