@@ -109,15 +109,18 @@ async function renderToString(elementURL, options = {}) {
   };
 }
 
-async function renderFromHTML(html, elements = []) {
+async function renderFromHTML(html, elements = [], options = {}) {
   definitions = [];
+
+  const { lightMode = false } = options;
+  const includeShadowRoots = !lightMode;
 
   for (const url of elements) {
     await initializeCustomElement(url);
   }
 
   const elementTree = parse(html);
-  const finalTree = await renderComponentRoots(elementTree);
+  const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
 
   return {
     html: serialize(finalTree),
