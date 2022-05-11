@@ -94,6 +94,7 @@ async function initializeCustomElement(elementURL, tagName, attrs = []) {
 
 async function renderToString(elementURL, options = {}) {
   definitions = [];
+
   const { lightMode = false } = options;
   const includeShadowRoots = !lightMode;
 
@@ -109,6 +110,8 @@ async function renderToString(elementURL, options = {}) {
 }
 
 async function renderFromHTML(html, elements = []) {
+  definitions = [];
+
   for (const url of elements) {
     await initializeCustomElement(url);
   }
@@ -118,7 +121,7 @@ async function renderFromHTML(html, elements = []) {
 
   return {
     html: serialize(finalTree),
-    metadata: deps
+    metadata: definitions
   };
 }
 
