@@ -25,4 +25,4 @@ jobs:
         yarn install --frozen-lockfile
     - name: Build
       run: |
-        yarn clean && yarn build
+        yarn build
