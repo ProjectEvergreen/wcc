@@ -19,8 +19,6 @@ async function renderComponentRoots(tree, includeShadowRoots = true) {
       const shadowRootHtml = elementInstance.getInnerHTML({ includeShadowRoots });
       const shadowRootTree = parseFragment(shadowRootHtml);
 
-      // TODO safeguard against non-declared custom elements, e.g. using <my-element></my-element>
-      // without it actually import-ing it first, or else below destructuring will break
       node.childNodes = node.childNodes.length === 0 ? shadowRootTree.childNodes : [...shadowRootTree.childNodes, ...node.childNodes];
     }
 
@@ -52,11 +50,10 @@ async function registerDependencies(moduleURL) {
     async ExpressionStatement(node) {
       const { expression } = node;
 
-      // TODO don't need to update if it already exists
-      if (expression.type === 'CallExpression' && expression.callee && expression.callee.object 
-        && expression.callee.property && expression.callee.object.name === 'customElements' 
+      if (expression.type === 'CallExpression' && expression.callee && expression.callee.object
+        && expression.callee.property && expression.callee.object.name === 'customElements'
         && expression.callee.property.name === 'define') {
-        
+
         const tagName = node.expression.arguments[0].value;
 
         definitions[tagName] = {
@@ -68,7 +65,6 @@ async function registerDependencies(moduleURL) {
   });
 }
 
-// TODO assumes top level component is using a default export
 async function initializeCustomElement(elementURL, tagName, attrs = []) {
   await registerDependencies(elementURL);
 

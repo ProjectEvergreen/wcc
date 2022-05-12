@@ -16,14 +16,11 @@ async function init() {
     lightMode: true
   });
 
-  await fs.rm(distRoot, { recursive: true, force: true});
+  await fs.rm(distRoot, { recursive: true, force: true });
   await fs.mkdir('./dist', { recursive: true });
-  // await fse.copy('./www/assets', `${distRoot}/www/assets`);
-  // await fse.copy('./www/components', `${distRoot}/www/components`);
-  // await fse.copy('./docs/pages', `${distRoot}/www/pages`);
 
-  await fs.copyFile(new URL('./node_modules/prismjs/themes/prism.css', import.meta.url), new URL(`${distRoot}/prism.css`, import.meta.url))
-  await fs.copyFile(new URL('./node_modules/simple.css/dist/simple.min.css', import.meta.url), new URL(`${distRoot}/simple.min.css`, import.meta.url))
+  await fs.copyFile(new URL('./node_modules/prismjs/themes/prism.css', import.meta.url), new URL(`${distRoot}/prism.css`, import.meta.url));
+  await fs.copyFile(new URL('./node_modules/simple.css/dist/simple.min.css', import.meta.url), new URL(`${distRoot}/simple.min.css`, import.meta.url));
 
   for (const page of pages) {
     // for now, just repurposing the README for home page content
@@ -43,24 +40,6 @@ async function init() {
       content = content.replace(contentFilter, '');
     }
 
-    // const lazyJs = [];
-    // const eagerJs = [];
-
-    // for (const asset in assets) {
-    //   const a = assets[asset];
-
-    //   a.tagName = asset;
-
-    //   if (a.moduleURL.href.endsWith('.js')) {
-    //     if (a.hydrate === 'lazy') {
-    //       lazyJs.push(a);
-    //     } else {
-    //       eagerJs.push(a);
-    //     }
-    //   }
-    // }
-
-    // bundle / copy dependency files
     const route = page.replace('.md', '');
     const outputPath = route === 'index' ? '' : `${route}/`;
 

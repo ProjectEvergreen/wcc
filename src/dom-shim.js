@@ -139,7 +139,3 @@ globalThis.customElements = {
     return customElementsRegistry[tagName];
   }
 };
-
-// TODO
-// const HydrateElement = await import('./hydrate-element.js').HydrateElement;
-// globalThis.HydrateElement = HydrateElement;
