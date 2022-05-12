@@ -1,14 +1,23 @@
 {
-  "name": "wcc",
-  "version": "0.0.1",
+  "name": "wc-compiler",
+  "version": "0.1.0",
   "description": "Experimental native Web Components compiler.",
   "main": "src/wcc.js",
   "type": "module",
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  },
+  "files": [
+    "src/"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "lint": "eslint \"*.*js\" \"./src/**/**/*.js\" \"./test/**/**/*.js\"",
-    "develop": "yarn clean && concurrently \"nodemon --watch src --watch docs -e js,md,css,html ./build.js\" \"http-server ./dist --open\"",
+    "develop": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html ./build.js\" \"http-server ./dist --open\"",
     "build": "node ./build.js",
     "serve": "node ./build.js && http-server ./dist --open",
     "example:ssg": "node ./examples/ssg.js",
