@@ -19,8 +19,6 @@ template.innerHTML = `
       display: inline-block;
       padding: 10px;
       align-items: top;
-      width: 90px;
-      height: 20px;
     }
 
     header div.container {
@@ -32,14 +30,18 @@ template.innerHTML = `
   <header>
     <div class="container">
       <div>
+        <!--
         <a href="/">
           <img src="/www/assets/wcc-logo.jpg" alt="WCC logo" class="logo"/>
         </a>
+        -->
 
         <a href="https://github.com/ProjectEvergreen/wcc" class="social">
           <img
             src="https://img.shields.io/github/stars/ProjectEvergreen/wcc.svg?style=social&logo=github&label=github"
             alt="WCC GitHub badge"
+            width="174px"
+            height="40px"
             class="github-badge"
           />
         </a>

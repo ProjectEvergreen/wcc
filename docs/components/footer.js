@@ -10,20 +10,21 @@ template.innerHTML = `
       text-align: center;
     }
 
-    footer h4 {
+    footer p {
       margin: 0 auto;
+      font-weight: bold;
     }
 
-    footer a:visited {
-      color: var(--text);
+    footer a, footer a:visited {
+      color: #efefef;
       text-decoration: none;
     }
   </style>
 
   <footer>
-    <h4>
+    <p>
       <a href="https://projectevergreen.github.io">WCC &#9672 Project Evergreen</a>
-    </h4>
+    </p>
   </footer>
 `;
 
