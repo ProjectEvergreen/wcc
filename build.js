@@ -9,7 +9,6 @@ import { unified } from 'unified';
 import { renderToString } from './src/wcc.js';
 
 async function init() {
-  const nodeModulesRoot = new URL('./node_modules', import.meta.url);
   const distRoot = './dist';
   const pagesRoot = './docs/pages';
   const pages = await fs.readdir(new URL(pagesRoot, import.meta.url));
@@ -74,10 +73,16 @@ async function init() {
 
         <head>
           <title>WCC - Web Components Compiler</title>
-          <meta property="og:title" content="Web Components Compiler (WCC)"/>
+          <meta name="viewport" content="width=device-width, initial-scale=1"/>
+          <meta charset="utf-8">
+          <meta name="description" content="An experimental native Web Components compiler."/>
+          <meta property="og:description" content="An experimental native Web Components compiler"/>
+          <meta property="og:title" content="WCC - Web Components Compiler"/>
 
-          <link href="/prism.css" rel="stylesheet" />
-          <link rel="stylesheet" href="/simple.min.css">
+          <link rel="preload" href="/prism.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+          <link rel="preload" href="/simple.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+          <noscript><link rel="stylesheet" href="/prism.css"></noscript>
+          <noscript><link rel="stylesheet" href="/simple.min.css"></noscript>
         </head>
 
         <body>
