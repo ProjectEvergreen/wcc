@@ -34,7 +34,11 @@ In addition, WCC hopes to provide a surface area to explore patterns around [str
 
 ## Installation
 
-TODO
+**wcc** can be installed from npm.
+
+```shell
+$ npm install wc-compiler --save-dev
+```
 
 ## Usage
 
