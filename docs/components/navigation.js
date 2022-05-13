@@ -13,11 +13,13 @@ template.innerHTML = `
       float: left;
       width: 33%;
       text-align: center;
-      margin: 10px 0;
     }
 
     nav ul li a, nav ul li a:visited {
-      color: var(--text);
+      display: inline-block;
+      color: #efefef;
+      min-width: 48px;
+      min-height: 48px;
     }
   </style>
 
@@ -26,7 +28,7 @@ template.innerHTML = `
       <li><a href="/">Home</a></li>
       <li><a href="/docs">Docs</a></li>
       <li><a href="/examples">Examples</a></li>
-    <ul>
+    </ul>
   </nav>
 `;
 

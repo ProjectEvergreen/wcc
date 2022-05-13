@@ -34,7 +34,11 @@ In addition, WCC hopes to provide a surface area to explore patterns around [str
 
 ## Installation
 
-TODO
+**wcc** can be installed from npm.
+
+```shell
+$ npm install wc-compiler --save-dev
+```
 
 ## Usage
 
@@ -73,7 +77,7 @@ WCC exposes a few utilities to render your Web Components.  Below is one example
 
 1. Using NodeJS, create a file that imports `renderToString` and provide it the path to your web component
     ```js
-    import { renderToString } from 'xxx';
+    import { renderToString } from 'wc-compiler';
 
     const { html } = renderToString(new URL('./path/to/footer.js', import.meta.url));
 

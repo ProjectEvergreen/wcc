@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import rehypePrism from '@mapbox/rehype-prism';
 import rehypeStringify from 'rehype-stringify';
 import rehypeRaw from 'rehype-raw';
 import remarkParse from 'remark-parse';
@@ -15,11 +16,11 @@ async function init() {
     lightMode: true
   });
 
-  // await fs.rm(distRoot, { recursive: true, force: true });
-  // await fs.mkdir('./dist', { recursive: true });
-  // await fse.copy('./www/assets', `${distRoot}/www/assets`);
-  // await fse.copy('./www/components', `${distRoot}/www/components`);
-  // await fse.copy('./docs/pages', `${distRoot}/www/pages`);
+  await fs.rm(distRoot, { recursive: true, force: true });
+  await fs.mkdir('./dist', { recursive: true });
+
+  await fs.copyFile(new URL('./node_modules/prismjs/themes/prism.css', import.meta.url), new URL(`${distRoot}/prism.css`, import.meta.url));
+  await fs.copyFile(new URL('./node_modules/simple.css/dist/simple.min.css', import.meta.url), new URL(`${distRoot}/simple.min.css`, import.meta.url));
 
   for (const page of pages) {
     // for now, just repurposing the README for home page content
@@ -30,6 +31,7 @@ async function init() {
       .use(remarkParse)
       .use(remarkRehype, { allowDangerousHtml: true })
       .use(rehypeRaw)
+      .use(rehypePrism)
       .use(rehypeStringify)
       .process(markdown)).value;
 
@@ -38,24 +40,6 @@ async function init() {
       content = content.replace(contentFilter, '');
     }
 
-    // const lazyJs = [];
-    // const eagerJs = [];
-
-    // for (const asset in assets) {
-    //   const a = assets[asset];
-
-    //   a.tagName = asset;
-
-    //   if (a.moduleURL.href.endsWith('.js')) {
-    //     if (a.hydrate === 'lazy') {
-    //       lazyJs.push(a);
-    //     } else {
-    //       eagerJs.push(a);
-    //     }
-    //   }
-    // }
-
-    // bundle / copy dependency files
     const route = page.replace('.md', '');
     const outputPath = route === 'index' ? '' : `${route}/`;
 
@@ -65,11 +49,19 @@ async function init() {
     await fs.writeFile(new URL(`${distRoot}/${outputPath}/index.html`, import.meta.url), `
       <!DOCTYPE html>
       <html lang="en" prefix="og:http://ogp.me/ns#">
-      
+
         <head>
           <title>WCC - Web Components Compiler</title>
-          <meta property="og:title" content="Web Components Compiler (WCC)"/>
-          <link rel="stylesheet" href="https://unpkg.com/simpledotcss@2.1.0/simple.min.css">
+          <meta name="viewport" content="width=device-width, initial-scale=1"/>
+          <meta charset="utf-8">
+          <meta name="description" content="An experimental native Web Components compiler."/>
+          <meta property="og:description" content="An experimental native Web Components compiler"/>
+          <meta property="og:title" content="WCC - Web Components Compiler"/>
+
+          <link rel="preload" href="/prism.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+          <link rel="preload" href="/simple.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+          <noscript><link rel="stylesheet" href="/prism.css"></noscript>
+          <noscript><link rel="stylesheet" href="/simple.min.css"></noscript>
         </head>
 
         <body>
