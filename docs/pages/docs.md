@@ -51,7 +51,7 @@ export default Home;
 This function takes a string of HTML and an array of any top-level custom elements used with `import`, and returns the static HTML output of the rendered content.
 
 ```js
-const { html } = await renderToString(`
+const { html } = await renderFromHTML(`
   <html>
     <head>
       <title>WCC</title>

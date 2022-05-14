@@ -78,7 +78,7 @@ WCC exposes a few utilities to render your Web Components.  Below is one example
     ```js
     import { renderToString } from 'wc-compiler';
 
-    const { html } = renderToString(new URL('./path/to/footer.js', import.meta.url));
+    const { html } = await renderToString(new URL('./path/to/footer.js', import.meta.url));
 
     console.debug({ html })
     ```
