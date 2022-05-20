@@ -14,6 +14,7 @@ function getParse(html) {
     ? parse
     : parseFragment;
 }
+
 async function renderComponentRoots(tree, includeShadowRoots = true) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
@@ -22,7 +23,7 @@ async function renderComponentRoots(tree, includeShadowRoots = true) {
       const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs);
 
       const shadowRootHtml = elementInstance.getInnerHTML({ includeShadowRoots });
-      const shadowRootTree = getParse(shadowRootHtml)(shadowRootHtml);
+      const shadowRootTree = parseFragment(shadowRootHtml);
 
       node.childNodes = node.childNodes.length === 0 ? shadowRootTree.childNodes : [...shadowRootTree.childNodes, ...node.childNodes];
     }
