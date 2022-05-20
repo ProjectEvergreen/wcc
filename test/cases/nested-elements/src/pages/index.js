@@ -26,3 +26,5 @@ export default class HomePage extends HTMLElement {
     `;
   }
 }
+
+customElements.define('wcc-home', HomePage);
