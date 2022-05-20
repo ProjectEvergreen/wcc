@@ -9,6 +9,11 @@ import fs from 'node:fs/promises';
 
 let definitions;
 
+function getParse(html) {
+  return html.indexOf('<html>') >= 0 || html.indexOf('<body>') || html.indexOf('<head>')
+    ? parse
+    : parseFragment;
+}
 async function renderComponentRoots(tree, includeShadowRoots = true) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
@@ -17,7 +22,7 @@ async function renderComponentRoots(tree, includeShadowRoots = true) {
       const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs);
 
       const shadowRootHtml = elementInstance.getInnerHTML({ includeShadowRoots });
-      const shadowRootTree = parseFragment(shadowRootHtml);
+      const shadowRootTree = getParse(shadowRootHtml)(shadowRootHtml);
 
       node.childNodes = node.childNodes.length === 0 ? shadowRootTree.childNodes : [...shadowRootTree.childNodes, ...node.childNodes];
     }
@@ -96,7 +101,7 @@ async function renderToString(elementURL, options = {}) {
 
   const elementInstance = await initializeCustomElement(elementURL);
   const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots });
-  const elementTree = parseFragment(elementHtml);
+  const elementTree = getParse(elementHtml)(elementHtml);
   const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
 
   return {
@@ -115,7 +120,7 @@ async function renderFromHTML(html, elements = [], options = {}) {
     await initializeCustomElement(url);
   }
 
-  const elementTree = parse(html);
+  const elementTree = getParse(html)(html);
   const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
 
   return {
