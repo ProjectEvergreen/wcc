@@ -122,17 +122,17 @@ async function renderToString(elementURL, options = {}) {
 
   const { lightMode = false } = options;
   const includeShadowRoots = !lightMode;
-  const tagName = includeShadowRoots ? await getTagName(elementURL) : null;
+  const elementTagName = await getTagName(elementURL);
   const elementInstance = await initializeCustomElement(elementURL);
 
   const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots });
   const elementTree = getParse(elementHtml)(elementHtml);
   const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
-  const html = tagName ?
-      `<${tagName}>
+  const html = !lightMode && elementTagName ? `
+      <${elementTagName}>
         ${serialize(finalTree)}
-      </${tagName}
-      `
+      </${elementTagName}
+    `
     : serialize(finalTree);
 
   return {
