@@ -17,10 +17,12 @@ async function init() {
   });
 
   await fs.rm(distRoot, { recursive: true, force: true });
-  await fs.mkdir('./dist', { recursive: true });
+  await fs.mkdir(distRoot, { recursive: true });
+  await fs.mkdir(`${distRoot}/assets`, { recursive: true });
 
   await fs.copyFile(new URL('./node_modules/prismjs/themes/prism.css', import.meta.url), new URL(`${distRoot}/prism.css`, import.meta.url));
   await fs.copyFile(new URL('./node_modules/simple.css/dist/simple.min.css', import.meta.url), new URL(`${distRoot}/simple.min.css`, import.meta.url));
+  await fs.cp(new URL('./docs/assets', import.meta.url), new URL(`${distRoot}/assets`, import.meta.url), { recursive: true });
 
   for (const page of pages) {
     // for now, just repurposing the README for home page content
