@@ -83,7 +83,7 @@ WCC exposes a few utilities to render your Web Components.  Below is one example
     console.debug({ html })
     ```
 
-1. You will get the following html output that can be used in conjunction with your preferred site framework or templating solution.
+1. You will get the following HTML output that can be used in conjunction with your preferred site framework or templating solution.
     ```html
     <wcc-footer>
       <template shadowroot="open">

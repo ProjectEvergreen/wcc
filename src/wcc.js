@@ -15,6 +15,14 @@ function getParse(html) {
     : parseFragment;
 }
 
+function isCustomElementDefinitionNode(node) {
+  const { expression } = node;
+
+  return expression.type === 'CallExpression' && expression.callee && expression.callee.object
+    && expression.callee.property && expression.callee.object.name === 'customElements'
+    && expression.callee.property.name === 'define';
+}
+
 async function renderComponentRoots(tree, includeShadowRoots = true) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
@@ -54,21 +62,36 @@ async function registerDependencies(moduleURL) {
       await registerDependencies(dependencyModuleURL);
     },
     async ExpressionStatement(node) {
-      const { expression } = node;
-
-      if (expression.type === 'CallExpression' && expression.callee && expression.callee.object
-        && expression.callee.property && expression.callee.object.name === 'customElements'
-        && expression.callee.property.name === 'define') {
-
-        const tagName = node.expression.arguments[0].value;
+      if (isCustomElementDefinitionNode(node)) {
+        const { arguments: args } = node.expression;
+        const tagName = args[0].value;
 
         definitions[tagName] = {
-          instanceName: node.expression.arguments[1].name,
+          instanceName: args[1].name,
           moduleURL
         };
       }
     }
   });
+}
+
+async function getTagName(moduleURL) {
+  const moduleContents = await fs.readFile(moduleURL, 'utf-8');
+  let tagName;
+
+  walk.simple(acorn.parse(moduleContents, {
+    ecmaVersion: 'latest',
+    sourceType: 'module'
+  }), {
+    async ExpressionStatement(node) {
+      if (isCustomElementDefinitionNode(node)) {
+
+        tagName = node.expression.arguments[0].value;
+      }
+    }
+  });
+
+  return tagName;
 }
 
 async function initializeCustomElement(elementURL, tagName, attrs = []) {
@@ -99,14 +122,21 @@ async function renderToString(elementURL, options = {}) {
 
   const { lightMode = false } = options;
   const includeShadowRoots = !lightMode;
-
+  const elementTagName = await getTagName(elementURL);
   const elementInstance = await initializeCustomElement(elementURL);
+
   const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots });
   const elementTree = getParse(elementHtml)(elementHtml);
   const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
+  const html = !lightMode && elementTagName ? `
+      <${elementTagName}>
+        ${serialize(finalTree)}
+      </${elementTagName}
+    `
+    : serialize(finalTree);
 
   return {
-    html: serialize(finalTree),
+    html,
     metadata: definitions
   };
 }

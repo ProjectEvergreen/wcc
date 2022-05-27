@@ -31,7 +31,7 @@ describe('Run WCC For ', function() {
     const { html } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
 
     dom = new JSDOM(html);
-    pageContentsDom = new JSDOM(dom.window.document.querySelectorAll('template[shadowroot="open"]')[0].innerHTML);
+    pageContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-home template[shadowroot="open"]')[0].innerHTML);
   });
 
   describe(LABEL, function() {

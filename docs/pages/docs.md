@@ -4,7 +4,7 @@
 
 ### renderToString
 
-This function takes a `URL` to a JavaScript file that defines a custom element, and returns the static HTML output of its rendered contents.
+This function takes a `URL` "entry point" to a JavaScript file that defines a custom element, and returns the static HTML output of its rendered contents.
 
 ```js
 const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
@@ -45,6 +45,8 @@ class Home extends HTMLElement {
 
 export default Home;
 ```
+
+> _**Note**: `wcc` will decide to wrap or not wrap your entry point's HTML in a custom element tag if you do or do not, respectively, have a `customElements.define` statement in your entry point.  `wcc` will use the tag name you define as the custom element tag name in the HTML._
 
 ### renderFromHTML
 

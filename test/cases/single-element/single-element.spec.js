@@ -29,7 +29,7 @@ describe('Run WCC For ', function() {
   describe(LABEL, function() {
       
     it('should have one top level <template> with an open shadowroot', function() {
-      expect(dom.window.document.querySelectorAll('template[shadowroot="open"]').length).to.equal(1);
+      expect(dom.window.document.querySelectorAll('wcc-footer template[shadowroot="open"]').length).to.equal(1);
       expect(dom.window.document.querySelectorAll('template').length).to.equal(1);
     });
 
