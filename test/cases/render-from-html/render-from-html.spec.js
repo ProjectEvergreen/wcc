@@ -17,8 +17,9 @@ import { renderFromHTML } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe('Run WCC ', function() {
   const LABEL = 'Using renderFromHTML';
+  let rawHtml;
   let dom;
   let assetMetadata;
 
@@ -37,12 +38,30 @@ describe('Run WCC For ', function() {
       new URL('./src/components/header.js', import.meta.url)
     ]);
 
+    rawHtml = html;
     dom = new JSDOM(html);
     assetMetadata = metadata;
   });
 
   describe(LABEL, function() {
     describe('static page content', function() {
+      it('should have the expected <html> tag the page', function() {
+        expect(rawHtml.indexOf('<html>') >= 0).to.equal(true);
+      });
+
+      it('should have the expected <title> tag the page', function() {
+        expect(dom.window.document.querySelectorAll('html').length).to.equal(1);
+        expect(dom.window.document.querySelector('title').textContent).to.equal('WCC');
+      });
+
+      it('should have the expected <head> tag the page', function() {
+        expect(rawHtml.indexOf('<head>') >= 0).to.equal(true);
+      });
+
+      it('should have the expected <body> tag the page', function() {
+        expect(rawHtml.indexOf('<body>') >= 0).to.equal(true);
+      });
+
       it('should have the expected static content for the page', function() {
         expect(dom.window.document.querySelector('h1').textContent).to.equal('Home Page');
       });
