@@ -30,15 +30,15 @@ describe('Run WCC For ', function() {
 
   describe(LABEL, function() {
       
-    it('should NOT a <head> tag in the content page', function() {
+    it('should NOT have a <head> tag in the content of the page', function() {
       expect(rawHtml.indexOf('<head>') >= 0).to.equal(false);
     });
 
-    it('should NOT a <title> tag in the content page', function() {
+    it('should NOT have a <title> tag in the content of the page', function() {
       expect(rawHtml.indexOf('<title>') >= 0).to.equal(false);
     });
 
-    it('should NOT a <body> tag in the content page', function() {
+    it('should NOT have a <body> tag in the content of the page', function() {
       expect(rawHtml.indexOf('<body>') >= 0).to.equal(false);
     });
 
