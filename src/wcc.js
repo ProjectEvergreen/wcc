@@ -10,7 +10,7 @@ import fs from 'node:fs/promises';
 let definitions;
 
 function getParse(html) {
-  return html.indexOf('<html>') >= 0 || html.indexOf('<body>') || html.indexOf('<head>')
+  return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
     ? parse
     : parseFragment;
 }
@@ -131,7 +131,7 @@ async function renderToString(elementURL, options = {}) {
   const html = !lightMode && elementTagName ? `
       <${elementTagName}>
         ${serialize(finalTree)}
-      </${elementTagName}
+      </${elementTagName}>
     `
     : serialize(finalTree);
 
