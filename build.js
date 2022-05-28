@@ -23,6 +23,7 @@ async function init() {
   await fs.copyFile(new URL('./node_modules/prismjs/themes/prism.css', import.meta.url), new URL(`${distRoot}/prism.css`, import.meta.url));
   await fs.copyFile(new URL('./node_modules/simple.css/dist/simple.min.css', import.meta.url), new URL(`${distRoot}/simple.min.css`, import.meta.url));
   await fs.cp(new URL('./docs/assets', import.meta.url), new URL(`${distRoot}/assets`, import.meta.url), { recursive: true });
+  await fs.copyFile(new URL('./docs/assets/favicon.ico', import.meta.url), new URL(`${distRoot}/favicon.ico`, import.meta.url));
 
   for (const page of pages) {
     // for now, just repurposing the README for home page content
@@ -59,6 +60,7 @@ async function init() {
           <meta name="description" content="An experimental native Web Components compiler."/>
           <meta property="og:description" content="An experimental native Web Components compiler"/>
           <meta property="og:title" content="WCC - Web Components Compiler"/>
+          <meta property="og:image" content="https://merry-caramel-524e61.netlify.app/assets/wcc-logo.png">
 
           <link rel="preload" href="/prism.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
           <link rel="preload" href="/simple.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
