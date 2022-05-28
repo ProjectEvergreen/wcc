@@ -1,5 +1,7 @@
 # wcc
 
+![WCC logo](https://merry-caramel-524e61.netlify.app/assets/wcc-logo.png)
+
 [![Netlify Status](https://api.netlify.com/api/v1/badges/e718eac2-b3bc-4986-8569-49706a430beb/deploy-status)](https://app.netlify.com/sites/merry-caramel-524e61/deploys)
 [![GitHub release](https://img.shields.io/github/tag/thescientist13/wcc.svg)](https://github.com/thescientist13/wcc/tags)
 ![GitHub Actions status](https://github.com/thescientist13/wcc/workflows/Master%20Integration/badge.svg)

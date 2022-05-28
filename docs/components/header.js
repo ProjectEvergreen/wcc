@@ -14,6 +14,15 @@ template.innerHTML = `
       padding: 10px 10px 0 0;
     }
 
+    header .social img{
+      margin-top: 1%;
+    }
+
+    header .logo {
+      width: 15%;
+      filter: drop-shadow(0 0 0.75rem white);
+    }
+
     header img.github-badge {
       float: right;
       display: inline-block;
@@ -30,11 +39,9 @@ template.innerHTML = `
   <header>
     <div class="container">
       <div>
-        <!--
         <a href="/">
-          <img src="/www/assets/wcc-logo.jpg" alt="WCC logo" class="logo"/>
+          <img src="/assets/wcc-logo.png" alt="WCC logo" class="logo"/>
         </a>
-        -->
 
         <a href="https://github.com/ProjectEvergreen/wcc" class="social">
           <img
