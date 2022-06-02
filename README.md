@@ -8,11 +8,11 @@
 
 **Web Components Compiler (WCC)** is a NodeJS package designed to make server-side rendering (SSR) of native Web Components easier.  It can render (within reason 😅) your Web Component into static HTML leveraging [Declarative Shadow DOM](https://web.dev/declarative-shadow-dom/).
 
-It is not a static site generator or framework.  It is focused on producing raw HTML from Web Components with the intent of being easily _integrated_ into a site generator or framework.  
+It is not a static site generator or framework.  It is focused on producing raw HTML from Web Components with the intent of being easily _integrated_ into a site generator or framework.
 
 > _The original motivation for this project was to create a [purpose built, lighter weight, alternative to puppeteer for SSR of `HTMLElement`](https://github.com/ProjectEvergreen/greenwood/issues/926) for the project [**Greenwood**](https://www.greenwoodjs.io/)._
 
-In addition, WCC hopes to provide a surface area to explore patterns around [streaming](https://github.com/thescientist13/wcc/issues/5) and serverless rendering, as well as acting as a test bed for the [Web Components Community Groups](https://github.com/webcomponents-cg) discussions around community protocols, like [hydration](https://github.com/thescientist13/wcc/issues/3). 
+In addition, WCC hopes to provide a surface area to explore patterns around [streaming](https://github.com/ProjectEvergreen/wcc/issues/5) and serverless rendering, as well as acting as a test bed for the [Web Components Community Groups](https://github.com/webcomponents-cg) discussions around community protocols, like [hydration](https://github.com/ProjectEvergreen/wcc/issues/3).
 
 ## Key Features
 
@@ -36,7 +36,7 @@ $ npm install wc-compiler --save-dev
 
 ## Usage
 
-WCC exposes a few utilities to render your Web Components.  Below is one example, with [full docs and more examples](https://wcc.greenwoodjs.io) available on the website.
+WCC exposes a few utilities to render your Web Components.  Below is one example, with [full docs and more examples](https://merry-caramel-524e61.netlify.app/) available on the website.
 
 1. Given a custom element like so:
     ```js
