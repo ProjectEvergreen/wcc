@@ -57,9 +57,14 @@ async function registerDependencies(moduleURL) {
     sourceType: 'module'
   }), {
     async ImportDeclaration(node) {
-      const dependencyModuleURL = new URL(node.source.value, moduleURL);
+      const specifier = node.source.value;
+      const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
 
-      await registerDependencies(dependencyModuleURL);
+      if (!isBareSpecifier) {
+        const dependencyModuleURL = new URL(node.source.value, moduleURL);
+
+        await registerDependencies(dependencyModuleURL);
+      }
     },
     async ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
