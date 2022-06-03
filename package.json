@@ -23,7 +23,7 @@
     "example:ssg": "node ./examples/ssg.js",
     "example:ssr": "node ./examples/ssr.js",
     "start": "npm run develop",
-    "test": "c8 mocha --parallel",
+    "test": "c8 mocha",
     "test:tdd": "npm run test --watch"
   },
   "dependencies": {
