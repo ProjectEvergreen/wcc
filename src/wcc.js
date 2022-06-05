@@ -29,17 +29,14 @@ async function renderComponentRoots(tree, includeShadowRoots = true) {
       const { tagName } = node;
       const { moduleURL } = definitions[tagName];
       const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs);
-
-      if (elementInstance.shadowRoot) {
-        const shadowRootHtml = elementInstance.getInnerHTML({ includeShadowRoots });
-        const shadowRootTree = parseFragment(shadowRootHtml);
-
-        node.childNodes = node.childNodes.length === 0 ? shadowRootTree.childNodes : [...shadowRootTree.childNodes, ...node.childNodes];  
-      } else {
-        const domTree = parseFragment(elementInstance.innerHTML);
-
-        node.childNodes = node.childNodes.length === 0 ? domTree.childNodes : [...domTree.childNodes, ...node.childNodes];
-      }
+      const elementHtml = elementInstance.shadowRoot
+        ? elementInstance.getInnerHTML({ includeShadowRoots })
+        : elementInstance.innerHTML;
+      const elementTree = parseFragment(elementHtml);
+      
+      node.childNodes = node.childNodes.length === 0 
+        ? elementTree.childNodes
+        : [...elementTree.childNodes, ...node.childNodes];
     }
 
     if (node.childNodes && node.childNodes.length > 0) {
