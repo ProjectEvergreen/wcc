@@ -10,7 +10,7 @@
 
 It is not a static site generator or framework.  It is focused on producing raw HTML from Web Components with the intent of being easily _integrated_ into a site generator or framework.
 
-> _The original motivation for this project was to create a [purpose built, lighter weight, alternative to puppeteer for SSR of `HTMLElement`](https://github.com/ProjectEvergreen/greenwood/issues/926) for the project [**Greenwood**](https://www.greenwoodjs.io/)._
+> _The original motivation for this project was to create a [purpose built, lighter weight alternative to puppeteer for SSR of native `HTMLElement` based Web Components](https://github.com/ProjectEvergreen/greenwood/issues/935) for the project [**Greenwood**](https://www.greenwoodjs.io/)._
 
 In addition, WCC hopes to provide a surface area to explore patterns around [streaming](https://github.com/ProjectEvergreen/wcc/issues/5) and serverless rendering, as well as acting as a test bed for the [Web Components Community Groups](https://github.com/webcomponents-cg) discussions around community protocols, like [hydration](https://github.com/ProjectEvergreen/wcc/issues/3).
 
