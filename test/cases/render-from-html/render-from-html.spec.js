@@ -105,7 +105,6 @@ describe('Run WCC ', function() {
 
     describe(LABEL, function() {
       it('should have two custom elements in the asset graph', function() {
-        console.debug({ assetMetadata });
         expect(Object.keys(assetMetadata).length).to.equal(2);
       });
   
