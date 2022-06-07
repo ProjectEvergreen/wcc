@@ -1,6 +1,6 @@
 {
   "name": "wc-compiler",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Experimental native Web Components compiler.",
   "main": "src/wcc.js",
   "type": "module",
