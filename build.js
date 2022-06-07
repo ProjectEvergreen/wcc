@@ -1,9 +1,12 @@
 import fs from 'node:fs/promises';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypePrism from '@mapbox/rehype-prism';
+import rehypeSlug from 'rehype-slug';
 import rehypeStringify from 'rehype-stringify';
 import rehypeRaw from 'rehype-raw';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
+import remarkToc from 'remark-toc';
 import { unified } from 'unified';
 
 import { renderToString } from './src/wcc.js';
@@ -32,8 +35,11 @@ async function init() {
     const markdown = await fs.readFile(new URL(pageLocation, import.meta.url), 'utf-8');
     let content = (await unified()
       .use(remarkParse)
+      .use(remarkToc, { tight: true })
       .use(remarkRehype, { allowDangerousHtml: true })
+      .use(rehypeSlug)
       .use(rehypeRaw)
+      .use(rehypeAutolinkHeadings)
       .use(rehypePrism)
       .use(rehypeStringify)
       .process(markdown)).value;

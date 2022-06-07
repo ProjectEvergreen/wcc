@@ -1,5 +1,7 @@
 # Documentation
 
+## Table of contents
+
 ## API
 
 ### renderToString
