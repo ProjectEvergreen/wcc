@@ -11,7 +11,7 @@ template.innerHTML = `
 
     nav ul li {
       float: left;
-      width: 33%;
+      width: 33.3%;
       text-align: center;
     }
 
@@ -20,6 +20,7 @@ template.innerHTML = `
       color: #efefef;
       min-width: 48px;
       min-height: 48px;
+      font-size: 2.5rem;
     }
   </style>
 
