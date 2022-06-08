@@ -1,12 +1,12 @@
 # Examples
 
-Below are some example of how is **WCC** being used right now.
+Below are some example of how **WCC** is being used right now.
 
 ## Table of contents
 
 ## Server Rendering (SSR)
 
-For the project [**Greenwood**](https://github.com/ProjectEvergreen/greenwood/), **WCC** is going to be used to provide a _Next.js_ like experience by allowing users to author [server-side routes using native custom elements](https://www.greenwoodjs.io/docs/server-rendering/#routes)!
+For the project [**Greenwood**](https://github.com/ProjectEvergreen/greenwood/), **WCC** is going to be used to provide a _Next.js_ like experience by allowing users to author [server-side routes using native custom elements](https://www.greenwoodjs.io/docs/server-rendering/#routes)!  ✨
 
 ```js
 import '../components/card/card.js';
@@ -36,7 +36,7 @@ export default class ArtistsPage extends HTMLElement {
 
 ## Serverless and Edge Functions
 
-In the talk [_"Web Components at the Edge"_](https://sched.co/11loQ) for OpenJS World 2022, **WCC** was leveraged for all the AWS Lambda serverless function and Netlify Edge function demos.  It also shows some clever ways to use **WCC** in more constrained runtime environments, like an edge runtime.  See all the [code, slides and demos in GitHub](https://github.com/thescientist13/web-components-at-the-edge).
+In the talk [_"Web Components at the Edge"_](https://sched.co/11loQ) for OpenJS World 2022, **WCC** was leveraged for all the AWS Lambda serverless function and Netlify Edge function demos.  It also shows some clever ways to use **WCC** in more constrained runtime environments, like an edge runtime where something like `fs` might not be available.  See all the [code, slides and demos in GitHub](https://github.com/thescientist13/web-components-at-the-edge).  🚀
 
 ```js
 import '../../node_modules/wc-compiler/src/dom-shim.js';
@@ -53,9 +53,6 @@ export default async function (request, context) {
   const response = new Response(`
     <!DOCTYPE html>
     <html lang="en">
-      <head>
-        ...
-      </head>
       <body>
         <wc-greeting>
           ${greeting.getInnerHTML({ includeShadowRoots: true })}
@@ -77,7 +74,8 @@ export default async function (request, context) {
 
 ## Static Sites (SSG)
 
-Using `innerHTML`, custom elements can be authored to not use Shadow DOM, which can be useful for a `Layout` or `App` component where that top level content specifically should _not_ be rendered in a shadow root, e.g. `<template>` tag.  What's nice about **WCC** is that by using `innerHTML` or `attachShadow`, you can opt-in to either on a per component basis, like is being done for [the **WCC** website](https://github.com/ProjectEvergreen/wcc/tree/master/docs).  In this case, the content is authored in markdown, but the header, navigation, footer are all custom elements rendered to static HTML.
+Using `innerHTML`, custom elements can be authored to not use Shadow DOM, which can be useful for a `Layout` or `App` component where that top level content specifically should _not_ be rendered in a shadow root, e.g. `<template>` tag.  What's nice about **WCC** is that by using `innerHTML` or `attachShadow`, you can opt-in to either on a per component basis, like is being done for [the **WCC** website](https://github.com/ProjectEvergreen/wcc/tree/master/docs).  In this case, the content is authored in markdown, but the layout, header, navigation, and footer are all custom elements rendered to static HTML.  🗒️
+
 ```js
 // index.js
 import './components/footer.js';
@@ -123,7 +121,9 @@ export default Layout;
 
 ## Progressive Hydration
 
-Using the `metadata` information from a custom element with the `hydrate=true` attribute, you can use use the metadata with an [`IntersectionObserver`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to progressively load a custom element.  See it in [action here](https://wc-at-the-edge.thegreenhouse.io/demo3) by scrolling to the bottom of the page and seeing the animation happen!  View [the code here in GitHub](https://github.com/thescientist13/web-components-at-the-edge/blob/main/serverless/get-demo3/index.mjs).
+Using the `metadata` information from a custom element with the `hydrate=true` attribute, you can use use the metadata with an [`IntersectionObserver`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to progressively load a custom element.  In this case, _handler.js_ builds `SliderComponent` from HTML and not only uses the `hydrate` attribute and metadata for lazy hydration, but also passes in the animated color via a CSS custom property set at build time!  🤯
+
+See it in [action here](https://wc-at-the-edge.thegreenhouse.io/demo3) by scrolling to the bottom of the page and seeing the animation happen!  View [the code here in GitHub](https://github.com/thescientist13/web-components-at-the-edge/blob/main/serverless/get-demo3/index.mjs).
 
 ```js
 // slider.js
@@ -175,8 +175,6 @@ export default SliderComponent;
 
 customElements.define('wc-slider', SliderComponent);
 ```
-
-In this case, _index.js_ builds `SliderComponent` from HTML and not only uses the `hydrate` attribute and metadata for lazy hydration, but also can pass in the animated color via a CSS custom property!
 
 ```js
 // handler.js

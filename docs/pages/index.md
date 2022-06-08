@@ -1,14 +1,6 @@
 # Introduction
 
-**Web Components Compiler (WCC)** is a NodeJS package designed to make server-side rendering (SSR) of native Web Components easier.  It can render (within reason 😅) your Web Component into static HTML leveraging [Declarative Shadow DOM](https://web.dev/declarative-shadow-dom/).
-
-## Installation
-
-**WCC** can be installed from npm.
-
-```shell
-$ npm install wc-compiler --save-dev
-```
+**Web Components Compiler (WCC)** is a NodeJS package designed to make server-side rendering (SSR) of native Web Components easier.  It can render (within reason 😅) your Web Component into static HTML.  This includes support for [Declarative Shadow DOM](https://web.dev/declarative-shadow-dom/).
 
 ## Key Features
 
@@ -20,12 +12,21 @@ $ npm install wc-compiler --save-dev
     - `[get|set|has]Attribute`
 1. `<template>` / `DocumentFragment`
 1. Recursive rendering of nested custom elements
-1. Optional Declarative Shadow DOM (for producing purely content driven static pages)
-1. Metadata and runtime hints to support progressive hydration and lazy loading strategies
+1. Metadata and runtime hints to support various progressive hydration and lazy loading strategies
+
+## Installation
+
+**WCC** can be installed from npm.
+
+```shell
+$ npm install wc-compiler --save-dev
+```
 
 ## Usage
 
-**WCC** exposes a few utilities to render your Web Components.  See [our API docs](/docs) for all available features.
+**WCC** provides a couple options for rendering your Web Components.
+
+> _See [our API docs](/docs) for all available features and [our examples](/examples) for various use cases._
 
 1. Given a custom element like so:
     ```js

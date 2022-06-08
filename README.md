@@ -4,10 +4,6 @@
 
 > _Experimental Web Components compiler.  It's Web Components all the way down!_  🐢
 
-## Overview
-
-**Web Components Compiler (WCC)** is a NodeJS package designed to make server-side rendering (SSR) of native Web Components easier.  It can render (within reason 😅) your Web Component into static HTML leveraging [Declarative Shadow DOM](https://web.dev/declarative-shadow-dom/).
-
 ## How It Works
 
 1. Write a Web Component
@@ -64,18 +60,17 @@
     </wcc-footer>
     ```
 
-## Installation
-
-**WCC** can be installed from npm.
-
-```shell
-$ npm install wc-compiler --save-dev
-```
-
 ## Documentation
 
 See our [website](https://merry-caramel-524e61.netlify.app/) for API docs and examples.
 
+## Installation
+
+**WCC** runs on NodeJS and can be installed from npm.
+
+```shell
+$ npm install wc-compiler --save-dev
+```
 
 ## Motivation
 
