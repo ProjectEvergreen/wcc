@@ -8,37 +8,9 @@
 
 **Web Components Compiler (WCC)** is a NodeJS package designed to make server-side rendering (SSR) of native Web Components easier.  It can render (within reason 😅) your Web Component into static HTML leveraging [Declarative Shadow DOM](https://web.dev/declarative-shadow-dom/).
 
-It is not a static site generator or framework.  It is focused on producing raw HTML from Web Components with the intent of being easily _integrated_ into a site generator or framework.
+## How It Works
 
-> _The original motivation for this project was to create a [purpose built, lighter weight alternative to puppeteer for SSR of native `HTMLElement` based Web Components](https://github.com/ProjectEvergreen/greenwood/issues/935) for the project [**Greenwood**](https://www.greenwoodjs.io/)._
-
-In addition, WCC hopes to provide a surface area to explore patterns around [streaming](https://github.com/ProjectEvergreen/wcc/issues/5) and serverless rendering, as well as acting as a test bed for the [Web Components Community Groups](https://github.com/webcomponents-cg) discussions around community protocols, like [hydration](https://github.com/ProjectEvergreen/wcc/issues/3).
-
-## Key Features
-
-1. Supports the following `HTMLElement` lifecycles and methods on the server side
-    - `constructor`
-    - `connectedCallback`
-    - `attachShadow`
-    - `innerHTML`
-    - `[get|set|has]Attribute`
-1. Recursive rendering of nested custom elements
-1. Optional Declarative Shadow DOM (for producing purely content driven static pages)
-1. Metadata and runtime hints to support progressive hydration and lazy loading strategies
-
-## Installation
-
-**wcc** can be installed from npm.
-
-```shell
-$ npm install wc-compiler --save-dev
-```
-
-## Usage
-
-WCC exposes a few utilities to render your Web Components.  Below is one example, with [full docs and more examples](https://merry-caramel-524e61.netlify.app/) available on the website.
-
-1. Given a custom element like so:
+1. Write a Web Component
     ```js
     const template = document.createElement('template');
 
@@ -68,17 +40,13 @@ WCC exposes a few utilities to render your Web Components.  Below is one example
 
     customElements.define('wcc-footer', Footer);
     ```
-
-1. Using NodeJS, create a file that imports `renderToString` and provide it the path to your web component
+1. Run it through the compiler
     ```js
     import { renderToString } from 'wc-compiler';
 
-    const { html } = await renderToString(new URL('./path/to/footer.js', import.meta.url));
-
-    console.debug({ html })
+    const { html } = await renderToString(new URL('./path/to/component.js', import.meta.url));
     ```
-
-1. You will get the following HTML output that can be used in conjunction with your preferred site framework or templating solution.
+1. Get HTML!
     ```html
     <wcc-footer>
       <template shadowroot="open">
@@ -96,5 +64,21 @@ WCC exposes a few utilities to render your Web Components.  Below is one example
     </wcc-footer>
     ```
 
+## Installation
 
-> _**Make sure to test in Chrome, or other Declarative Shadow DOM compatible browser, otherwise you will need to include the [DSD polyfill](https://web.dev/declarative-shadow-dom/#polyfill).**_
+**WCC** can be installed from npm.
+
+```shell
+$ npm install wc-compiler --save-dev
+```
+
+## Documentation
+
+See our [website](https://merry-caramel-524e61.netlify.app/) for API docs and examples.
+
+
+## Motivation
+
+**WCC** is not a static site generator, framework or bundler.  It is focused on producing raw HTML from Web Components with the intent of being easily integrated into a site generator or framework, like [**Greenwood**](https://github.com/ProjectEvergreen/greenwood/), the original motivation for creating [this project](https://github.com/ProjectEvergreen/greenwood/issues/935).
+
+In addition, **WCC** hopes to provide a surface area to explore patterns around [streaming](https://github.com/ProjectEvergreen/wcc/issues/5) and serverless rendering, as well as acting as a test bed for the [Web Components Community Groups](https://github.com/webcomponents-cg) discussions around community protocols, like [hydration](https://github.com/ProjectEvergreen/wcc/issues/3).

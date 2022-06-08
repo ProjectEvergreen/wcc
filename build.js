@@ -29,10 +29,7 @@ async function init() {
   await fs.copyFile(new URL('./docs/assets/favicon.ico', import.meta.url), new URL(`${distRoot}/favicon.ico`, import.meta.url));
 
   for (const page of pages) {
-    // for now, just repurposing the README for home page content
-    const isHomePage = page === 'index.md';
-    const pageLocation = isHomePage ? './README.md' : `${pagesRoot}/${page}`;
-    const markdown = await fs.readFile(new URL(pageLocation, import.meta.url), 'utf-8');
+    const markdown = await fs.readFile(new URL(`${pagesRoot}/${page}`, import.meta.url), 'utf-8');
     let content = (await unified()
       .use(remarkParse)
       .use(remarkToc, { tight: true })
@@ -43,11 +40,6 @@ async function init() {
       .use(rehypePrism)
       .use(rehypeStringify)
       .process(markdown)).value;
-
-    if (isHomePage) {
-      const contentFilter = content.substring(content.indexOf('<h1>wcc</h1>'), content.indexOf('<h2>Overview</h2>') + 17);
-      content = content.replace(contentFilter, '');
-    }
 
     const route = page.replace('.md', '');
     const outputPath = route === 'index' ? '' : `${route}/`;
