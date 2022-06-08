@@ -15,7 +15,7 @@ async function init() {
   const distRoot = './dist';
   const pagesRoot = './docs/pages';
   const pages = await fs.readdir(new URL(pagesRoot, import.meta.url));
-  const { html } = await renderToString(new URL('./docs/index.js', import.meta.url), {
+  const { html } = await renderToString(new URL('./docs/layout.js', import.meta.url), {
     lightMode: true
   });
 
@@ -29,8 +29,10 @@ async function init() {
   await fs.copyFile(new URL('./docs/assets/favicon.ico', import.meta.url), new URL(`${distRoot}/favicon.ico`, import.meta.url));
 
   for (const page of pages) {
+    const route = page.replace('.md', '');
+    const outputPath = route === 'index' ? '' : `${route}/`;
     const markdown = await fs.readFile(new URL(`${pagesRoot}/${page}`, import.meta.url), 'utf-8');
-    let content = (await unified()
+    const content = (await unified()
       .use(remarkParse)
       .use(remarkToc, { tight: true })
       .use(remarkRehype, { allowDangerousHtml: true })
@@ -40,9 +42,6 @@ async function init() {
       .use(rehypePrism)
       .use(rehypeStringify)
       .process(markdown)).value;
-
-    const route = page.replace('.md', '');
-    const outputPath = route === 'index' ? '' : `${route}/`;
 
     await fs.mkdir(`./dist/${outputPath}`, { recursive: true });
     await fs.mkdir(`${distRoot}/${outputPath}`, { recursive: true });
