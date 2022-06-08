@@ -7,6 +7,7 @@ template.innerHTML = `
     header {
       background-color: var(--accent);
       grid-column: 1 / -1;
+      min-height: 150px;
     }
 
     header .social {
@@ -47,8 +48,7 @@ template.innerHTML = `
           <img
             src="https://img.shields.io/github/stars/ProjectEvergreen/wcc.svg?style=social&logo=github&label=github"
             alt="WCC GitHub badge"
-            width="174px"
-            height="40px"
+            width="135px"
             class="github-badge"
           />
         </a>
