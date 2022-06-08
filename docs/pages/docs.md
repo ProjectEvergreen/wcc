@@ -1,5 +1,7 @@
 # Documentation
 
+## Table of contents
+
 ## API
 
 ### renderToString
@@ -46,11 +48,11 @@ class Home extends HTMLElement {
 export default Home;
 ```
 
-> _**Note**: `wcc` will decide to wrap or not wrap your entry point's HTML in a custom element tag if you do or do not, respectively, have a `customElements.define` statement in your entry point.  `wcc` will use the tag name you define as the custom element tag name in the HTML._
+> _**Note**: **WCC** will wrap or not wrap your _entry point's HTML_ in a custom element tag if you do or do not, respectively, include a `customElements.define` in your entry point.  **WCC** will use the tag name you define as the custom element tag name in the generated HTML._
 
 ### renderFromHTML
 
-This function takes a string of HTML and an array of any top-level custom elements used with `import`, and returns the static HTML output of the rendered content.
+This function takes a string of HTML and an array of any top-level custom elements used in the HTML, and returns the static HTML output of the rendered content.
 
 ```js
 const { html } = await renderFromHTML(`
@@ -64,12 +66,14 @@ const { html } = await renderFromHTML(`
       <wcc-footer></wcc-footer>
     </body>
   </html>
-`, 
+`,
 [
   new URL('./src/components/footer.js', import.meta.url),
   new URL('./src/components/header.js', import.meta.url)
 ]);
 ```
+
+For example, even if `Header` or `Footer` use `import` to pull in additional custom elements, only the `Header` and `Footer custom elements used in the "entry" HTML are needed in the array.
 
 ### Options
 
@@ -88,7 +92,7 @@ It supports the following configuration(s):
 
 ## Metadata
 
-`renderToString` and `renderFromHTML` return not only HTML, but also metadata about all the custom elements registered as part of rendering the top level custom element.
+`renderToString` and `renderFromHTML` return not only HTML, but also metadata about all the custom elements registered as part of rendering the entry file.
 
 ```js
 const { metadata } = await renderToString(new URL('./src/index.js', import.meta.url));
@@ -102,7 +106,7 @@ console.log({ metadata });
  *     'wcc-navigation': { instanceName: 'Navigation', moduleURL: [URL] }
  *   ]
  * }
- * 
+ *
 ```
 
 ## Progressive Hydration
@@ -112,7 +116,7 @@ To achieve an islands architecture implementation, if you add `hydration="true"`
 <wcc-footer hydration="true"></wcc-footer>
 ```
 
-This will be reflected in the returned `metadata` array from `renderToString`.  
+This will be reflected in the returned `metadata` array from `renderToString`.
 ```js
 /*
  * {
@@ -122,12 +126,12 @@ This will be reflected in the returned `metadata` array from `renderToString`.
  *     'wcc-navigation': { instanceName: 'Navigation', moduleURL: [URL] }
  *   ]
  * }
- * 
+ *
 ```
 
 The benefit is that this hint can be used to defer loading of these scripts by using an [`IntersectionObserver`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) (for example), instead of eagerly loading it on page load using a `<script>` tag.
 
-> _See our [examples page](/examples/) for more info._
+> _See [this example](/examples/#progressive-hydration) for more information._
 
 
 ## Data
@@ -143,10 +147,8 @@ export async function getData() {
 }
 ```
 
-> _See our [examples page](/examples/) for more info._
-
 ## Conventions
 
 - Make sure to define your custom elements with `customElements.define`
-- Make sure to `export default` your custom element base class
+- Make sure to include a `export default` for your custom element base class
 - Avoid [touching the DOM in `constructor` methods](https://twitter.com/techytacos/status/1514029967981494280)

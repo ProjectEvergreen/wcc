@@ -35,7 +35,7 @@ template.innerHTML = `
   <wcc-footer></wcc-footer>
 `;
 
-class Home extends HTMLElement {
+class Layout extends HTMLElement {
 
   connectedCallback() {
     if (!this.shadowRoot) {
@@ -45,4 +45,4 @@ class Home extends HTMLElement {
   }
 }
 
-export default Home;
+export default Layout;

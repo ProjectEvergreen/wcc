@@ -7,19 +7,20 @@ template.innerHTML = `
       list-style-type: none;
       overflow: auto;
       grid-column: 1 / -1;
+      width: 90%;
     }
 
     nav ul li {
       float: left;
-      width: 33%;
+      width: 33.3%;
       text-align: center;
     }
 
     nav ul li a, nav ul li a:visited {
       display: inline-block;
       color: #efefef;
-      min-width: 48px;
       min-height: 48px;
+      font-size: 2.5rem;
     }
   </style>
 

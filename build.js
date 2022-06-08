@@ -1,9 +1,12 @@
 import fs from 'node:fs/promises';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypePrism from '@mapbox/rehype-prism';
+import rehypeSlug from 'rehype-slug';
 import rehypeStringify from 'rehype-stringify';
 import rehypeRaw from 'rehype-raw';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
+import remarkToc from 'remark-toc';
 import { unified } from 'unified';
 
 import { renderToString } from './src/wcc.js';
@@ -12,7 +15,7 @@ async function init() {
   const distRoot = './dist';
   const pagesRoot = './docs/pages';
   const pages = await fs.readdir(new URL(pagesRoot, import.meta.url));
-  const { html } = await renderToString(new URL('./docs/index.js', import.meta.url), {
+  const { html } = await renderToString(new URL('./docs/layout.js', import.meta.url), {
     lightMode: true
   });
 
@@ -26,25 +29,19 @@ async function init() {
   await fs.copyFile(new URL('./docs/assets/favicon.ico', import.meta.url), new URL(`${distRoot}/favicon.ico`, import.meta.url));
 
   for (const page of pages) {
-    // for now, just repurposing the README for home page content
-    const isHomePage = page === 'index.md';
-    const pageLocation = isHomePage ? './README.md' : `${pagesRoot}/${page}`;
-    const markdown = await fs.readFile(new URL(pageLocation, import.meta.url), 'utf-8');
-    let content = (await unified()
+    const route = page.replace('.md', '');
+    const outputPath = route === 'index' ? '' : `${route}/`;
+    const markdown = await fs.readFile(new URL(`${pagesRoot}/${page}`, import.meta.url), 'utf-8');
+    const content = (await unified()
       .use(remarkParse)
+      .use(remarkToc, { tight: true })
       .use(remarkRehype, { allowDangerousHtml: true })
+      .use(rehypeSlug)
       .use(rehypeRaw)
+      .use(rehypeAutolinkHeadings)
       .use(rehypePrism)
       .use(rehypeStringify)
       .process(markdown)).value;
-
-    if (isHomePage) {
-      const contentFilter = content.substring(content.indexOf('<h1>wcc</h1>'), content.indexOf('<h2>Overview</h2>') + 17);
-      content = content.replace(contentFilter, '');
-    }
-
-    const route = page.replace('.md', '');
-    const outputPath = route === 'index' ? '' : `${route}/`;
 
     await fs.mkdir(`./dist/${outputPath}`, { recursive: true });
     await fs.mkdir(`${distRoot}/${outputPath}`, { recursive: true });
