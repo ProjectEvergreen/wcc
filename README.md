@@ -60,10 +60,6 @@
     </wcc-footer>
     ```
 
-## Documentation
-
-See our [website](https://merry-caramel-524e61.netlify.app/) for API docs and examples.
-
 ## Installation
 
 **WCC** runs on NodeJS and can be installed from npm.
@@ -71,6 +67,10 @@ See our [website](https://merry-caramel-524e61.netlify.app/) for API docs and ex
 ```shell
 $ npm install wc-compiler --save-dev
 ```
+
+## Documentation
+
+See our [website](https://merry-caramel-524e61.netlify.app/) for API docs and examples.
 
 ## Motivation
 
