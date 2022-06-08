@@ -17,6 +17,8 @@ template.innerHTML = `
     main {
       max-width: 1200px;
       margin: 20px auto;
+      width: 100%;
+      padding: 0 1rem;
     }
 
     a:visited {
