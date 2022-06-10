@@ -29,11 +29,14 @@ async function renderComponentRoots(tree, includeShadowRoots = true) {
       const { tagName } = node;
       const { moduleURL } = definitions[tagName];
       const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs);
-
-      const shadowRootHtml = elementInstance.getInnerHTML({ includeShadowRoots });
-      const shadowRootTree = parseFragment(shadowRootHtml);
-
-      node.childNodes = node.childNodes.length === 0 ? shadowRootTree.childNodes : [...shadowRootTree.childNodes, ...node.childNodes];
+      const elementHtml = elementInstance.shadowRoot
+        ? elementInstance.getInnerHTML({ includeShadowRoots })
+        : elementInstance.innerHTML;
+      const elementTree = parseFragment(elementHtml);
+      
+      node.childNodes = node.childNodes.length === 0 
+        ? elementTree.childNodes
+        : [...elementTree.childNodes, ...node.childNodes];
     }
 
     if (node.childNodes && node.childNodes.length > 0) {
@@ -130,7 +133,9 @@ async function renderToString(elementURL, options = {}) {
   const elementTagName = await getTagName(elementURL);
   const elementInstance = await initializeCustomElement(elementURL);
 
-  const elementHtml = elementInstance.getInnerHTML({ includeShadowRoots });
+  const elementHtml = elementInstance.shadowRoot
+    ? elementInstance.getInnerHTML({ includeShadowRoots })
+    : elementInstance.innerHTML;
   const elementTree = getParse(elementHtml)(elementHtml);
   const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
   const html = !lightMode && elementTagName ? `
