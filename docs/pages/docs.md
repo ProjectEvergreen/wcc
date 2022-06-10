@@ -75,21 +75,6 @@ const { html } = await renderFromHTML(`
 
 For example, even if `Header` or `Footer` use `import` to pull in additional custom elements, only the `Header` and `Footer custom elements used in the "entry" HTML are needed in the array.
 
-### Options
-
-`renderToString` and `renderFromHTML` also supports a second and third parameter respectively, that is an object, called `options`
-```js
-// default values
-{
-  lightMode: false
-}
-```
-
-It supports the following configuration(s):
-
-- `lightMode`: For more static outcomes (e.g. no declarative shadow DOM), this option will omit all wrapping `<template shadowroot="...">` tags when rendering out custom elements.  Useful for static sites or working with global CSS libraries.
-
-
 ## Metadata
 
 `renderToString` and `renderFromHTML` return not only HTML, but also metadata about all the custom elements registered as part of rendering the entry file.

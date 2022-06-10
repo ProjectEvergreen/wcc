@@ -35,10 +35,7 @@ template.innerHTML = `
 
 class Navigation extends HTMLElement {
   connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.appendChild(template.content.cloneNode(true));
-    }
+    this.innerHTML = template.content.textContent;
   }
 }
 
