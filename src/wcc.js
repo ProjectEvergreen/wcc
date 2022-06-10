@@ -23,29 +23,29 @@ function isCustomElementDefinitionNode(node) {
     && expression.callee.property.name === 'define';
 }
 
-async function renderComponentRoots(tree, includeShadowRoots = true) {
+async function renderComponentRoots(tree) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
       const { tagName } = node;
       const { moduleURL } = definitions[tagName];
       const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs);
       const elementHtml = elementInstance.shadowRoot
-        ? elementInstance.getInnerHTML({ includeShadowRoots })
+        ? elementInstance.getInnerHTML({ includeShadowRoots: true })
         : elementInstance.innerHTML;
       const elementTree = parseFragment(elementHtml);
-      
-      node.childNodes = node.childNodes.length === 0 
+
+      node.childNodes = node.childNodes.length === 0
         ? elementTree.childNodes
         : [...elementTree.childNodes, ...node.childNodes];
     }
 
     if (node.childNodes && node.childNodes.length > 0) {
-      await renderComponentRoots(node, includeShadowRoots);
+      await renderComponentRoots(node);
     }
 
     // does this only apply to `<template>` tags?
     if (node.content && node.content.childNodes && node.content.childNodes.length > 0) {
-      await renderComponentRoots(node.content, includeShadowRoots);
+      await renderComponentRoots(node.content);
     }
   }
 
@@ -125,20 +125,18 @@ async function initializeCustomElement(elementURL, tagName, attrs = []) {
   return elementInstance;
 }
 
-async function renderToString(elementURL, options = {}) {
+async function renderToString(elementURL) {
   definitions = [];
 
-  const { lightMode = false } = options;
-  const includeShadowRoots = !lightMode;
   const elementTagName = await getTagName(elementURL);
   const elementInstance = await initializeCustomElement(elementURL);
 
   const elementHtml = elementInstance.shadowRoot
-    ? elementInstance.getInnerHTML({ includeShadowRoots })
+    ? elementInstance.getInnerHTML({ includeShadowRoots: true })
     : elementInstance.innerHTML;
   const elementTree = getParse(elementHtml)(elementHtml);
-  const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
-  const html = !lightMode && elementTagName ? `
+  const finalTree = await renderComponentRoots(elementTree);
+  const html = elementTagName ? `
       <${elementTagName}>
         ${serialize(finalTree)}
       </${elementTagName}>
@@ -151,18 +149,15 @@ async function renderToString(elementURL, options = {}) {
   };
 }
 
-async function renderFromHTML(html, elements = [], options = {}) {
+async function renderFromHTML(html, elements = []) {
   definitions = [];
-
-  const { lightMode = false } = options;
-  const includeShadowRoots = !lightMode;
 
   for (const url of elements) {
     await initializeCustomElement(url);
   }
 
   const elementTree = getParse(html)(html);
-  const finalTree = await renderComponentRoots(elementTree, includeShadowRoots);
+  const finalTree = await renderComponentRoots(elementTree);
 
   return {
     html: serialize(finalTree),
