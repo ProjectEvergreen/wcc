@@ -26,7 +26,7 @@ export default class ArtistsPage extends HTMLElement {
       }).join('');
 
       this.attachShadow({ mode: 'open' });
-      this.innerHTML = html;
+      this.shadowRoot.innerHTML = html;
     }
   }
 
