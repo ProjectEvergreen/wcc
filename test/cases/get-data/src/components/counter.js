@@ -52,15 +52,17 @@ class Counter extends HTMLElement {
 
   render() {
     return `
-      <script type="application/json">
-        ${JSON.stringify({ count: this.count })}
-      </script>
+      <template shadowroot="open">
+        <script type="application/json">
+          ${JSON.stringify({ count: this.count })}
+        </script>
 
-      <div>
-        <button id="inc">Increment</button>
-        <span>Current Count: <span id="count">${this.count}</span></span>
-        <button id="dec">Decrement</button>
-      </div>
+        <div>
+          <button id="inc">Increment</button>
+          <span>Current Count: <span id="count">${this.count}</span></span>
+          <button id="dec">Decrement</button>
+        </div>
+      </template>
     `;
   }
 }

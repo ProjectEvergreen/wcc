@@ -21,24 +21,22 @@ const expect = chai.expect;
 describe('Run WCC For ', function() {
   const LABEL = 'Custom Element w/ Attributes and Shadow DOM';
   let dom;
-  let pageContentsDom;
 
   before(async function() {
     const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
 
     dom = new JSDOM(html);
-    pageContentsDom = new JSDOM(dom.window.document.querySelectorAll('template[shadowroot="open"]')[0].innerHTML);
   });
 
   describe(LABEL, function() {
-    it('should have one top level <template> with an open shadowroot', function() {
-      expect(dom.window.document.querySelectorAll('template[shadowroot="open"]').length).to.equal(1);
-      expect(dom.window.document.querySelectorAll('template').length).to.equal(1);
+    it('should have one top level <wcc-counter> custom element with a <template> with an open shadowroot', function() {
+      expect(dom.window.document.querySelectorAll('wcc-counter template[shadowroot="open"]').length).to.equal(1);
+      expect(dom.window.document.querySelectorAll('wcc-counter  template').length).to.equal(1);
     });
 
     describe('static page content', function() {
       it('should have the expected static content for the page', function() {
-        expect(pageContentsDom.window.document.querySelector('h1').textContent).to.equal('Counter');
+        expect(dom.window.document.querySelector('h1').textContent).to.equal('Counter');
       });
     });
 
@@ -46,7 +44,7 @@ describe('Run WCC For ', function() {
       let counterContentsDom;
 
       before(function() {
-        counterContentsDom = new JSDOM(pageContentsDom.window.document.querySelectorAll('wcc-counter template[shadowroot="open"]')[0].innerHTML);
+        counterContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-counter template[shadowroot="open"]')[0].innerHTML);
       });
 
       it('should have two <button> tags within the <wcc-counter> shadowroot', function() {
@@ -55,7 +53,7 @@ describe('Run WCC For ', function() {
 
       it('should have a <span> with the value of the attribute as its text content', function() {
         const count = counterContentsDom.window.document.querySelector('span#count').textContent;
-  
+
         expect(count).to.equal('5');
       });
     });

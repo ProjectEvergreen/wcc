@@ -1,41 +1,40 @@
-// intentionally nested in the assets/ directory to test wcc nested dependency resolution logic
-const template = document.createElement('template');
-
-template.innerHTML = `
-  <style>
-    nav ul {
-      list-style-type: none;
-      overflow: auto;
-      grid-column: 1 / -1;
-      width: 90%;
-    }
-
-    nav ul li {
-      float: left;
-      width: 33.3%;
-      text-align: center;
-    }
-
-    nav ul li a, nav ul li a:visited {
-      display: inline-block;
-      color: #efefef;
-      min-height: 48px;
-      font-size: 2.5rem;
-    }
-  </style>
-
-  <nav>
-    <ul>
-      <li><a href="/">Home</a></li>
-      <li><a href="/docs">Docs</a></li>
-      <li><a href="/examples">Examples</a></li>
-    </ul>
-  </nav>
-`;
-
 class Navigation extends HTMLElement {
   connectedCallback() {
-    this.innerHTML = template.content.textContent;
+    this.innerHTML = this.render();
+  }
+
+  render() {
+    return `
+      <style>
+        nav ul {
+          list-style-type: none;
+          overflow: auto;
+          grid-column: 1 / -1;
+          width: 90%;
+        }
+
+        nav ul li {
+          float: left;
+          width: 33.3%;
+          text-align: center;
+        }
+
+        nav ul li a, nav ul li a:visited {
+          display: inline-block;
+          color: #efefef;
+          min-height: 48px;
+          font-size: 2.5rem;
+        }
+      </style>
+
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/docs">Docs</a></li>
+          <li><a href="/examples">Examples</a></li>
+        </ul>
+      </nav>
+    `
   }
 }
 

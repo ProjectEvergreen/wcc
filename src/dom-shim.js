@@ -3,6 +3,7 @@ class EventTarget { }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Node
 // EventTarget <- Node
+// TODO should be an interface?
 class Node extends EventTarget {
   constructor() {
     super();
@@ -15,7 +16,7 @@ class Node extends EventTarget {
   }
 
   appendChild(node) {
-    this.innerHTML = this.innerHTML ? this.innerHTML += node.textContent : node.textContent;
+    this.innerHTML = this.innerHTML ? this.innerHTML += node.innerHTML : node.innerHTML;
   }
 }
 
@@ -63,14 +64,9 @@ class HTMLElement extends Element {
   }
 
   // https://github.com/mfreed7/declarative-shadow-dom/blob/master/README.md#serialization
+  // eslint-disable-next-line
   getInnerHTML(options = {}) {
-    return options.includeShadowRoots
-      ? `
-        <template shadowroot="${this.shadowRoot.mode}">
-          ${this.shadowRoot.innerHTML}
-        </template>
-      `
-      : this.shadowRoot.innerHTML;
+    return this.shadowRoot.innerHTML;
   }
 }
 
@@ -101,11 +97,20 @@ class HTMLTemplateElement extends HTMLElement {
     super();
     // console.debug('HTMLTemplateElement constructor');
 
-    this.content = new DocumentFragment(this.innerHTML);
+    this.content = new DocumentFragment();
   }
 
+  // TODO open vs closed shadow root
   set innerHTML(html) {
-    this.content.textContent = html;
+    this.content.innerHTML = `
+      <template shadowroot="open">
+        ${html}
+      </template>
+    `;
+  }
+
+  get innerHTML() {
+    return this.content && this.content.innerHTML ? this.content.innerHTML : undefined;
   }
 }
 

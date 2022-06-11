@@ -1,25 +1,19 @@
 import './components/counter.js';
 
+const template = document.createElement('template');
+
+template.innerHTML = `
+  <h1>Counter</h1>
+
+  <wcc-counter count="5"></wcc-counter>
+`;
+
 export default class HomePage extends HTMLElement {
-  constructor() {
-    super();
-
-    if (this.shadowRoot) {
-      // console.debug('HomePage => shadowRoot detected!');
-    } else {
-      this.attachShadow({ mode: 'open' });
-    }
-  }
-
   connectedCallback() {
-    this.shadowRoot.innerHTML = this.getTemplate();
-  }
+    this.innerHTML = `
+    <h1>Counter</h1>
 
-  getTemplate() {
-    return `
-      <h1>Counter</h1>
-
-      <wcc-counter count="5"></wcc-counter>
-    `;
+    <wcc-counter count="5"></wcc-counter>
+  `;
   }
 }
