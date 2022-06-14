@@ -2,10 +2,7 @@ import '../components/paragraph.js';
 
 export default class HomePage extends HTMLElement {
   connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.innerHTML = this.getTemplate();
-    }
+    this.innerHTML = this.getTemplate();
   }
 
   getTemplate() {

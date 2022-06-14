@@ -51,11 +51,13 @@ class Counter extends HTMLElement {
 
   render() {
     return `
-      <div>
-        <button id="inc">Increment</button>
-        <span>Current Count: <span id="count">${this.count}</span></span>
-        <button id="dec">Decrement</button>
-      </div>
+      <template shadowroot="open">
+        <div>
+          <button id="inc">Increment</button>
+          <span>Current Count: <span id="count">${this.count}</span></span>
+          <button id="dec">Decrement</button>
+        </div>
+      </template>
     `;
   }
 }

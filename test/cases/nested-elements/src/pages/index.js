@@ -1,6 +1,16 @@
 import '../components/footer.js';
 import '../components/header.js';
 
+const template = document.createElement('template');
+
+template.innerHTML = `
+  <wcc-header></wcc-header>
+
+  <h1>Home Page</h1>
+
+  <wcc-footer></wcc-footer>
+`;
+
 export default class HomePage extends HTMLElement {
   constructor() {
     super();
@@ -13,17 +23,7 @@ export default class HomePage extends HTMLElement {
   }
 
   connectedCallback() {
-    this.shadowRoot.innerHTML = this.getTemplate();
-  }
-
-  getTemplate() {
-    return `
-      <wcc-header></wcc-header>
-
-      <h1>Home Page</h1>
-
-      <wcc-footer></wcc-footer>
-    `;
+    this.shadowRoot.innerHTML = template.innerHTML;
   }
 }
 
