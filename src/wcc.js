@@ -104,10 +104,11 @@ async function getTagName(moduleURL) {
 async function initializeCustomElement(elementURL, tagName, attrs = []) {
   await registerDependencies(elementURL);
 
+  const { pathname } = elementURL;
   const element = tagName
     ? customElements.get(tagName)
-    : (await import(elementURL)).default;
-  const dataLoader = (await import(elementURL)).getData;
+    : (await import(pathname)).default;
+  const dataLoader = (await import(pathname)).getData;
   const data = dataLoader ? await dataLoader() : {};
   const elementInstance = new element(data); // eslint-disable-line new-cap
 
