@@ -4,8 +4,7 @@ import './dom-shim.js';
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { parse, parseFragment, serialize } from 'parse5';
-
-import fs from 'node:fs/promises';
+import fs from 'fs/promises';
 
 let definitions;
 
