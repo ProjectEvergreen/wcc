@@ -104,6 +104,7 @@ async function getTagName(moduleURL) {
 async function initializeCustomElement(elementURL, tagName, attrs = []) {
   await registerDependencies(elementURL);
 
+  // https://github.com/ProjectEvergreen/wcc/pull/67/files#r902061804
   const { pathname } = elementURL;
   const element = tagName
     ? customElements.get(tagName)
