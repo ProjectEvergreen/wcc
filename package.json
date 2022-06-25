@@ -11,7 +11,7 @@
   },
   "files": [
     "src/",
-    "dist/wcc.dist.js"
+    "dist/wcc.dist.cjs"
   ],
   "publishConfig": {
     "access": "public"
