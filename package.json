@@ -28,7 +28,7 @@
     "test": "c8 mocha --parallel",
     "test:tdd": "npm run test --watch",
     "dist": "rollup -c rollup.config.js",
-    "prepublish": "npm run clean && npm run dist"
+    "prepublishOnly": "npm run clean && npm run dist"
   },
   "dependencies": {
     "acorn": "^8.7.0",
