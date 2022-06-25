@@ -73,6 +73,13 @@
 $ npm install wc-compiler --save-dev
 ```
 
+### CommonJS
+
+If you need CommonJS support, a separate pre-bundled (with Rollup) distribution of **WCC** is available at _dist/wcc.dist.js_.  Example:
+```js
+const { renderToString } = require('wc-compiler/dist/wcc.dist');
+```
+
 ## Documentation
 
 See our [website](https://merry-caramel-524e61.netlify.app/) for API docs and examples.

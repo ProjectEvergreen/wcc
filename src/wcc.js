@@ -4,8 +4,7 @@ import './dom-shim.js';
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { parse, parseFragment, serialize } from 'parse5';
-
-import fs from 'node:fs/promises';
+import fs from 'fs/promises';
 
 let definitions;
 
@@ -105,10 +104,12 @@ async function getTagName(moduleURL) {
 async function initializeCustomElement(elementURL, tagName, attrs = []) {
   await registerDependencies(elementURL);
 
+  // https://github.com/ProjectEvergreen/wcc/pull/67/files#r902061804
+  const { pathname } = elementURL;
   const element = tagName
     ? customElements.get(tagName)
-    : (await import(elementURL)).default;
-  const dataLoader = (await import(elementURL)).getData;
+    : (await import(pathname)).default;
+  const dataLoader = (await import(pathname)).getData;
   const data = dataLoader ? await dataLoader() : {};
   const elementInstance = new element(data); // eslint-disable-line new-cap
 
