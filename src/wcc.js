@@ -6,8 +6,6 @@ import * as walk from 'acorn-walk';
 import { parse, parseFragment, serialize } from 'parse5';
 import fs from 'fs/promises';
 
-let definitions;
-
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
     ? parse
@@ -22,12 +20,12 @@ function isCustomElementDefinitionNode(node) {
     && expression.callee.property.name === 'define';
 }
 
-async function renderComponentRoots(tree) {
+async function renderComponentRoots(tree, definitions) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
       const { tagName } = node;
       const { moduleURL } = definitions[tagName];
-      const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs);
+      const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs, definitions);
       const elementHtml = elementInstance.shadowRoot
         ? elementInstance.getInnerHTML({ includeShadowRoots: true })
         : elementInstance.innerHTML;
@@ -39,19 +37,19 @@ async function renderComponentRoots(tree) {
     }
 
     if (node.childNodes && node.childNodes.length > 0) {
-      await renderComponentRoots(node);
+      await renderComponentRoots(node, definitions);
     }
 
     // does this only apply to `<template>` tags?
     if (node.content && node.content.childNodes && node.content.childNodes.length > 0) {
-      await renderComponentRoots(node.content);
+      await renderComponentRoots(node.content, definitions);
     }
   }
 
   return tree;
 }
 
-async function registerDependencies(moduleURL) {
+async function registerDependencies(moduleURL, definitions) {
   const moduleContents = await fs.readFile(moduleURL, 'utf-8');
 
   walk.simple(acorn.parse(moduleContents, {
@@ -65,7 +63,7 @@ async function registerDependencies(moduleURL) {
       if (!isBareSpecifier) {
         const dependencyModuleURL = new URL(node.source.value, moduleURL);
 
-        await registerDependencies(dependencyModuleURL);
+        await registerDependencies(dependencyModuleURL, definitions);
       }
     },
     async ExpressionStatement(node) {
@@ -101,8 +99,8 @@ async function getTagName(moduleURL) {
   return tagName;
 }
 
-async function initializeCustomElement(elementURL, tagName, attrs = []) {
-  await registerDependencies(elementURL);
+async function initializeCustomElement(elementURL, tagName, attrs = [], definitions = []) {
+  await registerDependencies(elementURL, definitions);
 
   // https://github.com/ProjectEvergreen/wcc/pull/67/files#r902061804
   const { pathname } = elementURL;
@@ -127,16 +125,15 @@ async function initializeCustomElement(elementURL, tagName, attrs = []) {
 }
 
 async function renderToString(elementURL) {
-  definitions = [];
-
+  const definitions = [];
   const elementTagName = await getTagName(elementURL);
-  const elementInstance = await initializeCustomElement(elementURL);
+  const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions);
 
   const elementHtml = elementInstance.shadowRoot
     ? elementInstance.getInnerHTML({ includeShadowRoots: true })
     : elementInstance.innerHTML;
   const elementTree = getParse(elementHtml)(elementHtml);
-  const finalTree = await renderComponentRoots(elementTree);
+  const finalTree = await renderComponentRoots(elementTree, definitions);
   const html = elementTagName ? `
       <${elementTagName}>
         ${serialize(finalTree)}
@@ -151,14 +148,14 @@ async function renderToString(elementURL) {
 }
 
 async function renderFromHTML(html, elements = []) {
-  definitions = [];
+  const definitions = [];
 
   for (const url of elements) {
-    await initializeCustomElement(url);
+    await initializeCustomElement(url, undefined, undefined, definitions);
   }
 
   const elementTree = getParse(html)(html);
-  const finalTree = await renderComponentRoots(elementTree);
+  const finalTree = await renderComponentRoots(elementTree, definitions);
 
   return {
     html: serialize(finalTree),
