@@ -22,8 +22,6 @@
     "develop": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html ./build.js\" \"http-server ./dist --open\"",
     "build": "node ./build.js",
     "serve": "node ./build.js && http-server ./dist --open",
-    "example:ssg": "node ./examples/ssg.js",
-    "example:ssr": "node ./examples/ssr.js",
     "start": "npm run develop",
     "test": "c8 mocha --parallel",
     "test:tdd": "npm run test --watch",
