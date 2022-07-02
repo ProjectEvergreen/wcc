@@ -18,19 +18,23 @@
   },
   "scripts": {
     "clean": "rimraf ./dist",
-    "lint": "eslint \"*.*js\" \"./src/**/**/*.js\" \"./test/**/**/*.js\"",
-    "develop": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html ./build.js\" \"http-server ./dist --open\"",
+    "lint": "eslint \"*.*js\" \"./src/**/**/*.js*\" \"./test/**/**/*.js*\"",
+    "develop": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html,jsx ./build.js\" \"http-server ./dist --open\"",
     "build": "node ./build.js",
     "serve": "node ./build.js && http-server ./dist --open",
     "start": "npm run develop",
     "test": "c8 mocha --parallel",
     "test:tdd": "npm run test --watch",
     "dist": "rollup -c rollup.config.js",
-    "prepublishOnly": "npm run clean && npm run dist"
+    "prepublishOnly": "npm run clean && npm run dist",
+    "sandbox": "node ./sandbox.js",
+    "sandbox:serve": "npm run sandbox && http-server ./sandbox --open"
   },
   "dependencies": {
     "acorn": "^8.7.0",
+    "acorn-jsx": "^5.3.2",
     "acorn-walk": "^8.2.0",
+    "escodegen": "^2.0.0",
     "parse5": "^6.0.1"
   },
   "devDependencies": {

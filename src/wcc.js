@@ -3,8 +3,11 @@ import './dom-shim.js';
 
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
+import escodegen from 'escodegen';
+import jsx from 'acorn-jsx';
 import { parse, parseFragment, serialize } from 'parse5';
 import fs from 'fs';
+import path from 'path';
 
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
@@ -82,7 +85,7 @@ function registerDependencies(moduleURL, definitions) {
         };
       }
     }
-  });
+  })
 }
 
 async function getTagName(moduleURL) {
@@ -99,7 +102,7 @@ async function getTagName(moduleURL) {
         tagName = node.expression.arguments[0].value;
       }
     }
-  });
+  })
 
   return tagName;
 }
@@ -109,28 +112,89 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
 
   // https://github.com/ProjectEvergreen/wcc/pull/67/files#r902061804
   const { pathname } = elementURL;
-  const element = tagName
-    ? customElements.get(tagName)
-    : (await import(pathname)).default;
-  const dataLoader = (await import(pathname)).getData;
-  const data = dataLoader ? await dataLoader() : {};
-  const elementInstance = new element(data); // eslint-disable-line new-cap
 
-  attrs.forEach((attr) => {
-    elementInstance.setAttribute(attr.name, attr.value);
+  // TODO handle for getTagName
+  if (path.extname(pathname) === '.jsx') {
+    console.debug('initializeCustomElement JSX detected for tagName');
+  } else {
+    const element = tagName
+      ? customElements.get(tagName)
+      : (await import(pathname)).default;
+    const dataLoader = (await import(pathname)).getData;
+    const data = dataLoader ? await dataLoader() : {};
+    const elementInstance = new element(data); // eslint-disable-line new-cap
 
-    if (attr.name === 'hydrate') {
-      definitions[tagName].hydrate = attr.value;
-    }
+    attrs.forEach((attr) => {
+      elementInstance.setAttribute(attr.name, attr.value);
+
+      if (attr.name === 'hydrate') {
+        definitions[tagName].hydrate = attr.value;
+      }
+    });
+
+    await elementInstance.connectedCallback();
+
+    return elementInstance;
+  }
+}
+
+async function parseJsx(moduleURL, definitions = []) {
+  const moduleContents = await fs.readFile(moduleURL, 'utf-8');
+  let tagName;
+
+  const tree = acorn.Parser.extend(jsx()).parse(moduleContents, {
+    ecmaVersion: 'latest',
+    sourceType: 'module'
   });
 
-  await elementInstance.connectedCallback();
+  console.debug('===== 🌳 BEFORE 🌳 ======');
+  console.debug({ tree });
 
-  return elementInstance;
+  walk.simple(tree, {
+    async ExpressionStatement(node) {
+      if (isCustomElementDefinitionNode(node)) {
+        tagName = node.expression.arguments[0].value;
+
+        if (!definitions[tagName]) {
+          definitions[tagName] = {};
+        }
+      }
+    },
+    async ClassDeclaration(node) {
+      if (node.superClass.name === 'HTMLElement') {
+        node.body.body.forEach((n, idx) => {
+          if (n.type === 'MethodDefinition' && n.key.name === 'render') {
+            console.log('@@@ we have a render function!');
+            node.body.body[idx].value.body = acorn.Parser.extend(jsx()).parse(`
+              {
+                const msg = '!!!!! wcc+jsx was here !!!!!';
+                console.debug(msg);
+                alert(msg);
+              }
+            `, {
+              ecmaVersion: 'latest',
+              sourceType: 'module'
+            });
+          }
+        });
+      }
+    }
+  }, {
+    // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
+    ...walk.base,
+    JSXElement: () => {}
+  });
+
+  console.debug('===== 🌳 AFTER 🌳 ======');
+  console.debug({ tree });
+
+  definitions[tagName].source = escodegen.generate(tree);
+  definitions[tagName].url = moduleURL;
 }
 
 async function renderToString(elementURL) {
   const definitions = [];
+
   const elementTagName = await getTagName(elementURL);
   const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions);
 
