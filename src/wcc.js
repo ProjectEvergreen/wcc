@@ -162,10 +162,10 @@ async function parseJsx(moduleURL, definitions = []) {
     },
     async ClassDeclaration(node) {
       if (node.superClass.name === 'HTMLElement') {
-        node.body.body.forEach((n, idx) => {
+        node.body.body.forEach((n) => {
           if (n.type === 'MethodDefinition' && n.key.name === 'render') {
             console.log('@@@ we have a render function!');
-            node.body.body[idx].value.body = acorn.Parser.extend(jsx()).parse(`
+            n.value.body = acorn.parse(`
               {
                 const msg = '!!!!! wcc+jsx was here !!!!!';
                 console.debug(msg);
