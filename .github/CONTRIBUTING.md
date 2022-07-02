@@ -7,16 +7,16 @@ We're excited for your interest in WCC, and maybe even your contribution!
 
 To develop for the project, you'll want to follow these steps:
 
-1. Have [NodeJS LTS](https://nodejs.org)
+1. Have [NodeJS LTS](https://nodejs.org) and / or use `nvm` (see below)
 1. Clone the repository
 1. Run `npm ci`
 
-If developing with Node Version Manager:
+If you have **NVM (Node Version Manager)** installed, get the recommend node version:
 
 - Windows: [NVM for Windows](https://github.com/coreybutler/nvm-windows/releases)
 - Linux/MacOS: [Node Version Manager](https://github.com/nvm-sh/nvm)
 
-You can confirm by running the following
+And then running `nvm use`
 
 ```sh
 $ nvm use
