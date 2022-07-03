@@ -12,8 +12,6 @@ async function init() {
   const sources = Object.keys(metadata).map(key => {
     return `
       <script type="module">
-        console.debug(\`'${metadata[key].source}'\`);
-
         ${metadata[key].source}
       </script>
     `;
@@ -35,6 +33,8 @@ async function init() {
         <h1>WCC Sandbox</h1>
 
         ${tags.join('\n')}
+
+        <hr/>
 
         ${Object.keys(metadata).map(key => `<pre>${metadata[key].source}</pre>`).join('\n')}
       </body>

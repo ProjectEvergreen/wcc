@@ -1,5 +1,4 @@
 export default class Counter extends HTMLElement {
-  // need to observe count
   constructor() {
     super();
     console.debug('constructor');
@@ -22,7 +21,7 @@ export default class Counter extends HTMLElement {
     return (
       <div>
         <p>You clicked {count} times</p>
-        <button onClick={() => this.increment()}>
+        <button onclick={() => this.increment()}>
           Click me
         </button>
       </div>

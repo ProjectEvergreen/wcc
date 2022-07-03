@@ -162,18 +162,22 @@ async function parseJsx(moduleURL, definitions = []) {
     },
     async ClassDeclaration(node) {
       if (node.superClass.name === 'HTMLElement') {
-        node.body.body.forEach((n) => {
-          if (n.type === 'MethodDefinition' && n.key.name === 'render') {
+        node.body.body.forEach((n1) => {
+          if (n1.type === 'MethodDefinition' && n1.key.name === 'render') {
             console.log('@@@ we have a render function!');
-            n.value.body = acorn.parse(`
-              {
-                const msg = '!!!!! wcc+jsx was here !!!!!';
-                console.debug(msg);
-                alert(msg);
+
+            n1.value.body.body.forEach((n2, idx2) => {
+              if (n2.type === 'ReturnStatement') {
+                const html = moduleContents.slice(n2.argument.openingElement.start, n2.argument.closingElement.end)
+                  .replace(/\n/g, '')
+                  .replace(/\{/, '${'); // TODO this could be cleaner
+                const transformed = acorn.parse(`this.innerHTML = \`${html}\`;`, {
+                  ecmaVersion: 'latest',
+                  sourceType: 'module'
+                });
+
+                n1.value.body.body[idx2] = transformed;
               }
-            `, {
-              ecmaVersion: 'latest',
-              sourceType: 'module'
             });
           }
         });
