@@ -5,6 +5,13 @@ class CounterControl extends HTMLElement {
   }
 
   connectedCallback() {
+    // manual event handlers
+    // const buttonDec = this.shadowRoot.querySelector('button#dec');
+    // const buttonInc = this.shadowRoot.querySelector('button#inc');
+
+    // buttonDec.addEventListener('click', this.decrement.bind(this));
+    // buttonInc.addEventListener('click', this.increment.bind(this));
+
     this.render();
   }
 
@@ -30,7 +37,7 @@ class CounterControl extends HTMLElement {
     // in this case 2; button -> div -> wcc-counter
     this.innerHTML = `
       <div>
-        <button onclick="this.parentElement.parentElement.decrement();"> + </button>
+        <button id="dec" onclick="this.parentElement.parentElement.decrement();"> + </button>
         <span>You have clicked <span id="count">${count}</span> times</span>
         <button id="inc" onclick="this.parentElement.parentElement.increment();"> + </button>
       </div> 
