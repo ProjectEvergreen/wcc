@@ -28,6 +28,7 @@
     "dist": "rollup -c rollup.config.js",
     "prepublishOnly": "npm run clean && npm run dist",
     "sandbox": "node ./sandbox.js",
+    "sandbox:develop": "concurrently \"nodemon --watch src --watch test -e js,md,css,html,jsx ./sandbox.js\" \"http-server ./sandbox --open\"",
     "sandbox:serve": "npm run sandbox && http-server ./sandbox --open"
   },
   "dependencies": {
