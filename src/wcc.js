@@ -168,14 +168,20 @@ async function parseJsx(moduleURL, definitions = []) {
 
             n1.value.body.body.forEach((n2, idx2) => {
               if (n2.type === 'ReturnStatement') {
+                const hasShadow = moduleContents.indexOf('this.attachShadow(') > 0;
+                const root = hasShadow ? 'this.shadowRoot' : 'this';
+                const rootEntry = hasShadow ? 'parentNode.host' : 'parentElement';
+
+                // order matters
                 const jsx = moduleContents.slice(n2.argument.openingElement.start, n2.argument.closingElement.end)
                   .replace(/\n/g, '')
                   .replace('onclick={this.increment}', 'onclick="this.increment()"') // TODO transform events
                   .replace('onclick={this.decrement}', 'onclick="this.decrement()"') // TODO transform events
                   .replace('onclick={this.count += 1}', 'onclick="this.count += 1; this.render();"') // TODO transform events
-                  .replace(/this/g, 'this.parentElement.parentElement') // transform references to this
+                  .replace(/this/g, `this.parentElement.${rootEntry}`) // transform references to this, notice difference between with and without shadow dom
                   .replace(/\{/, '${'); // TODO transform variable expressions
-                const transformed = acorn.parse(`this.innerHTML = \`${jsx}\`;`, {
+
+                const transformed = acorn.parse(`${root}.innerHTML = \`${jsx}\`;`, {
                   ecmaVersion: 'latest',
                   sourceType: 'module'
                 });

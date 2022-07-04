@@ -41,7 +41,7 @@ describe('Run WCC For ', function() {
 
       it('should do something', () => {
         expect(Object.keys(meta).length).to.equal(1);
-        expect(meta['wcc-counter'].source).to.not.be.undefined;
+        expect(meta['wcc-counter-jsx'].source).to.not.be.undefined;
       });
     });
 
