@@ -8,6 +8,13 @@ export default class Counter extends HTMLElement {
   increment() {
     console.debug('increment');
     this.count += 1;
+    this.render();
+  }
+
+  decrement() {
+    console.debug('decrement');
+    this.count -= 1;
+    this.render();
   }
 
   connectedCallback() {
@@ -20,10 +27,10 @@ export default class Counter extends HTMLElement {
 
     return (
       <div>
-        <p>You clicked {count} times</p>
-        <button onclick={() => this.increment()}>
-          Click me
-        </button>
+        <button onclick={this.decrement}> -  (function reference) </button>
+        <span>You have clicked <span id="count" class="red">{count}</span> times</span>
+        <button onclick={this.count += 1}> + (inline state update) </button>
+        <button onclick={this.increment}> + (function reference) </button>
       </div>
     );
   }
@@ -31,4 +38,4 @@ export default class Counter extends HTMLElement {
 
 // TODO handle this working when customElements.define is NOT used
 // e.g. layouts
-customElements.define('wcc-counter', Counter);
+customElements.define('wcc-counter-jsx', Counter);

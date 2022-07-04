@@ -31,6 +31,12 @@ async function init() {
           ${control}
         </script>
         ${sources.join('\n')}
+
+        <style>
+          wcc-counter-jsx span#count {
+            color: red;
+          }
+        </style>
       </head>
 
       <body>
