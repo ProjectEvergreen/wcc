@@ -139,9 +139,42 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
   }
 }
 
-function parseJsxElement(element) {
-  console.debug('parseJsxTree', { string });
+function applyDomDepthSubstitutions(tree, _currentDepth) {
+  try {
+    // TODO figure out currentDepth algorithm
+    let cd = _currentDepth || currentDepth;
+    console.debug('calculateDomDepth!!!!', { cd });
 
+    for (const node of tree.childNodes) {
+      const attrs = node.attrs;
+
+      // check for attributes
+      // swap out __this__ for parentElement
+      if (attrs && attrs.length > 0) {
+        for (const attr in attrs) {
+          const { value } = attrs[attr];
+
+          if (value.indexOf('__this__.') >= 0) {
+            // TODO Shadow DOM detection
+
+            node.attrs[attr].value = value.replace(/__this__/g, `this${'.parentElement'.repeat(cd)}`);
+          }
+        }
+      }
+      
+      if (node.childNodes && node.childNodes.length > 0) {
+        cd += 1;
+        applyDomDepthSubstitutions(node, cd);
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  return tree;
+}
+
+function parseJsxElement(element) {
   try {
     const { type } = element;
 
@@ -149,7 +182,6 @@ function parseJsxElement(element) {
       const { openingElement } = element;
       const { attributes } = openingElement;
       const tagName = openingElement.name.name;
-      console.debug('### JSXElement', tagName);
 
       string += `<${tagName}`;
 
@@ -212,9 +244,6 @@ async function parseJsx(moduleURL, definitions = []) {
     sourceType: 'module'
   });
 
-  console.debug('===== 🌳 BEFORE 🌳 ======');
-  console.debug({ tree });
-
   walk.simple(tree, {
     async ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
@@ -231,30 +260,31 @@ async function parseJsx(moduleURL, definitions = []) {
           if (n1.type === 'MethodDefinition' && n1.key.name === 'render') {
             console.log('@@@ we have a render function!');
 
-            for (const n in n1.value.body.body) {
-              const n2 = n1.value.body.body[n];
+            for (const n2 in n1.value.body.body) {
+              const n = n1.value.body.body[n2];
 
-              if (n2.type === 'ReturnStatement' && n2.argument.type === 'JSXElement') {
+              if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
                 console.debug('@@@@ JSX ELEMENT AHOY @@@@');
                 
                 // ✔️ 1. Convert JSX into an HTML string
                 // ✔️ 1a. handle function reference event handler - onclick={this.increment} -> onclick="__this__.increment()"
                 // ✔️ 1b. convert expressions - {count} -> ${count}
-                // 1c. find shadow root Y / N (scoped to the custom element!)
-                // 2. Convert HTML string into HTML AST
+                // ✔️ 2. Convert HTML string into HTML AST
                 // 2a. find root (parentElement / parentNode) depth
                 // 2a. find `this` references and replace with root depth (ONLY within attributes!!! don't want to break actual content)
                 // 3. Convert HTML AST into HTML string
                 // 4. Replace render return statement with innerHTML (with or without shadow)
-                // 5. ???
-                // 6. Profit
-                // =========
-                // 5. Other event cases (to verify)
-                // 5a. member expression (needs an implicit rerender?) - onclick={this.count + 1}
-                // 5b. arrow function  - onclick={() => ...}
+                // 5. find shadow root Y / N (scoped to the custom element!)
+                // 6. ???
+                // 7. Profit
 
-                const html = parseJsxElement(n2.argument);
-                console.debug({ html });
+                const html = parseJsxElement(n.argument);
+                const elementTree = getParse(html)(html);
+
+                applyDomDepthSubstitutions(elementTree);
+
+                const finalHtml = serialize(elementTree);
+                console.debug({ finalHtml });
 
                 // TODO is this good enough?
                 // Probably not, what if there are multiple classes in the same file?
@@ -263,7 +293,7 @@ async function parseJsx(moduleURL, definitions = []) {
                 const rootEntry = hasShadow ? 'parentNode.host' : 'parentElement';
 
                 // order matters
-                const jsx = moduleContents.slice(n2.argument.openingElement.start, n2.argument.closingElement.end)
+                const jsx = moduleContents.slice(n.argument.openingElement.start, n.argument.closingElement.end)
                   .replace(/\n/g, '')
                   .replace('onclick={this.increment}', 'onclick="this.increment()"') // TODO transform events
                   .replace('onclick={this.decrement}', 'onclick="this.decrement()"') // TODO transform events
@@ -276,7 +306,7 @@ async function parseJsx(moduleURL, definitions = []) {
                   sourceType: 'module'
                 });
 
-                n1.value.body.body[n] = transformed;
+                n1.value.body.body[n2] = transformed;
               }
             }
           }
@@ -292,8 +322,6 @@ async function parseJsx(moduleURL, definitions = []) {
   definitions[tagName].source = escodegen.generate(tree);
   definitions[tagName].url = moduleURL;
 
-  console.debug('===== 🌳 AFTER 🌳 ======');
-  console.debug({ tree });
   console.debug(definitions[tagName].source);
 
   return tree;
