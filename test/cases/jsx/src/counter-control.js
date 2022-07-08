@@ -4,8 +4,9 @@ class CounterControl extends HTMLElement {
     this.count = 0;
   }
 
+  // setting manual event handlers works...
+  // but will stop working after the first fire when using innerHTML though!!
   connectedCallback() {
-    // manual event handlers
     // const buttonDec = this.shadowRoot.querySelector('button#dec');
     // const buttonInc = this.shadowRoot.querySelector('button#inc');
 
@@ -25,7 +26,7 @@ class CounterControl extends HTMLElement {
     this.render();
   }
 
-  // TODO ideally a patch over a full re-render would be ideal
+  // TODO ideally a patch over a full re-render would be nice
   // update() {
   //   this.querySelector('span#count').textContent = this.count;
   // }

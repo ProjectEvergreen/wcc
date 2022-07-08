@@ -19,14 +19,14 @@ const expect = chai.expect;
 describe('Run WCC For ', function() {
   const LABEL = 'Single Custom Element using JSX and Declarative Shadow DOM';
   // let dom;
-  // let rawHtml;
+  let rawHtml;
   let meta;
 
   before(async function() {
-    const { metadata } = await renderToString(new URL('./src/counter.jsx', import.meta.url));
+    const { html, metadata } = await renderToString(new URL('./src/counter.jsx', import.meta.url));
 
     meta = metadata;
-    // rawHtml = html;
+    rawHtml = html;
     // dom = new JSDOM(html);
   });
 
@@ -39,7 +39,11 @@ describe('Run WCC For ', function() {
       //   footer = new JSDOM(dom.window.document.querySelectorAll('wcc-footer template[shadowroot="open"]')[0].innerHTML);
       // });
 
-      it('should do something', () => {
+      it('should return the expected HTML from rendering the component', () => {
+        console.debug({ rawHtml });
+      });
+
+      it('should return a JSX definition in metadata', () => {
         expect(Object.keys(meta).length).to.equal(1);
         expect(meta['wcc-counter-jsx'].source).to.not.be.undefined;
       });

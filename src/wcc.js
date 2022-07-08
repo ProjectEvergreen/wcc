@@ -1,3 +1,4 @@
+/* eslint-disable max-depth */
 // this must come first
 import './dom-shim.js';
 
@@ -115,7 +116,7 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
 
   // TODO handle for getTagName
   if (path.extname(pathname) === '.jsx') {
-    console.debug('initializeCustomElement JSX detected for tagName');
+    console.debug('initializeCustomElement JSX detected for this element');
   } else {
     const element = tagName
       ? customElements.get(tagName)
@@ -138,6 +139,43 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
   }
 }
 
+function parseJsxEventHandlers(tree) {
+  console.debug('parseJsxEventHandlers', tree);
+  for (const node of tree.children) {
+    if (node.type === 'JSXElement') {
+      if (node.openingElement.attributes.length > 0) {
+        for (const a in node.openingElement.attributes) {
+          const attr = node.openingElement.attributes[a];
+          console.debug({ attr });
+          if (attr.name.name.startsWith('on')) {
+            if (attr.value.type === 'JSXExpressionContainer') {
+
+              if (attr.value.expression.type === 'MemberExpression') {
+
+                if (attr.value.expression.object.type === 'ThisExpression') {
+
+                  if (attr.value.expression.property.type === 'Identifier') {
+                    console.debug('!!!!!!!!!!!!!!!!!!!!', attr.name.name);
+
+                    console.debug('!!!!!!!!!!!!!!!!!!!!', `${attr.value.expression.property.name}()`);
+                    node.openingElement.attributes[a].value.expression.property.name = `${attr.value.expression.property.name}()`;
+                  }
+                }
+              } else if (attr.value.expression.type === 'ArrowExpression') {
+                console.debug('ARROW EXPRESSION TODO');
+              }
+            }
+          }
+        }
+      }
+
+      if (node.children.length > 0) {
+        parseJsxEventHandlers(node);
+      }
+    }
+  }
+}
+
 async function parseJsx(moduleURL, definitions = []) {
   const moduleContents = await fs.readFile(moduleURL, 'utf-8');
   let tagName;
@@ -150,6 +188,19 @@ async function parseJsx(moduleURL, definitions = []) {
   console.debug('===== 🌳 BEFORE 🌳 ======');
   console.debug({ tree });
 
+  // 1. Convert JSX into HTML string
+  // 1a. handle function reference event handler - onclick={this.increment} -> onclick="this.increment"
+  // 1b. convert expressions - {count} -> ${count}
+  // 1c. find shadow root Y / N
+  // 2. Convert HTML string into HTML AST
+  // 2a. find root (parentElement / parentNode) depth
+  // 2a. find `this` references and replace with root depth (ONLY within attributes!!! don't want to break actual content)
+  // 3. Convert HTML AST into HTML string
+  // 4. Replace render return statement with innerHTML (with or without shadow)
+  // =========
+  // 5. Other event cases (to verify)
+  // 5a. member expression (needs an implicit rerender?) - onclick={this.count + 1}
+  // 5b. arrow function  - onclick={() => ...}
   walk.simple(tree, {
     async ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
@@ -162,12 +213,20 @@ async function parseJsx(moduleURL, definitions = []) {
     },
     async ClassDeclaration(node) {
       if (node.superClass.name === 'HTMLElement') {
-        node.body.body.forEach((n1) => {
+        for (const n1 of node.body.body) {
           if (n1.type === 'MethodDefinition' && n1.key.name === 'render') {
             console.log('@@@ we have a render function!');
 
-            n1.value.body.body.forEach((n2, idx2) => {
-              if (n2.type === 'ReturnStatement') {
+            for (const n in n1.value.body.body) {
+              const n2 = n1.value.body.body[n];
+
+              if (n2.type === 'ReturnStatement' && n2.argument.type === 'JSXElement') {
+                console.debug('@@@@ JSX ELEMENT AHOY @@@@');
+
+                parseJsxEventHandlers(n2.argument);
+
+                // TODO is this good enough?
+                // Probably not, what if there are multiple classes in the same file?
                 const hasShadow = moduleContents.indexOf('this.attachShadow(') > 0;
                 const root = hasShadow ? 'this.shadowRoot' : 'this';
                 const rootEntry = hasShadow ? 'parentNode.host' : 'parentElement';
@@ -186,11 +245,11 @@ async function parseJsx(moduleURL, definitions = []) {
                   sourceType: 'module'
                 });
 
-                n1.value.body.body[idx2] = transformed;
+                n1.value.body.body[n] = transformed;
               }
-            });
+            }
           }
-        });
+        }
       }
     }
   }, {
@@ -199,11 +258,14 @@ async function parseJsx(moduleURL, definitions = []) {
     JSXElement: () => {}
   });
 
-  console.debug('===== 🌳 AFTER 🌳 ======');
-  console.debug({ tree });
-
   definitions[tagName].source = escodegen.generate(tree);
   definitions[tagName].url = moduleURL;
+
+  console.debug('===== 🌳 AFTER 🌳 ======');
+  console.debug({ tree });
+  console.debug(definitions[tagName].source);
+
+  return tree;
 }
 
 async function renderToString(elementURL) {
