@@ -16,7 +16,7 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe.only('Run WCC For ', function() {
   const LABEL = 'Single Custom Element using JSX and Declarative Shadow DOM';
   // let dom;
   let rawHtml;

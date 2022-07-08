@@ -38,7 +38,7 @@ class CounterControl extends HTMLElement {
     // in this case 2; button -> div (parentElement) -> wcc-counter (parentElement)
     this.innerHTML = `
       <div>
-        <h3>CounterControl</h3>
+        <h3 data-test="hello123">CounterControl</h3>
         <button id="dec" onclick="this.parentElement.parentElement.decrement();"> - </button>
         <span>You have clicked <span id="count">${count}</span> times</span>
         <button id="inc" onclick="this.parentElement.parentElement.increment();"> + </button>

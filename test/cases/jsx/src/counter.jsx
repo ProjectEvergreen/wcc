@@ -27,11 +27,11 @@ export default class Counter extends HTMLElement {
 
     return (
       <div>
-        <h3>Counter JSX</h3>
-        <button onclick={this.decrement}> -  (function reference) </button>
+        <h3 data-test="hello123">Counter JSX</h3>
+        <button onclick={this.decrement}> -  (function reference)</button>
         <span>You have clicked <span id="count" class="red">{count}</span> times</span>
-        <button onclick={this.count += 1}> + (inline state update) </button>
-        <button onclick={this.increment}> + (function reference) </button>
+        <button onclick={this.count += 1}> + (inline state update)</button>
+        <button onclick={this.increment}> + (function reference)</button>
       </div>
     );
   }

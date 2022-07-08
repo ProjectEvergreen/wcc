@@ -139,41 +139,64 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
   }
 }
 
-function parseJsxEventHandlers(tree) {
-  console.debug('parseJsxEventHandlers', tree);
-  for (const node of tree.children) {
-    if (node.type === 'JSXElement') {
-      if (node.openingElement.attributes.length > 0) {
-        for (const a in node.openingElement.attributes) {
-          const attr = node.openingElement.attributes[a];
-          console.debug({ attr });
-          if (attr.name.name.startsWith('on')) {
-            if (attr.value.type === 'JSXExpressionContainer') {
+function parseJsxElement(element) {
+  console.debug('parseJsxTree', { string });
 
-              if (attr.value.expression.type === 'MemberExpression') {
+  try {
+    const { type } = element;
 
-                if (attr.value.expression.object.type === 'ThisExpression') {
+    if (type === 'JSXElement') {
+      const { openingElement } = element;
+      const { attributes } = openingElement;
+      const tagName = openingElement.name.name;
+      console.debug('### JSXElement', tagName);
 
-                  if (attr.value.expression.property.type === 'Identifier') {
-                    console.debug('!!!!!!!!!!!!!!!!!!!!', attr.name.name);
+      string += `<${tagName}`;
 
-                    console.debug('!!!!!!!!!!!!!!!!!!!!', `${attr.value.expression.property.name}()`);
-                    node.openingElement.attributes[a].value.expression.property.name = `${attr.value.expression.property.name}()`;
-                  }
+      for (const attribute of attributes) {
+        const { name } = attribute.name;
+
+        // handle events
+        if (name.startsWith('on')) {
+          const { value } = attribute;
+          const { expression } = value;
+
+          if (value.type === 'JSXExpressionContainer') {
+            if (expression.type === 'MemberExpression') {
+              if (expression.object.type === 'ThisExpression') {
+                if (expression.property.type === 'Identifier') {
+                  // we leave markers for "this" so we can replace later but NOT accidentally replacing
+                  // legitimate uses of this that might be actual content / markup
+                  string += ` ${name}="__this__.${expression.property.name}()"`;
                 }
-              } else if (attr.value.expression.type === 'ArrowExpression') {
-                console.debug('ARROW EXPRESSION TODO');
               }
             }
+            //  else if (attr.value.expression.type === 'ArrowExpression') {
+            //   console.debug('ARROW EXPRESSION TODO');
+            // }
           }
+        } else {
+          string += ` ${name}="${attribute.value.value}"`;
         }
       }
 
-      if (node.children.length > 0) {
-        parseJsxEventHandlers(node);
+      string += '>';
+
+      if (element.children.length > 0) {
+        element.children.forEach(child => parseJsxElement(child, string));
       }
+
+      string += `</${tagName}>`;
     }
+
+    if (type === 'JSXText') {
+      string += element.raw;
+    }
+  } catch (e) {
+    console.error(e);
   }
+
+  return string;
 }
 
 async function parseJsx(moduleURL, definitions = []) {
@@ -188,19 +211,6 @@ async function parseJsx(moduleURL, definitions = []) {
   console.debug('===== 🌳 BEFORE 🌳 ======');
   console.debug({ tree });
 
-  // 1. Convert JSX into HTML string
-  // 1a. handle function reference event handler - onclick={this.increment} -> onclick="this.increment"
-  // 1b. convert expressions - {count} -> ${count}
-  // 1c. find shadow root Y / N
-  // 2. Convert HTML string into HTML AST
-  // 2a. find root (parentElement / parentNode) depth
-  // 2a. find `this` references and replace with root depth (ONLY within attributes!!! don't want to break actual content)
-  // 3. Convert HTML AST into HTML string
-  // 4. Replace render return statement with innerHTML (with or without shadow)
-  // =========
-  // 5. Other event cases (to verify)
-  // 5a. member expression (needs an implicit rerender?) - onclick={this.count + 1}
-  // 5b. arrow function  - onclick={() => ...}
   walk.simple(tree, {
     async ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
@@ -222,8 +232,25 @@ async function parseJsx(moduleURL, definitions = []) {
 
               if (n2.type === 'ReturnStatement' && n2.argument.type === 'JSXElement') {
                 console.debug('@@@@ JSX ELEMENT AHOY @@@@');
+                
+                // ✔️ 1. Convert JSX into an HTML string
+                // ✔️ 1a. handle function reference event handler - onclick={this.increment} -> onclick="__this__.increment()"
+                // 1b. convert expressions - {count} -> ${count}
+                // 1c. find shadow root Y / N (scoped to the custom element!)
+                // 2. Convert HTML string into HTML AST
+                // 2a. find root (parentElement / parentNode) depth
+                // 2a. find `this` references and replace with root depth (ONLY within attributes!!! don't want to break actual content)
+                // 3. Convert HTML AST into HTML string
+                // 4. Replace render return statement with innerHTML (with or without shadow)
+                // 5. ???
+                // 6. Profit
+                // =========
+                // 5. Other event cases (to verify)
+                // 5a. member expression (needs an implicit rerender?) - onclick={this.count + 1}
+                // 5b. arrow function  - onclick={() => ...}
 
-                parseJsxEventHandlers(n2.argument);
+                const html = parseJsxElement(n2.argument);
+                console.debug({ html });
 
                 // TODO is this good enough?
                 // Probably not, what if there are multiple classes in the same file?
