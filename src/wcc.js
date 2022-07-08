@@ -263,7 +263,7 @@ async function parseJsx(moduleURL, definitions = []) {
                 // ✔️ 2a. find root (parentElement / parentNode) depth
                 // ✔️ 2a. find `this` references and replace with root depth (ONLY within attributes!!! don't want to break actual content)
                 // ✔️ 3. Convert HTML AST into HTML string
-                // 4. Replace render return statement with innerHTML (with or without shadow)
+                // ✔️ 4. Replace render return statement with innerHTML (with or without shadow)
                 // 5. find shadow root Y / N (scoped to the custom element!)
                 // 6. ???
                 // 7. Profit
@@ -282,16 +282,7 @@ async function parseJsx(moduleURL, definitions = []) {
                 const root = hasShadow ? 'this.shadowRoot' : 'this';
                 const rootEntry = hasShadow ? 'parentNode.host' : 'parentElement';
 
-                // order matters
-                const jsx = moduleContents.slice(n.argument.openingElement.start, n.argument.closingElement.end)
-                  .replace(/\n/g, '')
-                  .replace('onclick={this.increment}', 'onclick="this.increment()"') // TODO transform events
-                  .replace('onclick={this.decrement}', 'onclick="this.decrement()"') // TODO transform events
-                  .replace('onclick={this.count += 1}', 'onclick="this.count += 1; this.render();"') // TODO transform events
-                  .replace(/this/g, `this.parentElement.${rootEntry}`) // transform references to this, notice difference between with and without shadow dom
-                  .replace(/\{/, '${'); // TODO transform variable expressions
-
-                const transformed = acorn.parse(`${root}.innerHTML = \`${jsx}\`;`, {
+                const transformed = acorn.parse(`${root}.innerHTML = \`${finalHtml}\`;`, {
                   ecmaVersion: 'latest',
                   sourceType: 'module'
                 });
