@@ -139,32 +139,26 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
   }
 }
 
-function applyDomDepthSubstitutions(tree, _currentDepth) {
+function applyDomDepthSubstitutions(tree, currentDepth = 1) {
   try {
-    // TODO figure out currentDepth algorithm
-    let cd = _currentDepth || currentDepth;
-    console.debug('calculateDomDepth!!!!', { cd });
-
     for (const node of tree.childNodes) {
       const attrs = node.attrs;
 
       // check for attributes
-      // swap out __this__ for parentElement
+      // and swap out __this__ with depthful parentElement chain
       if (attrs && attrs.length > 0) {
         for (const attr in attrs) {
           const { value } = attrs[attr];
 
           if (value.indexOf('__this__.') >= 0) {
             // TODO Shadow DOM detection
-
-            node.attrs[attr].value = value.replace(/__this__/g, `this${'.parentElement'.repeat(cd)}`);
+            node.attrs[attr].value = value.replace(/__this__/g, `this${'.parentElement'.repeat(currentDepth)}`);
           }
         }
       }
       
       if (node.childNodes && node.childNodes.length > 0) {
-        cd += 1;
-        applyDomDepthSubstitutions(node, cd);
+        applyDomDepthSubstitutions(node, currentDepth + 1);
       }
     }
   } catch (e) {
@@ -197,8 +191,8 @@ function parseJsxElement(element) {
             if (expression.type === 'MemberExpression') {
               if (expression.object.type === 'ThisExpression') {
                 if (expression.property.type === 'Identifier') {
-                  // we leave markers for "this" so we can replace later but NOT accidentally replacing
-                  // legitimate uses of this that might be actual content / markup
+                  // we leave markers for `this` so we can replace it later while also NOT accidentally replacing
+                  // legitimate uses of this that might be actual content / markup of the custom element
                   string += ` ${name}="__this__.${expression.property.name}()"`;
                 }
               }
@@ -258,21 +252,17 @@ async function parseJsx(moduleURL, definitions = []) {
       if (node.superClass.name === 'HTMLElement') {
         for (const n1 of node.body.body) {
           if (n1.type === 'MethodDefinition' && n1.key.name === 'render') {
-            console.log('@@@ we have a render function!');
-
             for (const n2 in n1.value.body.body) {
               const n = n1.value.body.body[n2];
 
-              if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                console.debug('@@@@ JSX ELEMENT AHOY @@@@');
-                
+              if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {                
                 // ✔️ 1. Convert JSX into an HTML string
                 // ✔️ 1a. handle function reference event handler - onclick={this.increment} -> onclick="__this__.increment()"
                 // ✔️ 1b. convert expressions - {count} -> ${count}
                 // ✔️ 2. Convert HTML string into HTML AST
-                // 2a. find root (parentElement / parentNode) depth
-                // 2a. find `this` references and replace with root depth (ONLY within attributes!!! don't want to break actual content)
-                // 3. Convert HTML AST into HTML string
+                // ✔️ 2a. find root (parentElement / parentNode) depth
+                // ✔️ 2a. find `this` references and replace with root depth (ONLY within attributes!!! don't want to break actual content)
+                // ✔️ 3. Convert HTML AST into HTML string
                 // 4. Replace render return statement with innerHTML (with or without shadow)
                 // 5. find shadow root Y / N (scoped to the custom element!)
                 // 6. ???
