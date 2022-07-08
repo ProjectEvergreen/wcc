@@ -192,6 +192,10 @@ function parseJsxElement(element) {
     if (type === 'JSXText') {
       string += element.raw;
     }
+
+    if (type === 'JSXExpressionContainer') {
+      string += `\$\{${element.expression.name}\}`;
+    }
   } catch (e) {
     console.error(e);
   }
@@ -235,7 +239,7 @@ async function parseJsx(moduleURL, definitions = []) {
                 
                 // ✔️ 1. Convert JSX into an HTML string
                 // ✔️ 1a. handle function reference event handler - onclick={this.increment} -> onclick="__this__.increment()"
-                // 1b. convert expressions - {count} -> ${count}
+                // ✔️ 1b. convert expressions - {count} -> ${count}
                 // 1c. find shadow root Y / N (scoped to the custom element!)
                 // 2. Convert HTML string into HTML AST
                 // 2a. find root (parentElement / parentNode) depth
