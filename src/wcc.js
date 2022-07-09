@@ -139,7 +139,7 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
   }
 }
 
-function applyDomDepthSubstitutions(tree, currentDepth = 1) {
+function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = false) {
   try {
     for (const node of tree.childNodes) {
       const attrs = node.attrs;
@@ -151,14 +151,15 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1) {
           const { value } = attrs[attr];
 
           if (value.indexOf('__this__.') >= 0) {
-            // TODO Shadow DOM detection
-            node.attrs[attr].value = value.replace(/__this__/g, `this${'.parentElement'.repeat(currentDepth)}`);
+            const root = hasShadowRoot ? 'parentNode.host' : 'parentElement';
+
+            node.attrs[attr].value = value.replace(/__this__/g, `this${'.parentElement'.repeat(currentDepth - 1)}.${root}`);
           }
         }
       }
       
       if (node.childNodes && node.childNodes.length > 0) {
-        applyDomDepthSubstitutions(node, currentDepth + 1);
+        applyDomDepthSubstitutions(node, currentDepth + 1, hasShadowRoot);
       }
     }
   } catch (e) {
@@ -250,6 +251,8 @@ async function parseJsx(moduleURL, definitions = []) {
     },
     async ClassDeclaration(node) {
       if (node.superClass.name === 'HTMLElement') {
+        const hasShadowRoot = moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
+
         for (const n1 of node.body.body) {
           if (n1.type === 'MethodDefinition' && n1.key.name === 'render') {
             for (const n2 in n1.value.body.body) {
@@ -264,25 +267,17 @@ async function parseJsx(moduleURL, definitions = []) {
                 // ✔️ 2a. find `this` references and replace with root depth (ONLY within attributes!!! don't want to break actual content)
                 // ✔️ 3. Convert HTML AST into HTML string
                 // ✔️ 4. Replace render return statement with innerHTML (with or without shadow)
-                // 5. find shadow root Y / N (scoped to the custom element!)
+                // ✔️ 5. find shadow root Y / N (scoped to the custom element!)
                 // 6. ???
                 // 7. Profit
-
                 const html = parseJsxElement(n.argument);
                 const elementTree = getParse(html)(html);
+                const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
-                applyDomDepthSubstitutions(elementTree);
+                applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
                 const finalHtml = serialize(elementTree);
-                console.debug({ finalHtml });
-
-                // TODO is this good enough?
-                // Probably not, what if there are multiple classes in the same file?
-                const hasShadow = moduleContents.indexOf('this.attachShadow(') > 0;
-                const root = hasShadow ? 'this.shadowRoot' : 'this';
-                const rootEntry = hasShadow ? 'parentNode.host' : 'parentElement';
-
-                const transformed = acorn.parse(`${root}.innerHTML = \`${finalHtml}\`;`, {
+                const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
                   ecmaVersion: 'latest',
                   sourceType: 'module'
                 });
