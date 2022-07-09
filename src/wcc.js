@@ -188,6 +188,7 @@ function parseJsxElement(element) {
           const { value } = attribute;
           const { expression } = value;
 
+          // onclick={this.increment}
           if (value.type === 'JSXExpressionContainer') {
             if (expression.type === 'MemberExpression') {
               if (expression.object.type === 'ThisExpression') {
@@ -198,6 +199,19 @@ function parseJsxElement(element) {
                 }
               }
             }
+
+            // onclick={this.count += 1}
+            if (expression.type === 'AssignmentExpression') {
+              const { left, right } = expression;
+
+              if (left.object.type === 'ThisExpression') {
+                if (left.property.type === 'Identifier') {
+                  // very naive (fine grained?) reactivity
+                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
+                }
+              }
+            }
+
             //  else if (attr.value.expression.type === 'ArrowExpression') {
             //   console.debug('ARROW EXPRESSION TODO');
             // }
@@ -259,17 +273,6 @@ async function parseJsx(moduleURL, definitions = []) {
               const n = n1.value.body.body[n2];
 
               if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {                
-                // ✔️ 1. Convert JSX into an HTML string
-                // ✔️ 1a. handle function reference event handler - onclick={this.increment} -> onclick="__this__.increment()"
-                // ✔️ 1b. convert expressions - {count} -> ${count}
-                // ✔️ 2. Convert HTML string into HTML AST
-                // ✔️ 2a. find root (parentElement / parentNode) depth
-                // ✔️ 2a. find `this` references and replace with root depth (ONLY within attributes!!! don't want to break actual content)
-                // ✔️ 3. Convert HTML AST into HTML string
-                // ✔️ 4. Replace render return statement with innerHTML (with or without shadow)
-                // ✔️ 5. find shadow root Y / N (scoped to the custom element!)
-                // 6. ???
-                // 7. Profit
                 const html = parseJsxElement(n.argument);
                 const elementTree = getParse(html)(html);
                 const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';

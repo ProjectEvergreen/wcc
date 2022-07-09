@@ -37,7 +37,7 @@ async function init() {
 
         <style>
           /* shadow version should intentionally not display the color */
-          wcc-counter-jsx span#count, wcc-counter-jsx-shadow span#count {
+          wcc-counter-jsx span.red, wcc-counter-jsx-shadow span.red {
             color: red;
           }
         </style>
@@ -53,7 +53,7 @@ async function init() {
         <hr/>
 
         <h2>Transform Groups</h2>
-        ${tags.join('\n')}
+        ${tags.join('\n<br/>\n')}
 
         <hr/>
 
