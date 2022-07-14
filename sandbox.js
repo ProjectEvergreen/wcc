@@ -5,13 +5,10 @@ async function init() {
   const sandboxScriptPath = new URL('./test/cases/jsx/src/counter.jsx', import.meta.url);
   const sandboxScriptPathShadow = new URL('./test/cases/jsx/src/counter-shadow.jsx', import.meta.url);
   const sandboxRoot = './sandbox';
-  const { metadata } = await renderToString(sandboxScriptPath);
-  const { metadata: metaDataShadow } = await renderToString(sandboxScriptPathShadow);
+  const { html: htmlCounter, metadata } = await renderToString(sandboxScriptPath);
+  const { html: htmlCounterShadow, metadata: metaDataShadow } = await renderToString(sandboxScriptPathShadow);
   const allMeta = Object.assign({}, metadata, metaDataShadow);
 
-  const tags = Object.keys(allMeta).map(key => {
-    return `<${key}></${key}>`;
-  });
   const sources = Object.keys(allMeta).map(key => {
     return `
       <script type="module">
@@ -20,6 +17,8 @@ async function init() {
     `;
   });
   const control = await fs.readFile(new URL('./test/cases/jsx/src/counter-control.js', import.meta.url), 'utf-8');
+
+  console.debug({ sources });
 
   await fs.rm(sandboxRoot, { recursive: true, force: true });
   await fs.mkdir(sandboxRoot, { recursive: true });
@@ -52,8 +51,9 @@ async function init() {
 
         <hr/>
 
-        <h2>Transform Groups</h2>
-        ${tags.join('\n<br/>\n')}
+        <h2>Transform Group</h2>
+        ${htmlCounter}
+        ${htmlCounterShadow}
 
         <hr/>
 
