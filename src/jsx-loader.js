@@ -139,7 +139,7 @@ function parseJsxElement(element) {
   return string;
 }
 
-async function parseJsx(moduleURL) {
+export async function parseJsx(moduleURL) {
   const moduleContents = await fs.readFile(moduleURL, 'utf-8');
   string = '';
 

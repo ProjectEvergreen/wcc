@@ -4,9 +4,9 @@ import './dom-shim.js';
 
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
-// import escodegen from 'escodegen';
 import { parse, parseFragment, serialize } from 'parse5';
 import fs from 'fs';
+
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
     ? parse
