@@ -29,7 +29,9 @@
     "prepublishOnly": "npm run clean && npm run dist",
     "sandbox": "node --trace-warnings --experimental-loader ./src/jsx-loader.js ./sandbox.js",
     "sandbox:develop": "concurrently \"nodemon --watch src --watch test -e js,md,css,html,jsx --trace-warnings --experimental-loader ./src/jsx-loader.js ./sandbox.js\" \"http-server ./sandbox --open\"",
-    "sandbox:serve": "npm run sandbox && http-server ./sandbox --open"
+    "sandbox:serve": "npm run sandbox && http-server ./sandbox --open",
+    "todo:develop": "concurrently \"nodemon --watch src --watch test -e js,md,css,html,jsx --trace-warnings --experimental-loader ./src/jsx-loader.js ./todo.js\" \"http-server ./sandbox --open\""
+
   },
   "dependencies": {
     "acorn": "^8.7.0",

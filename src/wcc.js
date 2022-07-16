@@ -96,7 +96,6 @@ async function getTagName(moduleURL) {
   }), {
     ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
-
         tagName = node.expression.arguments[0].value;
       }
     }

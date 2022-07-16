@@ -2,7 +2,7 @@
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import escodegen from 'escodegen';
-import fs from 'fs/promises';
+import fs from 'fs';
 import jsx from 'acorn-jsx';
 import { parse, parseFragment, serialize } from 'parse5';
 import path from 'path';
@@ -139,8 +139,8 @@ function parseJsxElement(element) {
   return string;
 }
 
-export async function parseJsx(moduleURL) {
-  const moduleContents = await fs.readFile(moduleURL, 'utf-8');
+export function parseJsx(moduleURL) {
+  const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
   string = '';
 
   const tree = acorn.Parser.extend(jsx()).parse(moduleContents, {
@@ -149,7 +149,7 @@ export async function parseJsx(moduleURL) {
   });
 
   walk.simple(tree, {
-    async ClassDeclaration(node) {
+    ClassDeclaration(node) {
       if (node.superClass.name === 'HTMLElement') {
         const hasShadowRoot = moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
@@ -203,7 +203,7 @@ export function resolve(specifier, context, defaultResolve) {
 
 export async function load(url, context, defaultLoad) {
   if (jsxRegex.test(url)) {
-    const jsFromJsx = await parseJsx(new URL(url));
+    const jsFromJsx = parseJsx(new URL(url));
 
     return {
       format: 'module',
