@@ -1,4 +1,5 @@
 /* eslint-disable max-depth */
+// https://nodejs.org/api/esm.html#esm_loaders
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import escodegen from 'escodegen';
@@ -130,7 +131,25 @@ function parseJsxElement(element) {
     }
 
     if (type === 'JSXExpressionContainer') {
-      string += `\$\{${element.expression.name}\}`;
+      const { type } = element.expression;
+
+      if (type === 'Identifier') {
+        // You have {count} TODOs left to complete
+        string += `\$\{${element.expression.name}\}`;
+      } else if (type === 'MemberExpression') {
+        const { object } = element.expression.object;
+
+        // You have {this.todos.length} TODOs left to complete
+        if (object && object.type === 'ThisExpression') {
+          // TODOs ReferenceError: __this__ is not defined
+          // string += `\$\{__this__.${element.expression.object.property.name}.${element.expression.property.name}\}`;
+        } else {
+          // const { todos } = this;
+          // ....
+          // You have {todos.length} TODOs left to complete
+          string += `\$\{${element.expression.object.name}.${element.expression.property.name}\}`;
+        }
+      }
     }
   } catch (e) {
     console.error(e);

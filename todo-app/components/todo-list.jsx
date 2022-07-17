@@ -9,10 +9,12 @@ export default class TodoList extends HTMLElement {
   }
 
   render() {
+    const { todos } = this;
+
     return (
       <div>
         <h3><u>My Todo List 📝</u></h3>
-        <p>You have {this.todos.length} TODOs left</p>
+        <p>You have {todos.length} TODOs left</p>
       </div>
     );
   }
