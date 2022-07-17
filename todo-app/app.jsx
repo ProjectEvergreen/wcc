@@ -1,16 +1,18 @@
 import './components/todo-list.jsx';
+
 export default class App extends HTMLElement {
-    constructor() {
-        super();
-    }
-    connectedCallback() {
-        this.render();
-    }
-    render() {
-        this.innerHTML = `<div>
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    return (
+      <div>
         <h1>TODO App</h1>
         <todo-list></todo-list>
-      </div>`;
-    }
+      </div>
+    );
+  }
 }
+
 customElements.define('todo-app', App);
