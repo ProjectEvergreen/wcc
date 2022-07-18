@@ -4,7 +4,7 @@ import './dom-shim.js';
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { parse, parseFragment, serialize } from 'parse5';
-import fs from 'fs/promises';
+import fs from 'fs';
 
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
@@ -49,24 +49,24 @@ async function renderComponentRoots(tree, definitions) {
   return tree;
 }
 
-async function registerDependencies(moduleURL, definitions) {
-  const moduleContents = await fs.readFile(moduleURL, 'utf-8');
+function registerDependencies(moduleURL, definitions) {
+  const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
 
   walk.simple(acorn.parse(moduleContents, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
-    async ImportDeclaration(node) {
+    ImportDeclaration(node) {
       const specifier = node.source.value;
       const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
 
       if (!isBareSpecifier) {
         const dependencyModuleURL = new URL(node.source.value, moduleURL);
 
-        await registerDependencies(dependencyModuleURL, definitions);
+        registerDependencies(dependencyModuleURL, definitions);
       }
     },
-    async ExpressionStatement(node) {
+    ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
         const { arguments: args } = node.expression;
         const tagName = args[0].value;
@@ -81,14 +81,14 @@ async function registerDependencies(moduleURL, definitions) {
 }
 
 async function getTagName(moduleURL) {
-  const moduleContents = await fs.readFile(moduleURL, 'utf-8');
+  const moduleContents = await fs.promises.readFile(moduleURL, 'utf-8');
   let tagName;
 
   walk.simple(acorn.parse(moduleContents, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
-    async ExpressionStatement(node) {
+    ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
 
         tagName = node.expression.arguments[0].value;
@@ -100,7 +100,7 @@ async function getTagName(moduleURL) {
 }
 
 async function initializeCustomElement(elementURL, tagName, attrs = [], definitions = []) {
-  await registerDependencies(elementURL, definitions);
+  registerDependencies(elementURL, definitions);
 
   // https://github.com/ProjectEvergreen/wcc/pull/67/files#r902061804
   const { pathname } = elementURL;
