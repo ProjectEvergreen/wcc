@@ -24,16 +24,21 @@ async function renderComponentRoots(tree, definitions) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
       const { tagName } = node;
-      const { moduleURL } = definitions[tagName];
-      const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs, definitions);
-      const elementHtml = elementInstance.shadowRoot
-        ? elementInstance.getInnerHTML({ includeShadowRoots: true })
-        : elementInstance.innerHTML;
-      const elementTree = parseFragment(elementHtml);
 
-      node.childNodes = node.childNodes.length === 0
-        ? elementTree.childNodes
-        : [...elementTree.childNodes, ...node.childNodes];
+      if (definitions[tagName]) {
+        const { moduleURL } = definitions[tagName];
+        const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs, definitions);
+        const elementHtml = elementInstance.shadowRoot
+          ? elementInstance.getInnerHTML({ includeShadowRoots: true })
+          : elementInstance.innerHTML;
+        const elementTree = parseFragment(elementHtml);
+
+        node.childNodes = node.childNodes.length === 0
+          ? elementTree.childNodes
+          : [...elementTree.childNodes, ...node.childNodes];
+      } else {
+        console.warn(`WARNING: customElement <${tagName}> is not defined.  You may not have imported it yet.`);
+      }
     }
 
     if (node.childNodes && node.childNodes.length > 0) {

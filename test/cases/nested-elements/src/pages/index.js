@@ -8,6 +8,9 @@ template.innerHTML = `
 
   <h1>Home Page</h1>
 
+  <!-- https://github.com/ProjectEvergreen/wcc/issues/25 -->
+  <x-undefined-test></x-undefined-test>
+
   <wcc-footer></wcc-footer>
 `;
 
