@@ -1,4 +1,4 @@
-/* eslint-disable max-depth */
+/* eslint-disable max-depth, complexity */
 // https://nodejs.org/api/esm.html#esm_loaders
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
@@ -112,12 +112,18 @@ function parseJsxElement(element) {
               }
             }
           }
-        } else {
-          string += ` ${name}="${attribute.value.value}"`;
+        } else if (attribute.name.type === 'JSXIdentifier') {
+          if (attribute.value) {
+            // xxx="yyy" >
+            string += ` ${name}="${attribute.value.value}"`;
+          } else {
+            // xxx >
+            string += ` ${name}`;
+          }
         }
       }
 
-      string += '>';
+      string += openingElement.selfClosing ? '/>' : '>';
 
       if (element.children.length > 0) {
         element.children.forEach(child => parseJsxElement(child, string));
