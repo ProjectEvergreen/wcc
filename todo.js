@@ -10,6 +10,8 @@ async function init() {
   await fs.rm(outputPath, { recursive: true, force: true });
   await fs.mkdir(outputPath, { recursive: true });
   await Promise.all(Object.keys(metadata).map(async (key) => {
+    metadata[key].source = metadata[key].source.replace(/.jsx/g, '.js');
+
     const filepath = metadata[key].moduleURL.pathname.replace(`${process.cwd()}/todo-app/`, '');
     const fillOutputFilePath = path.join(process.cwd(), outputPath, filepath);
 
@@ -43,7 +45,7 @@ async function init() {
           }
         </style>
         <script type="module">
-          ${metadata['todo-app'].source.replace('.jsx', '.js')}
+          ${metadata['todo-app'].source}
         </script>
       </head>
 

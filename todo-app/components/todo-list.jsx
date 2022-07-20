@@ -1,3 +1,5 @@
+import './todo-list-item.jsx';
+
 export default class TodoList extends HTMLElement {
   constructor() {
     super();
@@ -37,20 +39,20 @@ export default class TodoList extends HTMLElement {
   }
 
   // TODO
-  // todo-list-item
   // delete
   // complete
+  // edit
   // badge
   // hydration + local storage
-  // header / footer
+  // header / footer / css
   // <form onsubmit={(e) => { this.addTodo(e); }}>
   render() {
     const { todos } = this;
     const list = this.todos.map((todo) => `
-      <li>${todo.id}
-        <x-todo-list-item
-          todo=${todo}
-        ></x-todo-list-item>
+      <li>
+        <todo-list-item
+          todo='${JSON.stringify(todo)}'
+        ></todo-list-item>
       </li>
     `).join('');
 
