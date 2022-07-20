@@ -25,10 +25,21 @@ async function init() {
         <title>WCC - TODO App</title>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <style>
+          * {
+            font-family: 'Raleway', sans-serif;
+            font-size: 1em;
+          }
+
           main {
-            width: 60%;
+            width: 25%;
             text-align: center;
             margin: 0 auto;
+          }
+
+          li {
+            text-align: left;
+            padding-left: 10px;
+            font-size: .8em;
           }
         </style>
         <script type="module">

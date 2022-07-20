@@ -8,7 +8,6 @@ export default class App extends HTMLElement {
   render() {
     return (
       <div>
-        <h1>TODO App</h1>
         <todo-list></todo-list>
       </div>
     );
