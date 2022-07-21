@@ -69,7 +69,7 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
   return tree;
 }
 
-function parseJsxElement(element) {
+function parseJsxElement(element, moduleContents = '') {
   try {
     const { type } = element;
 
@@ -100,7 +100,16 @@ function parseJsxElement(element) {
               }
             }
 
-            // onclick={this.count += 1}
+            // onclick={() => this.deleteUser(user.id)}
+            // TODO onclick={(e) => { this.deleteUser(user.id) }}
+            // TODO onclick={(e) => { this.deleteUser(user.id) && this.logAction(user.id) }}
+            if (expression.type === 'ArrowFunctionExpression') {
+              if (expression.body && expression.body.type === 'CallExpression') {
+                const { start, end } = expression;
+                string += ` ${name}="${moduleContents.slice(start, end).replace(/this./g, '__this__.').replace('() => ', '')}"`;
+              }
+            }
+
             if (expression.type === 'AssignmentExpression') {
               const { left, right } = expression;
 
@@ -126,7 +135,7 @@ function parseJsxElement(element) {
       string += openingElement.selfClosing ? '/>' : '>';
 
       if (element.children.length > 0) {
-        element.children.forEach(child => parseJsxElement(child, string));
+        element.children.forEach(child => parseJsxElement(child, moduleContents));
       }
 
       string += `</${tagName}>`;
@@ -184,7 +193,7 @@ export function parseJsx(moduleURL) {
               const n = n1.value.body.body[n2];
 
               if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                const html = parseJsxElement(n.argument);
+                const html = parseJsxElement(n.argument, moduleContents);
                 const elementTree = getParse(html)(html);
                 const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 

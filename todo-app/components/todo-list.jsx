@@ -8,6 +8,8 @@ export default class TodoList extends HTMLElement {
 
   connectedCallback() {
     this.render();
+
+    // document.addEventListener('deleteTodo', (event) => this.deleteTodo(event.detail));
   }
 
   addTodo() {
@@ -36,6 +38,13 @@ export default class TodoList extends HTMLElement {
     }
 
     return false;
+  }
+
+  deleteTodo(todoId) {
+    this.todos = this.todos.filter((todo) => {
+      return todo.id !== todoId;
+    });
+    this.render();
   }
 
   // TODO
