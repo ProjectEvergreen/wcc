@@ -9,7 +9,10 @@ export default class TodoList extends HTMLElement {
   connectedCallback() {
     this.render();
 
-    // document.addEventListener('deleteTodo', (event) => this.deleteTodo(event.detail));
+    // TODO shim addEventListener
+    if (document.addEventListener) {
+      document.addEventListener('deleteTodo', (event) => this.deleteTodo(event.detail));
+    }
   }
 
   addTodo() {
@@ -41,6 +44,7 @@ export default class TodoList extends HTMLElement {
   }
 
   deleteTodo(todoId) {
+    console.log('deleting...', todoId);
     this.todos = this.todos.filter((todo) => {
       return todo.id !== todoId;
     });
@@ -48,7 +52,6 @@ export default class TodoList extends HTMLElement {
   }
 
   // TODO
-  // delete
   // complete
   // edit
   // badge

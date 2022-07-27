@@ -21,8 +21,7 @@ class TodoListItem extends HTMLElement {
   }
 
   dispatchDeleteTodoEvent(id) {
-    console.debug('dispatchDeleteTodoEvent', id);
-    const event = new CustomEvent('deleteTodo', { detail: id });
+    const event = new CustomEvent('deleteTodo', { detail: this.todo.id });
     document.dispatchEvent(event);
   }
 
@@ -33,11 +32,8 @@ class TodoListItem extends HTMLElement {
     return (
       <span>
         {task}
-
         <span>{completionStatus}</span>
-
-        <button onclick={() => this.dispatchDeleteTodoEvent(this.todo.id)}>❌</button>
-            
+        <button onclick={this.dispatchDeleteTodoEvent}>❌</button>
       </span>
     );
   }
