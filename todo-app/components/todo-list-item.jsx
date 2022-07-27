@@ -20,8 +20,14 @@ class TodoListItem extends HTMLElement {
     }
   }
 
-  dispatchDeleteTodoEvent(id) {
+  dispatchDeleteTodoEvent() {
     const event = new CustomEvent('deleteTodo', { detail: this.todo.id });
+    document.dispatchEvent(event);
+  }
+
+  dispatchCompleteTodoEvent() {
+    const event = new CustomEvent('completeTodo', { detail: this.todo.id });
+
     document.dispatchEvent(event);
   }
 
@@ -32,6 +38,7 @@ class TodoListItem extends HTMLElement {
     return (
       <span>
         {task}
+        <input class="complete-todo" type="checkbox" checked={completed} onchange={this.dispatchCompleteTodoEvent}/>
         <span>{completionStatus}</span>
         <button onclick={this.dispatchDeleteTodoEvent}>❌</button>
       </span>

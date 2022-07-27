@@ -12,11 +12,13 @@ export default class TodoList extends HTMLElement {
     // TODO shim addEventListener
     if (document.addEventListener) {
       document.addEventListener('deleteTodo', (event) => this.deleteTodo(event.detail));
+      document.addEventListener('completeTodo', (event) => this.completeTodo(event.detail));
     }
   }
 
   addTodo() {
     // TODO e.preventDefault();
+    console.log('adding...');
     const inputElement = this.getElementsByTagName('input')[0];
     const userInput = inputElement.value;
 
@@ -26,7 +28,7 @@ export default class TodoList extends HTMLElement {
       this.todos = [
         ...this.todos,
         {
-          completed: false,
+          completed: true,
           task: userInput,
           id: now,
           created: now
@@ -43,6 +45,18 @@ export default class TodoList extends HTMLElement {
     return false;
   }
 
+  completeTodo(todoId) {
+    console.log('completing (or uncompleting)...', todoId);
+    const updatedTodos = this.todos.map(todo => {
+      todo.completed = todoId === todo.id ? !todo.completed : todo.completed;
+
+      return todo;
+    });
+
+    this.todos = [...updatedTodos];
+    this.render();
+  }
+
   deleteTodo(todoId) {
     console.log('deleting...', todoId);
     this.todos = this.todos.filter((todo) => {
@@ -52,9 +66,8 @@ export default class TodoList extends HTMLElement {
   }
 
   // TODO
-  // complete
   // edit
-  // badge
+  // badge + counter
   // hydration + local storage
   // header / footer / css
   // <form onsubmit={(e) => { this.addTodo(e); }}>
@@ -75,7 +88,7 @@ export default class TodoList extends HTMLElement {
 
         <form>
           <input class="todo-input" type="text" placeholder="Food Shopping" required/>
-          <button c="add-todo" type="button" onclick={this.addTodo}>+ Add</button>
+          <button class="add-todo" type="button" onclick={this.addTodo}>+ Add</button>
         </form>
 
         <ol>
