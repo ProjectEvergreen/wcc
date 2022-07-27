@@ -4,6 +4,8 @@ import './dom-shim.js';
 
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
+import escodegen from 'escodegen';
+import { getParser, parseJsx } from './jsx-loader.js';
 import { parse, parseFragment, serialize } from 'parse5';
 import fs from 'fs';
 
@@ -57,8 +59,13 @@ async function renderComponentRoots(tree, definitions) {
 
 function registerDependencies(moduleURL, definitions) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
+  const customParser = getParser(moduleURL);
+  const parser = customParser ? customParser.parser : acorn;
+  const config = customParser ? customParser.config : {
+    ...walk.base
+  };
 
-  walk.simple(acorn.parse(moduleContents, {
+  walk.simple(parser.parse(moduleContents, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
@@ -76,21 +83,29 @@ function registerDependencies(moduleURL, definitions) {
       if (isCustomElementDefinitionNode(node)) {
         const { arguments: args } = node.expression;
         const tagName = args[0].value;
+        const tree = parseJsx(moduleURL);
 
         definitions[tagName] = {
           instanceName: args[1].name,
-          moduleURL
+          moduleURL,
+          source: escodegen.generate(tree),
+          url: moduleURL
         };
       }
     }
-  });
+  }, config);
 }
 
 async function getTagName(moduleURL) {
   const moduleContents = await fs.promises.readFile(moduleURL, 'utf-8');
+  const customParser = getParser(moduleURL);
+  const parser = customParser ? customParser.parser : acorn;
+  const config = customParser ? customParser.config : {
+    ...walk.base
+  };
   let tagName;
 
-  walk.simple(acorn.parse(moduleContents, {
+  walk.simple(parser.parse(moduleContents, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
@@ -99,7 +114,7 @@ async function getTagName(moduleURL) {
         tagName = node.expression.arguments[0].value;
       }
     }
-  });
+  }, config);
 
   return tagName;
 }
@@ -131,7 +146,6 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
 
 async function renderToString(elementURL) {
   const definitions = [];
-
   const elementTagName = await getTagName(elementURL);
   const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions);
 
