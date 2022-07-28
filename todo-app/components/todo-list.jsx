@@ -1,3 +1,4 @@
+import './badge.jsx';
 import './todo-list-item.jsx';
 
 export default class TodoList extends HTMLElement {
@@ -28,7 +29,7 @@ export default class TodoList extends HTMLElement {
       this.todos = [
         ...this.todos,
         {
-          completed: true,
+          completed: false,
           task: userInput,
           id: now,
           created: now
@@ -66,25 +67,27 @@ export default class TodoList extends HTMLElement {
   }
 
   // TODO
-  // edit
-  // badge + counter
   // hydration + local storage
   // header / footer / css
   // <form onsubmit={(e) => { this.addTodo(e); }}>
   render() {
     const { todos } = this;
+    const completedTodos = todos.filter(todo => todo.completed);
+    const allTodosCompleted = completedTodos.length !== 0 && completedTodos.length === todos.length;
     const list = this.todos.map((todo) => `
       <li>
-        <todo-list-item
+        <wcc-todo-list-item
           todo='${JSON.stringify(todo)}'
-        ></todo-list-item>
+        ></wcc-todo-list-item>
       </li>
     `).join('');
 
     return (
       <div>
         <h3><u>My Todo List 📝</u></h3>
-        <p>You have {todos.length} TODOs left</p>
+        <h5>Completed TODOs:
+          <wcc-badge count={completedTodos.length} predicate={allTodosCompleted}></wcc-badge>
+        </h5>
 
         <form>
           <input class="todo-input" type="text" placeholder="Food Shopping" required/>
@@ -100,4 +103,4 @@ export default class TodoList extends HTMLElement {
   }
 }
 
-customElements.define('todo-list', TodoList);
+customElements.define('wcc-todo-list', TodoList);

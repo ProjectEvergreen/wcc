@@ -27,7 +27,6 @@ class TodoListItem extends HTMLElement {
 
   dispatchCompleteTodoEvent() {
     const event = new CustomEvent('completeTodo', { detail: this.todo.id });
-
     document.dispatchEvent(event);
   }
 
@@ -35,10 +34,12 @@ class TodoListItem extends HTMLElement {
     const { completed, task } = this.todo;
     const completionStatus = completed ? '✅' : '⛔';
     
+    // TODO checked toggle
+    // https://github.com/ProjectEvergreen/todo-app/blob/master/src/components/todo-list-item/todo-list-item.js#L42
     return (
       <span>
         {task}
-        <input class="complete-todo" type="checkbox" checked={completed} onchange={this.dispatchCompleteTodoEvent}/>
+        <input class="complete-todo" type="checkbox" onchange={this.dispatchCompleteTodoEvent}/>
         <span>{completionStatus}</span>
         <button onclick={this.dispatchDeleteTodoEvent}>❌</button>
       </span>
@@ -46,4 +47,4 @@ class TodoListItem extends HTMLElement {
   }
 }
 
-customElements.define('todo-list-item', TodoListItem);
+customElements.define('wcc-todo-list-item', TodoListItem);

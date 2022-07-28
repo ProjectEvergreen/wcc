@@ -8,7 +8,7 @@ export default class App extends HTMLElement {
   render() {
     return (
       <div>
-        <todo-list></todo-list>
+        <wcc-todo-list></wcc-todo-list>
       </div>
     );
   }

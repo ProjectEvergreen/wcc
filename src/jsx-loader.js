@@ -122,9 +122,29 @@ function parseJsxElement(element, moduleContents = '') {
             }
           }
         } else if (attribute.name.type === 'JSXIdentifier') {
+          // TODO is there any difference between an attribute for an event handler vs a normal attribute?
+          // Can all these be parsed using one function>
           if (attribute.value) {
-            // xxx="yyy" >
-            string += ` ${name}="${attribute.value.value}"`;
+            if (attribute.value.type === 'Literal') {
+              // xxx="yyy" >
+              string += ` ${name}="${attribute.value.value}"`;
+            } else if (attribute.value.type === 'JSXExpressionContainer') {
+              // xxx={allTodos.length} >
+              const { value } = attribute;
+              const { expression } = value;
+
+              if (expression.type === 'Identifier') {
+                string += ` ${name}=\$\{${expression.name}\}`;
+              }
+
+              if (expression.type === 'MemberExpression') {
+                if (expression.object.type === 'Identifier') {
+                  if (expression.property.type === 'Identifier') {
+                    string += ` ${name}=\$\{${expression.object.name}.${expression.property.name}\}`;
+                  }
+                }
+              }
+            }
           } else {
             // xxx >
             string += ` ${name}`;
@@ -156,7 +176,7 @@ function parseJsxElement(element, moduleContents = '') {
 
         // You have {this.todos.length} TODOs left to complete
         if (object && object.type === 'ThisExpression') {
-          // TODOs ReferenceError: __this__ is not defined
+          // TODO ReferenceError: __this__ is not defined
           // string += `\$\{__this__.${element.expression.object.property.name}.${element.expression.property.name}\}`;
         } else {
           // const { todos } = this;
