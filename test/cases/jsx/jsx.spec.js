@@ -26,7 +26,6 @@ describe('Run WCC For ', function() {
     const { html, metadata } = await renderToString(new URL('./src/counter.jsx', import.meta.url));
 
     meta = metadata;
-    rawHtml = html;
     dom = new JSDOM(html);
   });
 
@@ -37,7 +36,6 @@ describe('Run WCC For ', function() {
 
       before(async function() {
         buttons = dom.window.document.querySelectorAll('button');
-        span = dom.window.document.querySelectorAll('button');
       });
 
       describe('Metadata', () => {
