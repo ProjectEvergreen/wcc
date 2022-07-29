@@ -1,25 +1,25 @@
 /*
  * Use Case
- * Run wcc against a single custom element with declarative shadow dom
+ * Run wcc against a nested custom elements using JSX render function
  *
  * User Result
  * Should return the expected HTML output.
  *
  * User Workspace
  * src/
- *   counter.js
+ *   badge.jsx
+ *   counter.jsx
  */
 
 import chai from 'chai';
-// import { JSDOM } from 'jsdom';
+import { JSDOM } from 'jsdom';
 import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
 describe('Run WCC For ', function() {
   const LABEL = 'Single Custom Element using JSX and Declarative Shadow DOM';
-  // let dom;
-  let rawHtml;
+  let dom;
   let meta;
 
   before(async function() {
@@ -27,27 +27,63 @@ describe('Run WCC For ', function() {
 
     meta = metadata;
     rawHtml = html;
-    // dom = new JSDOM(html);
+    dom = new JSDOM(html);
   });
 
   describe(LABEL, function() {
 
     describe('<Counter> component', function() {
-      // let counter;
+      let buttons;
 
-      // before(async function() {
-      //   footer = new JSDOM(dom.window.document.querySelectorAll('wcc-footer template[shadowroot="open"]')[0].innerHTML);
-      // });
-
-      it('should return the expected HTML from rendering the component', () => {
-        console.debug({ rawHtml });
+      before(async function() {
+        buttons = dom.window.document.querySelectorAll('button');
+        span = dom.window.document.querySelectorAll('button');
       });
 
-      it('should return a JSX definition in metadata', () => {
-        expect(Object.keys(meta).length).to.equal(1);
-        expect(meta['wcc-counter-jsx'].source).to.not.be.undefined;
+      describe('Metadata', () => {
+        it('should return a JSX definition in metadata', () => {
+          expect(Object.keys(meta).length).to.equal(2);
+          expect(meta['wcc-counter-jsx'].source).to.not.be.undefined;
+          expect(meta['wcc-badge'].source).to.not.be.undefined;
+        });
+      });
+
+      describe('Attributes', () => {
+        // <wcc-badge count={completedTodos.length}></wcc-badge>
+        it('should handle a member expression', () => {
+          const badge = dom.window.document.querySelectorAll('wcc-badge')[0];
+          const span = badge.querySelectorAll('span')[0];
+
+          expect(badge.getAttribute('count')).to.be.equal('0');
+          expect(span.getAttribute('class')).to.be.equal('unmet');
+          expect(span.textContent).to.be.equal('0');
+        });
+
+        describe('Event Handling', () => {
+          // <button onclick={this.decrement}> - </button>
+          it('should handle a this expression', () => {
+            const element = Array.from(buttons).find(button => button.getAttribute('id') === 'evt-this');
+
+            expect(element.getAttribute('onclick')).to.be.equal('this.parentElement.parentElement.decrement()');
+          });
+  
+          // <button onclick={this.count -= 1}> - </button>
+          it('should handle an assignment expression with implicit reactivity using this.render', () => {
+            const element = Array.from(buttons).find(button => button.getAttribute('id') === 'evt-assignment');
+
+            expect(element.getAttribute('onclick')).to.be.equal('this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();');
+          });
+        });
+      });
+
+      describe('Expressions', () => {
+        // <span>You have clicked {count} times</span>
+        it('should handle an expression', () => {
+          const element = dom.window.document.querySelectorAll('span#expression')[0];
+
+          expect(element.textContent).to.be.equal('0');
+        });    
       });
     });
-
   });
 });

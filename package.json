@@ -23,15 +23,14 @@
     "build": "node ./build.js",
     "serve": "node ./build.js && http-server ./dist --open",
     "start": "npm run develop",
-    "test": "c8 mocha --parallel",
-    "test:tdd": "npm run test --watch",
+    "test": "c8 node --experimental-loader ./test-jsx-loader.js $(yarn bin mocha)",
+    "test:tdd": "npm run test -- --watch",
     "dist": "rollup -c rollup.config.js",
     "prepublishOnly": "npm run clean && npm run dist",
     "sandbox": "node --trace-warnings --experimental-loader ./src/jsx-loader.js ./sandbox.js",
     "sandbox:develop": "concurrently \"nodemon --watch src --watch test -e js,md,css,html,jsx --trace-warnings --experimental-loader ./src/jsx-loader.js ./sandbox.js\" \"http-server ./sandbox --open\"",
     "sandbox:serve": "npm run sandbox && http-server ./sandbox --open",
     "todo:develop": "concurrently \"nodemon --watch todo-app --watch test -e js,md,css,html,jsx --trace-warnings --experimental-loader ./src/jsx-loader.js ./todo.js\" \"http-server ./sandbox --open\""
-
   },
   "dependencies": {
     "acorn": "^8.7.0",

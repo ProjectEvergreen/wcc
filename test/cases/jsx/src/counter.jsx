@@ -1,3 +1,5 @@
+import './badge.jsx';
+
 export default class Counter extends HTMLElement {
   constructor() {
     super();
@@ -23,10 +25,11 @@ export default class Counter extends HTMLElement {
 
     return (
       <div>
+        <wcc-badge count={count}></wcc-badge>
         <h3 data-test="hello123">Counter JSX</h3>
-        <button onclick={this.decrement}> -  (function reference)</button>
-        <button onclick={this.count -= 1}> - (inline state update) </button>
-        <span>You have clicked <span class="red">{count}</span> times</span>
+        <button id="evt-this" onclick={this.decrement}> -  (function reference)</button>
+        <button id="evt-assignment" onclick={this.count -= 1}> - (inline state update)</button>
+        <span>You have clicked <span class="red" id="expression">{count}</span> times</span>
         <button onclick={this.count += 1}> + (inline state update)</button>
         <button onclick={this.increment}> + (function reference)</button>
       </div>

@@ -5,7 +5,7 @@ import { renderToString } from './src/wcc.js';
 async function init() {
   const todoAppPath = new URL('./todo-app/app.jsx', import.meta.url);
   const outputPath = './sandbox';
-  const { metadata } = await renderToString(todoAppPath);
+  const { html, metadata } = await renderToString(todoAppPath);
 
   await fs.rm(outputPath, { recursive: true, force: true });
   await fs.mkdir(outputPath, { recursive: true });
@@ -51,7 +51,7 @@ async function init() {
 
       <body>
         <main>
-          <todo-app></todo-app>
+          ${html}
         </main>
       </body>
     </html>
