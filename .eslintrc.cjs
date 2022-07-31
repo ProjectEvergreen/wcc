@@ -1,7 +1,10 @@
 module.exports = {
   parserOptions: {
     ecmaVersion: 2021,
-    sourceType: 'module'
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true
+    }
   },
   env: {
     browser: false,
