@@ -23,7 +23,7 @@ export async function load(url, context, defaultLoad) {
 }
 
 async function loadBin(url, context, defaultLoad) {
-  const dirs = path.dirname(url).split(path.sep);
+  const dirs = path.dirname(url.replace(/[A-Z]:\//g, '')).split('/');
   const parentDir = dirs.at(-1);
   const grandparentDir = dirs.at(-3);
 

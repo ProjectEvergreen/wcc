@@ -23,7 +23,7 @@
     "build": "node ./build.js",
     "serve": "node ./build.js && http-server ./dist --open",
     "start": "npm run develop",
-    "test": "c8 node --experimental-loader ./test-jsx-loader.js ./node_modules/.bin/mocha",
+    "test": "c8 node --experimental-loader ./test-jsx-loader.js ./node_modules/mocha/bin/mocha",
     "test:tdd": "npm run test -- --watch",
     "dist": "rollup -c rollup.config.js",
     "prepublishOnly": "npm run clean && npm run dist",
