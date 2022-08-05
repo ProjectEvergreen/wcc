@@ -11,10 +11,6 @@ class EventTarget {
 // EventTarget <- Node
 // TODO should be an interface?
 class Node extends EventTarget {
-  constructor() {
-    super();
-  }
-
   // eslint-disable-next-line
   cloneNode(deep) {
     return this;
@@ -72,21 +68,13 @@ class Document extends Node {
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement
 // EventTarget <- Node <- Element <- HTMLElement
 class HTMLElement extends Element {
-  constructor() {
-    super();
-    // console.debug('HTMLElement::constructor');
-  }
-
   attachShadow(options) {
-    // console.debug('HTMLElement::attachShadow');
     this.shadowRoot = new ShadowRoot(options);
 
     return this.shadowRoot;
   }
 
-  connectedCallback() {
-    // console.debug('HTMLElement::connectedCallback');
-  }
+  connectedCallback() { }
 
   // https://github.com/mfreed7/declarative-shadow-dom/blob/master/README.md#serialization
   // eslint-disable-next-line
@@ -97,12 +85,7 @@ class HTMLElement extends Element {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment
 // EventTarget <- Node <- DocumentFragment
-class DocumentFragment extends Node {
-  // eslint-disable-next-line
-  constructor(contents) {
-    super();
-  }
-}
+class DocumentFragment extends Node { }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot
 // EventTarget <- Node <- DocumentFragment <- ShadowRoot
