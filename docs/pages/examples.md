@@ -256,3 +256,7 @@ export async function handler() {
   };
 }
 ```
+
+## JSX
+
+A current example of a Todo App can be seen in [this repo](https://github.com/thescientist13/todo-app), which is a fork of [this Greenwood based Todo App which uses LitElement](https://github.com/ProjectEvergreen/todo-app).  It can compile JSX for _**the client or the server**_ using [Greenwood](https://www.greenwoodjs.io/), and can even be used with the same unit testing tools! 💪
