@@ -23,7 +23,7 @@
     "build": "node ./build.js",
     "serve": "node ./build.js && http-server ./dist --open",
     "start": "npm run develop",
-    "test": "c8 mocha --exclude \"./test/cases/jsx/**\" \"./test/**/**/*.spec.js\"",
+    "test": "mocha --exclude \"./test/cases/jsx/**\" \"./test/**/**/*.spec.js\"",
     "test:jsx": "c8 node --experimental-loader ./test-jsx-loader.js ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
     "test:tdd": "npm run test -- --watch",
     "test:tdd:jsx": "npm run test:jsx -- --watch",
