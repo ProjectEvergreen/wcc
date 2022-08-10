@@ -147,57 +147,32 @@ Even more experimental than WCC is the option to author a rendering function for
 
 ### Example
 
-Below is an example of what is possible right now.
+Below is an example of what is possible right now [demonstrated](https://github.com/thescientist13/greenwood-counter-jsx) through a Counter component.
 ```jsx
-class TodoListItem extends HTMLElement {
-
+export default class Counter extends HTMLElement {
   constructor() {
     super();
-    this.todo = {};
+    this.count = 0;
   }
 
-  static get observedAttributes () {
-    return ['todo'];
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (newValue !== oldValue) {
-      if (name === 'todo') {
-        this.todo = JSON.parse(newValue);
-      }
-
-      this.render();
-    }
-  }
-
-  dispatchDeleteTodoEvent() {
-    document.dispatchEvent(
-      new CustomEvent('deleteTodo', { detail: this.todo.id })
-    );
-  }
-
-  dispatchCompleteTodoEvent() {
-    document.dispatchEvent(
-      new CustomEvent('completeTodo', { detail: this.todo.id })
-    );
+  connectedCallback() {
+    this.render();
   }
 
   render() {
-    const { completed, task } = this.todo;
-    const completionStatus = completed ? '✅' : '⛔';
+    const { count } = this;
 
     return (
-      <span>
-        {task}
-        <input class="complete-todo" type="checkbox" onchange={this.dispatchCompleteTodoEvent}/>
-        <span>{completionStatus}</span>
-        <button class="delete-todo" onclick={this.dispatchDeleteTodoEvent}>❌</button>
-      </span>
+      <div>
+        <button onclick={this.count -= 1}> -</button>
+        <span>You have clicked <span class="red">{count}</span> times</span>
+        <button onclick={this.count += 1}> +</button>
+      </div>
     );
   }
 }
 
-customElements.define('wcc-todo-list-item', TodoListItem);
+customElements.define('wcc-counter', Counter);
 ```
 
 There is an [active discussion tracking features](https://github.com/ProjectEvergreen/wcc/discussions/84) and [issues in progress](https://github.com/ProjectEvergreen/wcc/issues?q=is%3Aopen+is%3Aissue+label%3AJSX) to continue iterating on this, so please feel free to try it out and give us your feedback!
@@ -205,7 +180,8 @@ There is an [active discussion tracking features](https://github.com/ProjectEver
 ### Prerequisites
 
 There are of couple things you will need to do to use WCC with JSX:
-1. NodeJS minimum version of `16.x`
+1. NodeJS version needs to be `16.x`
+1. You will need to use the _.jsx_ extension
 1. Requires the `--experimental-loaders` flag when invoking NodeJS
     ```js
     $ node --experimental-loader ./node_modules/wc-compiler/src/jsx-loader.js server.js
