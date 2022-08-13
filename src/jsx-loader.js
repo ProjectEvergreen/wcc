@@ -13,9 +13,11 @@ const baseURL = pathToFileURL(`${process.cwd()}/`).href;
 const jsxRegex = /\.(jsx)$/;
 
 // TODO same hack as definitions
+// https://github.com/ProjectEvergreen/wcc/discussions/74
 let string;
 
 // TODO move to a util
+// https://github.com/ProjectEvergreen/wcc/discussions/74
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
     ? parse
