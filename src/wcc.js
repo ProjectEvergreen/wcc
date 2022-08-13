@@ -57,8 +57,9 @@ async function renderComponentRoots(tree, definitions) {
   return tree;
 }
 
-function registerDependencies(moduleURL, definitions) {
+function registerDependencies(moduleURL, definitions, depth = 0) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
+  const nextDepth = depth += 1;
   const customParser = getParser(moduleURL);
   const parser = customParser ? customParser.parser : acorn;
   const config = customParser ? customParser.config : {
@@ -76,7 +77,7 @@ function registerDependencies(moduleURL, definitions) {
       if (!isBareSpecifier) {
         const dependencyModuleURL = new URL(node.source.value, moduleURL);
 
-        registerDependencies(dependencyModuleURL, definitions);
+        registerDependencies(dependencyModuleURL, definitions, nextDepth);
       }
     },
     ExpressionStatement(node) {
@@ -84,12 +85,14 @@ function registerDependencies(moduleURL, definitions) {
         const { arguments: args } = node.expression;
         const tagName = args[0].value;
         const tree = parseJsx(moduleURL);
+        const isEntry = nextDepth - 1 === 1;
 
         definitions[tagName] = {
           instanceName: args[1].name,
           moduleURL,
           source: escodegen.generate(tree),
-          url: moduleURL
+          url: moduleURL,
+          isEntry
         };
       }
     }
@@ -119,8 +122,11 @@ async function getTagName(moduleURL) {
   return tagName;
 }
 
-async function initializeCustomElement(elementURL, tagName, attrs = [], definitions = []) {
-  registerDependencies(elementURL, definitions);
+async function initializeCustomElement(elementURL, tagName, attrs = [], definitions = [], isEntry) {
+  if (!tagName) {
+    const depth = isEntry ? 1 : 0;
+    registerDependencies(elementURL, definitions, depth);
+  }
 
   // https://github.com/ProjectEvergreen/wcc/pull/67/files#r902061804
   const { pathname } = elementURL;
@@ -147,7 +153,8 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
 async function renderToString(elementURL) {
   const definitions = [];
   const elementTagName = await getTagName(elementURL);
-  const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions);
+  const isEntry = !!elementTagName;
+  const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry);
 
   const elementHtml = elementInstance.shadowRoot
     ? elementInstance.getInnerHTML({ includeShadowRoots: true })
@@ -171,7 +178,7 @@ async function renderFromHTML(html, elements = []) {
   const definitions = [];
 
   for (const url of elements) {
-    await initializeCustomElement(url, undefined, undefined, definitions);
+    await initializeCustomElement(url, undefined, undefined, definitions, true);
   }
 
   const elementTree = getParse(html)(html);

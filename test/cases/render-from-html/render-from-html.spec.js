@@ -110,9 +110,12 @@ describe('Run WCC ', function() {
 
       it('should have the correct attributes for each asset', function() {
         Object.entries(assetMetadata).forEach((asset) => {
+          const isEntry = asset[0] === 'wcc-header';
+
           expect(asset[0]).to.not.be.undefined;
           expect(asset[1].instanceName).to.not.be.undefined;
           expect(asset[1].moduleURL).to.not.be.undefined;
+          expect(asset[1].isEntry).to.equal(isEntry);
         });
       });
     });

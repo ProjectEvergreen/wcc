@@ -48,5 +48,19 @@ describe('Run WCC For ', function() {
 
       expect(hydrateScripts[0][0]).to.equal('wcc-footer');
     });
+
+    describe('Entry Points', () => {
+      it('should mark the footer module as an entry point', function() {
+        expect(assetMetadata['wcc-footer'].isEntry).to.equal(true);
+      });
+
+      it('should mark the header module as an entry point', function() {
+        expect(assetMetadata['wcc-header'].isEntry).to.equal(true);
+      });
+
+      it('should mark the navigation module as NOT entry point', function() {
+        expect(assetMetadata['wcc-navigation'].isEntry).to.equal(false);
+      });
+    });
   });
 });

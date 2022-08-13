@@ -79,6 +79,20 @@ For example, even if `Header` or `Footer` use `import` to pull in additional cus
 
 `renderToString` and `renderFromHTML` return not only HTML, but also metadata about all the custom elements registered as part of rendering the entry file.
 
+So for the given HTML:
+```html
+<wcc-header></wcc-header>
+
+<h1>Hello World</h1>
+
+<wcc-footer></wcc-footer>
+```
+
+And the following conditions:
+1. _index.js_ does not define a tag of its own, e.g. using `customElements.define` (e.g. it is just a ["layout" component](/examples/#static-sites-ssg))
+1. `<wcc-header>` imports `<wcc-navigation>`
+
+The result would be:
 ```js
 const { metadata } = await renderToString(new URL('./src/index.js', import.meta.url));
 
@@ -86,9 +100,9 @@ console.log({ metadata });
 /*
  * {
  *   metadata: [
- *     'wcc-footer': { instanceName: 'Footer', moduleURL: [URL] },
- *     'wcc-header': { instanceName: 'Header', moduleURL: [URL] },
- *     'wcc-navigation': { instanceName: 'Navigation', moduleURL: [URL] }
+ *     'wcc-footer': { instanceName: 'Footer', moduleURL: [URL], isEntry: true },
+ *     'wcc-header': { instanceName: 'Header', moduleURL: [URL],  isEntry: true },
+ *     'wcc-navigation': { instanceName: 'Navigation', moduleURL: [URL],  isEntry: false }
  *   ]
  * }
  *
