@@ -137,3 +137,54 @@ export async function getData() {
 - Make sure to define your custom elements with `customElements.define`
 - Make sure to include a `export default` for your custom element base class
 - Avoid [touching the DOM in `constructor` methods](https://twitter.com/techytacos/status/1514029967981494280)
+
+
+## JSX
+
+> ⚠️ _Very Experimental!_
+
+Even more experimental than WCC is the option to author a rendering function for native `HTMLElements`, that can compile down to a zero run time, web ready custom element!  It handles resolving event handling and `this` references and can manage some basic re-rendering lifecycles.
+
+### Example
+
+Below is an example of what is possible right now [demonstrated](https://github.com/thescientist13/greenwood-counter-jsx) through a Counter component.
+```jsx
+export default class Counter extends HTMLElement {
+  constructor() {
+    super();
+    this.count = 0;
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    const { count } = this;
+
+    return (
+      <div>
+        <button onclick={this.count -= 1}> -</button>
+        <span>You have clicked <span class="red">{count}</span> times</span>
+        <button onclick={this.count += 1}> +</button>
+      </div>
+    );
+  }
+}
+
+customElements.define('wcc-counter', Counter);
+```
+
+There is an [active discussion tracking features](https://github.com/ProjectEvergreen/wcc/discussions/84) and [issues in progress](https://github.com/ProjectEvergreen/wcc/issues?q=is%3Aopen+is%3Aissue+label%3AJSX) to continue iterating on this, so please feel free to try it out and give us your feedback!
+
+### Prerequisites
+
+There are of couple things you will need to do to use WCC with JSX:
+1. NodeJS version needs to be `16.x`
+1. You will need to use the _.jsx_ extension
+1. Requires the `--experimental-loaders` flag when invoking NodeJS
+    ```js
+    $ node --experimental-loader ./node_modules/wc-compiler/src/jsx-loader.js server.js
+    ```
+
+> _See our [example's page](/examples#jsx) for some usages of WCC + JSX._  👀

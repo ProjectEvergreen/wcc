@@ -1,4 +1,4 @@
-name: Continuous Integration Windows
+name: Continuous Integration Windows JSX
 
 on: [pull_request]
 
@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        node: [14, 16]
+        node: [16]
 
     steps:
     - uses: actions/checkout@v1
@@ -25,7 +25,7 @@ jobs:
         npm run lint
     - name: Test
       run: |
-        npm test
+        npm run test:jsx
     - name: Build
       run: |
         npm run build
