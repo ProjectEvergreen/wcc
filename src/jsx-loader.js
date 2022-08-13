@@ -103,6 +103,7 @@ function parseJsxElement(element, moduleContents = '') {
             // onclick={() => this.deleteUser(user.id)}
             // TODO onclick={(e) => { this.deleteUser(user.id) }}
             // TODO onclick={(e) => { this.deleteUser(user.id) && this.logAction(user.id) }}
+            // https://github.com/ProjectEvergreen/wcc/issues/88
             if (expression.type === 'ArrowFunctionExpression') {
               if (expression.body && expression.body.type === 'CallExpression') {
                 const { start, end } = expression;
@@ -174,14 +175,15 @@ function parseJsxElement(element, moduleContents = '') {
       } else if (type === 'MemberExpression') {
         const { object } = element.expression.object;
 
-        // You have {this.todos.length} TODOs left to complete
+        // You have {this.todos.length} Todos left to complete
+        // https://github.com/ProjectEvergreen/wcc/issues/88
         if (object && object.type === 'ThisExpression') {
           // TODO ReferenceError: __this__ is not defined
           // string += `\$\{__this__.${element.expression.object.property.name}.${element.expression.property.name}\}`;
         } else {
           // const { todos } = this;
           // ....
-          // You have {todos.length} TODOs left to complete
+          // You have {todos.length} Todos left to complete
           string += `\$\{${element.expression.object.name}.${element.expression.property.name}\}`;
         }
       }
