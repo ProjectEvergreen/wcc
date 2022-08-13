@@ -27,7 +27,7 @@ class Element extends Node {
   constructor() {
     super();
     this.shadowRoot = null;
-    this.innerHTML;
+    this.innerHTML = '';
     this.attributes = {};
   }
 
@@ -106,11 +106,13 @@ class HTMLTemplateElement extends HTMLElement {
 
   // TODO open vs closed shadow root
   set innerHTML(html) {
-    this.content.innerHTML = `
-      <template shadowroot="open">
-        ${html}
-      </template>
-    `;
+    if (this.content) {
+      this.content.innerHTML = `
+        <template shadowroot="open">
+          ${html}
+        </template>
+      `;
+    }
   }
 
   get innerHTML() {
