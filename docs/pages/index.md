@@ -19,6 +19,7 @@ $ npm install wc-compiler --save-dev
     - `innerHTML`
     - `[get|set|has]Attribute`
 1. `<template>` / `DocumentFragment`
+1. `addEventListener` (as a no-op)
 1. Recursive rendering of nested custom elements
 1. Metadata and runtime hints to support various progressive hydration and lazy loading strategies
 
