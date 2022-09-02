@@ -312,13 +312,42 @@ export function parseJsx(moduleURL) {
     }
 
     let newModuleContents = escodegen.generate(tree);
+
+    // TODO better way to determine value type?
+    /* eslint-disable indent */
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
-        return [${observedAttributes.constructor.map(attr => `'${attr}'`).join(',')}]
+        return [${[...observedAttributes.constructor].map(attr => `'${attr}'`).join(',')}]
+      }
+
+      attributeChangedCallback(name, oldValue, newValue) {
+        function getValue(value) {
+          return value.charAt(0) === '{' || value.charAt(0) === '['
+            ? JSON.parse(value)
+            : !isNaN(value)
+              ? parseInt(value, 10)
+              : value === 'true' || value === 'false'
+                ? value === 'true' ? true : false
+                : value;
+        }
+        if (newValue !== oldValue) {
+          switch(name) {
+            ${observedAttributes.constructor.map((attr) => {
+              return `
+                case '${attr}':
+                  this.${attr} = getValue(newValue);
+                  break;
+              `;
+            }).join('\n')}
+          }
+
+          this.render();
+        }
       }
 
       ${newModuleContents.slice(insertPoint)}
     `;
+    /* eslint-enable indent */
 
     tree = acorn.Parser.extend(jsx()).parse(newModuleContents, {
       ecmaVersion: 'latest',
