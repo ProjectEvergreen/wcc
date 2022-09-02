@@ -207,23 +207,23 @@ function findThisReferences(context, statement) {
     && expression.type === 'AssignmentExpression'
     && expression.left.object.type === 'ThisExpression';
 
-  if(isConstructorThisAssignment) {
+  if (isConstructorThisAssignment) {
     // this.name = 'something'; // constructor
     references.push(expression.left.property.name);
-  } else if(isRenderFunctionContext && type === 'VariableDeclaration') {
+  } else if (isRenderFunctionContext && type === 'VariableDeclaration') {
     statement.declarations.forEach(declaration => {
       const { init, id } = declaration;
     
-      if(init.object && init.object.type === 'ThisExpression') {
+      if (init.object && init.object.type === 'ThisExpression') {
         // const { description } = this.todo;
         references.push(init.property.name);
-      } else if(init.type === 'ThisExpression' && id && id.properties) {
+      } else if (init.type === 'ThisExpression' && id && id.properties) {
         // const { description } = this.todo;
         id.properties.forEach((property) => {
           references.push(property.key.name);
-        })
+        });
       }
-    })
+    });
   }
 
   return references;
@@ -242,7 +242,6 @@ export function parseJsx(moduleURL) {
   });
   string = '';
 
-
   walk.simple(tree, {
     ClassDeclaration(node) {
       if (node.superClass.name === 'HTMLElement') {
@@ -256,17 +255,17 @@ export function parseJsx(moduleURL) {
                 observedAttributes.constructor = [
                   ...observedAttributes.constructor,
                   ...findThisReferences('constructor', statement)
-                ]
-              })
+                ];
+              });
             } else if (nodeName === 'render') {
               for (const n2 in n1.value.body.body) {
                 const n = n1.value.body.body[n2];
 
-                if(n.type === 'VariableDeclaration') {
+                if (n.type === 'VariableDeclaration') {
                   observedAttributes.render = [
                     ...observedAttributes.render,
                     ...findThisReferences('render', n)
-                  ]
+                  ];
                 } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
                   const html = parseJsxElement(n.argument, moduleContents);
                   const elementTree = getParse(html)(html);
@@ -295,16 +294,16 @@ export function parseJsx(moduleURL) {
   });
 
   // TODO - signals: use constructor, render, HTML attributes?  some, none, or all?
-  if(observedAttributes.constructor.length > 0 && !hasOwnObservedAttributes) {
+  if (observedAttributes.constructor.length > 0 && !hasOwnObservedAttributes) {
     let insertPoint;
-    for(const line of tree.body) {
+    for (const line of tree.body) {
       // test for class MyComponent vs export default class MyComponent
-      if(line.type === 'ClassDeclaration' || (line.declaration && line.declaration.type) === 'ClassDeclaration' ) {
+      if (line.type === 'ClassDeclaration' || (line.declaration && line.declaration.type) === 'ClassDeclaration') {
         const children = !line.declaration
           ? line.body.body
           : line.declaration.body.body;
-        for(const method of children) {
-          if(method.key.name === 'constructor') {
+        for (const method of children) {
+          if (method.key.name === 'constructor') {
             insertPoint = method.start - 1;
             break;
           }
