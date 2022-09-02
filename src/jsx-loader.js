@@ -231,16 +231,17 @@ function findThisReferences(context, statement) {
 
 export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
-  string = '';
-
-  const tree = acorn.Parser.extend(jsx()).parse(moduleContents, {
-    ecmaVersion: 'latest',
-    sourceType: 'module'
-  });
+  const hasOwnObservedAttributes = undefined;
   const observedAttributes = {
     constructor: [],
     render: []
   };
+  let tree = acorn.Parser.extend(jsx()).parse(moduleContents, {
+    ecmaVersion: 'latest',
+    sourceType: 'module'
+  });
+  string = '';
+
 
   walk.simple(tree, {
     ClassDeclaration(node) {
@@ -293,7 +294,38 @@ export function parseJsx(moduleURL) {
     JSXElement: () => {}
   });
 
-  console.debug('????????', { observedAttributes });
+  // TODO - signals: use constructor, render, HTML attributes?  some, none, or all?
+  if(observedAttributes.constructor.length > 0 && !hasOwnObservedAttributes) {
+    let insertPoint;
+    for(const line of tree.body) {
+      // test for class MyComponent vs export default class MyComponent
+      if(line.type === 'ClassDeclaration' || (line.declaration && line.declaration.type) === 'ClassDeclaration' ) {
+        const children = !line.declaration
+          ? line.body.body
+          : line.declaration.body.body;
+        for(const method of children) {
+          if(method.key.name === 'constructor') {
+            insertPoint = method.start - 1;
+            break;
+          }
+        }
+      }
+    }
+
+    let newModuleContents = escodegen.generate(tree);
+    newModuleContents = `${newModuleContents.slice(0, insertPoint)}
+      static get observedAttributes() {
+        return [${observedAttributes.constructor.map(attr => `'${attr}'`).join(',')}]
+      }
+
+      ${newModuleContents.slice(insertPoint)}
+    `;
+
+    tree = acorn.Parser.extend(jsx()).parse(newModuleContents, {
+      ecmaVersion: 'latest',
+      sourceType: 'module'
+    });
+  }
 
   return tree;
 }
