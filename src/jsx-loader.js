@@ -197,6 +197,33 @@ function parseJsxElement(element, moduleContents = '') {
   return string;
 }
 
+// TODO handle if / else statements
+function findThisReferences(context, statement) {
+  const references = [];
+  const isRenderFunctionContext = context === 'render';
+  const { expression, type } = statement;
+  const isConstructorThisAssignment = context === 'constructor'
+    && type === 'ExpressionStatement'
+    && expression.type === 'AssignmentExpression'
+    && expression.left.object.type === 'ThisExpression';
+
+  if(isConstructorThisAssignment) {
+    // this.name = 'something'; // constructor
+    references.push(expression.left.property.name);
+  } else if(isRenderFunctionContext && type === 'VariableDeclaration') {
+    // const name = this.name;
+    // TODO const { name } = this;
+    statement.declarations.forEach(declaration => {
+      const { init } = declaration;
+      if(init && init.object && init.object.type === 'ThisExpression') {
+        references.push(init.property.name);
+      }
+    })
+  }
+
+  return references;
+}
+
 export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
   string = '';
@@ -205,6 +232,10 @@ export function parseJsx(moduleURL) {
     ecmaVersion: 'latest',
     sourceType: 'module'
   });
+  const observedAttributes = {
+    constructor: [],
+    render: []
+  };
 
   walk.simple(tree, {
     ClassDeclaration(node) {
@@ -212,24 +243,39 @@ export function parseJsx(moduleURL) {
         const hasShadowRoot = moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
         for (const n1 of node.body.body) {
-          if (n1.type === 'MethodDefinition' && n1.key.name === 'render') {
-            for (const n2 in n1.value.body.body) {
-              const n = n1.value.body.body[n2];
+          if (n1.type === 'MethodDefinition') {
+            const nodeName = n1.key.name;
+            if (nodeName === 'constructor') {
+              n1.value.body.body.forEach((statement) => {
+                observedAttributes.constructor = [
+                  ...observedAttributes.constructor,
+                  ...findThisReferences('constructor', statement)
+                ]
+              })
+            } else if (nodeName === 'render') {
+              for (const n2 in n1.value.body.body) {
+                const n = n1.value.body.body[n2];
 
-              if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                const html = parseJsxElement(n.argument, moduleContents);
-                const elementTree = getParse(html)(html);
-                const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
+                if(n.type === 'VariableDeclaration') {
+                  observedAttributes.render = [
+                    ...observedAttributes.render,
+                    ...findThisReferences('render', n)
+                  ]
+                } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
+                  const html = parseJsxElement(n.argument, moduleContents);
+                  const elementTree = getParse(html)(html);
+                  const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
-                applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
+                  applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
-                const finalHtml = serialize(elementTree);
-                const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
-                  ecmaVersion: 'latest',
-                  sourceType: 'module'
-                });
+                  const finalHtml = serialize(elementTree);
+                  const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
+                    ecmaVersion: 'latest',
+                    sourceType: 'module'
+                  });
 
-                n1.value.body.body[n2] = transformed;
+                  n1.value.body.body[n2] = transformed;
+                }
               }
             }
           }
@@ -241,6 +287,8 @@ export function parseJsx(moduleURL) {
     ...walk.base,
     JSXElement: () => {}
   });
+
+  console.debug('????????', { observedAttributes });
 
   return tree;
 }
