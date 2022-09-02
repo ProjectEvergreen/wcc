@@ -211,12 +211,17 @@ function findThisReferences(context, statement) {
     // this.name = 'something'; // constructor
     references.push(expression.left.property.name);
   } else if(isRenderFunctionContext && type === 'VariableDeclaration') {
-    // const name = this.name;
-    // TODO const { name } = this;
     statement.declarations.forEach(declaration => {
-      const { init } = declaration;
-      if(init && init.object && init.object.type === 'ThisExpression') {
+      const { init, id } = declaration;
+    
+      if(init.object && init.object.type === 'ThisExpression') {
+        // const { description } = this.todo;
         references.push(init.property.name);
+      } else if(init.type === 'ThisExpression' && id && id.properties) {
+        // const { description } = this.todo;
+        id.properties.forEach((property) => {
+          references.push(property.key.name);
+        })
       }
     })
   }
