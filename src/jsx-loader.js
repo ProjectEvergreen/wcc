@@ -232,11 +232,9 @@ function findThisReferences(context, statement) {
 export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
   const hasOwnObservedAttributes = undefined;
-  // TODO do we really need constructor and render checks?
-  // Just use render and consider attributes reflected on properties for now?
   const observedAttributes = {
-    constructor: new Set(),
-    render: new Set()
+    constructor: [],
+    render: []
   };
   let tree = acorn.Parser.extend(jsx()).parse(moduleContents, {
     ecmaVersion: 'latest',
@@ -254,16 +252,20 @@ export function parseJsx(moduleURL) {
             const nodeName = n1.key.name;
             if (nodeName === 'constructor') {
               n1.value.body.body.forEach((statement) => {
-                findThisReferences('render', statement)
-                  .forEach(prop => observedAttributes.constructor.add(prop));
+                observedAttributes.constructor = [
+                  ...observedAttributes.constructor,
+                  ...findThisReferences('constructor', statement)
+                ];
               });
             } else if (nodeName === 'render') {
               for (const n2 in n1.value.body.body) {
                 const n = n1.value.body.body[n2];
 
                 if (n.type === 'VariableDeclaration') {
-                  findThisReferences('render', n)
-                    .forEach(prop => observedAttributes.render.add(prop));
+                  observedAttributes.render = [
+                    ...observedAttributes.render,
+                    ...findThisReferences('render', n)
+                  ];
                 } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
                   const html = parseJsxElement(n.argument, moduleContents);
                   const elementTree = getParse(html)(html);
@@ -292,7 +294,7 @@ export function parseJsx(moduleURL) {
   });
 
   // TODO - signals: use constructor, render, HTML attributes?  some, none, or all?
-  if (observedAttributes.constructor.entries().length > 0 && !hasOwnObservedAttributes) {
+  if (observedAttributes.constructor.length > 0 && !hasOwnObservedAttributes) {
     let insertPoint;
     for (const line of tree.body) {
       // test for class MyComponent vs export default class MyComponent
@@ -315,7 +317,7 @@ export function parseJsx(moduleURL) {
     /* eslint-disable indent */
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
-        return [${observedAttributes.constructor.entries().map(attr => `'${attr}'`).join(',')}]
+        return [${[...observedAttributes.constructor].map(attr => `'${attr}'`).join(',')}]
       }
 
       attributeChangedCallback(name, oldValue, newValue) {
@@ -330,7 +332,7 @@ export function parseJsx(moduleURL) {
         }
         if (newValue !== oldValue) {
           switch(name) {
-            ${observedAttributes.constructor.entries().map((attr) => {
+            ${observedAttributes.constructor.map((attr) => {
               return `
                 case '${attr}':
                   this.${attr} = getValue(newValue);
