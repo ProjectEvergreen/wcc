@@ -119,7 +119,7 @@ function parseJsxElement(element, moduleContents = '') {
               if (left.object.type === 'ThisExpression') {
                 if (left.property.type === 'Identifier') {
                   // very naive (fine grained?) reactivity
-                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
+                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.update(\\'${left.property.name}\\', __this__.${left.property.name});"`;
                 }
               }
             }
@@ -173,6 +173,9 @@ function parseJsxElement(element, moduleContents = '') {
 
       if (type === 'Identifier') {
         // You have {count} TODOs left to complete
+        const { name } = element.expression;
+
+        string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name}="\${this.${name}}" data-wcc-ins="text">`;
         string += `\$\{${element.expression.name}\}`;
       } else if (type === 'MemberExpression') {
         const { object } = element.expression.object;
@@ -274,7 +277,7 @@ export function parseJsx(moduleURL) {
                   applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
                   const finalHtml = serialize(elementTree);
-                  const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
+                  const transformed = acorn.parse(`${elementRoot}.template = '${finalHtml.replace(/\n/g, '')}';${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
                     ecmaVersion: 'latest',
                     sourceType: 'module'
                   });
@@ -341,8 +344,34 @@ export function parseJsx(moduleURL) {
             }).join('\n')}
           }
 
-          this.render();
+          // this.render();
+          this.update(name, newValue, oldValue);
         }
+      }
+
+      update(name, newValue, oldValue) {
+        console.debug('Update tracking against....', this.constructor.observedAttributes);
+        console.debug('Updating', name);
+        console.debug('Current', this[name]);
+        console.debug('Swap old (otherwise get it from attributes later on)', oldValue);
+        console.debug('For new', newValue);
+        const attr = \`data-wcc-\${name}\`;
+        const selector = \`[\${attr}]\`;
+        console.debug({ attr });
+        console.debug({ selector });
+        this.querySelectorAll(selector).forEach((el) => {
+          const needle = oldValue || el.getAttribute(attr);
+          console.debug({ el })
+          console.debug({ needle });
+          console.debug({ newValue });
+          switch(el.getAttribute('data-wcc-ins')) {
+            case 'text':
+              el.textContent = el.textContent.replace(needle, newValue);
+              el.setAttribute(attr, newValue);
+              break;
+          }
+        })
+        console.debug('****************************');
       }
 
       ${newModuleContents.slice(insertPoint)}
