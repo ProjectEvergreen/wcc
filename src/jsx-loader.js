@@ -280,7 +280,7 @@ export function parseJsx(moduleURL) {
                   applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
                   const finalHtml = serialize(elementTree);
-                  const transformed = acorn.parse(`${elementRoot}.template = '${finalHtml.replace(/\n/g, '')}';${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
+                  const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
                     ecmaVersion: 'latest',
                     sourceType: 'module'
                   });
