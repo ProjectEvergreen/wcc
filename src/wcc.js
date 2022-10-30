@@ -85,7 +85,9 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
     ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
         const { arguments: args } = node.expression;
-        const tagName = args[0].value;
+        const tagName = args[0].type === 'Literal'
+          ? args[0].value // single and double quotes
+          : args[0].quasis[0].value.raw; // template literal
         const tree = parseJsx(moduleURL);
         const isEntry = nextDepth - 1 === 1;
 

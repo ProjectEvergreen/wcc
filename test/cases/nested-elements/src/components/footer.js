@@ -19,4 +19,4 @@ class Footer extends HTMLElement {
 
 export default Footer;
 
-customElements.define('wcc-footer', Footer);
+customElements.define(`wcc-footer`, Footer); // eslint-disable-line quotes
