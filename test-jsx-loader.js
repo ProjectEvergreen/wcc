@@ -15,7 +15,8 @@ export async function load(url, context, defaultLoad) {
 
     return {
       format: 'module',
-      source: escodegen.generate(jsFromJsx)
+      source: escodegen.generate(jsFromJsx),
+      shortCircuit: true
     };
   }
 
