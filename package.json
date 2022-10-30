@@ -24,9 +24,9 @@
     "serve": "node ./build.js && http-server ./dist --open",
     "start": "npm run develop",
     "test": "mocha --exclude \"./test/cases/jsx/**\" \"./test/**/**/*.spec.js\"",
-    "test:jsx": "c8 node --experimental-loader ./test-jsx-loader.js ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
+    "test:exp": "c8 node --experimental-loader ./test-exp-loader.js ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
     "test:tdd": "npm run test -- --watch",
-    "test:tdd:jsx": "npm run test:jsx -- --watch",
+    "test:tdd:exp": "npm run test:exp -- --watch",
     "dist": "rollup -c rollup.config.js",
     "prepublishOnly": "npm run clean && npm run dist"
   },
