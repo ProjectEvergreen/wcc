@@ -1,4 +1,4 @@
-name: Continuous Integration Windows JSX
+name: Continuous Integration Windows (Experimental)
 
 on: [pull_request]
 
@@ -25,7 +25,7 @@ jobs:
         npm run lint
     - name: Test
       run: |
-        npm run test:jsx
+        npm run test:exp
     - name: Build
       run: |
         npm run build
