@@ -18,6 +18,12 @@ export async function load(url, context, defaultLoad) {
       source: escodegen.generate(jsFromJsx),
       shortCircuit: true
     };
+  } else if (ext === '.css') {
+    return {
+      format: 'module',
+      shortCircuit: true,
+      source: `const css = \`${(await fs.promises.readFile(new URL(url), 'utf-8')).replace(/\r?\n|\r/g, ' ').replace(/\\/g, '\\\\')}\`;\nexport default css;`
+    };
   }
 
   return defaultLoad(url, context, defaultLoad);
