@@ -3,6 +3,7 @@ class MyComponent extends HTMLElement {
     super();
 
     this.addEventListener('someCustomEvent', () => { console.log('it worked!'); });
+    globalThis.addEventListener('someCustomEvent2', () => { console.log('it also worked!'); });
   }
 
   connectedCallback() {
