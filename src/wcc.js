@@ -139,19 +139,25 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
     : (await import(pathname)).default;
   const dataLoader = (await import(pathname)).getData;
   const data = dataLoader ? await dataLoader() : {};
-  const elementInstance = new element(data); // eslint-disable-line new-cap
 
-  attrs.forEach((attr) => {
-    elementInstance.setAttribute(attr.name, attr.value);
+  if (element) {
+    const elementInstance = new element(data); // eslint-disable-line new-cap
 
-    if (attr.name === 'hydrate') {
-      definitions[tagName].hydrate = attr.value;
-    }
-  });
-
-  await elementInstance.connectedCallback();
-
-  return elementInstance;
+    attrs.forEach((attr) => {
+      elementInstance.setAttribute(attr.name, attr.value);
+  
+      if (attr.name === 'hydrate') {
+        definitions[tagName].hydrate = attr.value;
+      }
+    });
+  
+    await elementInstance.connectedCallback();
+  
+    return elementInstance;
+  } else {
+    console.debug('No custom element class found for this file');
+    return new HTMLElement();
+  }
 }
 
 async function renderToString(elementURL) {
