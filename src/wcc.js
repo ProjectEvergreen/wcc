@@ -8,7 +8,6 @@ import escodegen from 'escodegen';
 import { getParser, parseJsx } from './jsx-loader.js';
 import { parse, parseFragment, serialize } from 'parse5';
 import fs from 'fs';
-import path from 'path';
 
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
@@ -74,9 +73,10 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
     ImportDeclaration(node) {
       const specifier = node.source.value;
       const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
+      const extension = specifier.split('.').pop();
 
       // TODO would like to decouple .jsx from the core, ideally
-      if (!isBareSpecifier && ['.js', '.jsx'].includes(path.extname(specifier))) {
+      if (!isBareSpecifier && ['js', 'jsx'].includes(extension)) {
         const dependencyModuleURL = new URL(node.source.value, moduleURL);
 
         registerDependencies(dependencyModuleURL, definitions, nextDepth);
