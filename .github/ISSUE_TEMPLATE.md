@@ -1,11 +1,5 @@
 ## Type of Change
-
-<!-- Delete what does not apply -->
-
-- New Feature Request
-- Documentation / Website
-- Bug
-- Other (please clarify below)
+<!-- New Feature / Enhancement / Bug / Other -->
 
 ## Summary
 <!-- Brief summary of the issue like steps to reproduce for a bug, or motivation and API design if proposing a new feature. -->
