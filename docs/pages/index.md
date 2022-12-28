@@ -23,6 +23,8 @@ $ npm install wc-compiler --save-dev
 1. Recursive rendering of nested custom elements
 1. Metadata and runtime hints to support various progressive hydration and lazy loading strategies
 
+> _It is recommended to reference [`globalThis`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis) instead of `window` for isomorphic Web Components_.
+
 ## Usage
 
 **WCC** exposes a few utilities to render your Web Components.  See [our API docs](/docs) for all available features.
