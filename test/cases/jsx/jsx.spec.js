@@ -10,7 +10,6 @@
  *   badge.jsx
  *   counter.jsx
  */
-
 import chai from 'chai';
 import { JSDOM } from 'jsdom';
 import { renderToString } from '../../../src/wcc.js';
@@ -18,7 +17,7 @@ import { renderToString } from '../../../src/wcc.js';
 const expect = chai.expect;
 
 describe('Run WCC For ', function() {
-  const LABEL = 'Single Custom Element using JSX and Declarative Shadow DOM';
+  const LABEL = 'Single Custom Element using JSX';
   let dom;
   let meta;
 
@@ -31,7 +30,7 @@ describe('Run WCC For ', function() {
 
   describe(LABEL, function() {
 
-    describe('<Counter> component', function() {
+    describe('<Counter> component w/ <Badge>', function() {
       let buttons;
 
       before(async function() {
@@ -56,21 +55,21 @@ describe('Run WCC For ', function() {
           expect(span.getAttribute('class')).to.be.equal('unmet');
           expect(span.textContent).to.be.equal('0');
         });
+      });
 
-        describe('Event Handling', () => {
-          // <button onclick={this.decrement}> - </button>
-          it('should handle a this expression', () => {
-            const element = Array.from(buttons).find(button => button.getAttribute('id') === 'evt-this');
+      describe('Event Handling', () => {
+        // <button onclick={this.decrement}> - </button>
+        it('should handle a this expression', () => {
+          const element = Array.from(buttons).find(button => button.getAttribute('id') === 'evt-this');
 
-            expect(element.getAttribute('onclick')).to.be.equal('this.parentElement.parentElement.decrement()');
-          });
-  
-          // <button onclick={this.count -= 1}> - </button>
-          it('should handle an assignment expression with implicit reactivity using this.render', () => {
-            const element = Array.from(buttons).find(button => button.getAttribute('id') === 'evt-assignment');
+          expect(element.getAttribute('onclick')).to.be.equal('this.parentElement.parentElement.decrement()');
+        });
 
-            expect(element.getAttribute('onclick')).to.be.equal('this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();');
-          });
+        // <button onclick={this.count -= 1}> - </button>
+        it('should handle an assignment expression with implicit reactivity using this.render', () => {
+          const element = Array.from(buttons).find(button => button.getAttribute('id') === 'evt-assignment');
+
+          expect(element.getAttribute('onclick')).to.be.equal('this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();');
         });
       });
 
