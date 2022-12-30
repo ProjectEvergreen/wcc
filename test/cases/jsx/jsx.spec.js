@@ -3,7 +3,7 @@
  * Run wcc against a nested custom elements using JSX render function
  *
  * User Result
- * Should return the expected HTML output.
+ * Should return the expected HTML and JavaScript output.
  *
  * User Workspace
  * src/
@@ -80,6 +80,15 @@ describe('Run WCC For ', function() {
 
           expect(element.textContent).to.be.equal('0');
         });    
+      });
+
+      describe('Inferred Observability', () => {
+        it('should not infer observability by default', () => {
+          const actual = meta['wcc-counter-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
+
+          expect(actual).to.not.contain('staticgetobservedAttributes()');
+          expect(actual).to.not.contain('attributeChangedCallback');
+        });
       });
     });
   });

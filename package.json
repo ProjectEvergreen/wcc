@@ -27,7 +27,7 @@
     "build": "node ./build.js",
     "serve": "node ./build.js && http-server ./dist --open",
     "start": "npm run develop",
-    "test": "mocha --exclude \"./test/cases/jsx/**\" --exclude \"./test/cases/custom-extension/**\" \"./test/**/**/*.spec.js\"",
+    "test": "mocha --exclude \"./test/cases/jsx*/**\" --exclude \"./test/cases/custom-extension/**\" \"./test/**/**/*.spec.js\"",
     "test:exp": "c8 node --experimental-loader ./test-exp-loader.js ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
     "test:tdd": "npm run test -- --watch",
     "test:tdd:exp": "npm run test:exp -- --watch",
