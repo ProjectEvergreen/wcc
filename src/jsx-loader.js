@@ -231,6 +231,10 @@ function findThisReferences(context, statement) {
 
 export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
+  // would be nice if we could do this instead, so we could know ahead of time
+  // however, this requires making parseJsx async, but WCC acorn walking is done sync
+  // const { inferredObservability } = await import(moduleURL);
+  let inferredObservability = false;
   const hasOwnObservedAttributes = undefined;
   const observedAttributes = {
     constructor: [],
@@ -286,6 +290,15 @@ export function parseJsx(moduleURL) {
           }
         }
       }
+    },
+    ExportNamedDeclaration(node) {
+      const { declaration } = node;
+
+      if (declaration && declaration.type === 'VariableDeclaration' && declaration.kind === 'const' && declaration.declarations.length === 1) {
+        if (declaration.declarations[0].id.name === 'inferredObservability') {
+          inferredObservability = Boolean(node.declaration.declarations[0].init.raw);
+        }
+      }
     }
   }, {
     // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
@@ -294,7 +307,7 @@ export function parseJsx(moduleURL) {
   });
 
   // TODO - signals: use constructor, render, HTML attributes?  some, none, or all?
-  if (observedAttributes.constructor.length > 0 && !hasOwnObservedAttributes) {
+  if (inferredObservability && observedAttributes.constructor.length > 0 && !hasOwnObservedAttributes) {
     let insertPoint;
     for (const line of tree.body) {
       // test for class MyComponent vs export default class MyComponent
