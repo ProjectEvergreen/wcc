@@ -1,9 +1,8 @@
 // https://jestjs.io/docs/ecmascript-modules
 // https://github.com/nodejs/node/discussions/41711
-import escodegen from 'escodegen';
 import fs from 'fs';
 import path from 'path';
-import { parseJsx } from './src/jsx-loader.js';
+import { load as experimentalLoad } from './src/jsx-loader.js';
 
 export async function load(url, context, defaultLoad) {
   const ext = path.extname(url);
@@ -11,13 +10,7 @@ export async function load(url, context, defaultLoad) {
   if (ext === '') {
     return loadBin(url, context, defaultLoad);
   } else if (ext === '.jsx') {
-    const jsFromJsx = parseJsx(new URL(url));
-
-    return {
-      format: 'module',
-      source: escodegen.generate(jsFromJsx),
-      shortCircuit: true
-    };
+    return experimentalLoad(url, context, defaultLoad);
   } else if (ext === '.css') {
     return {
       format: 'module',
