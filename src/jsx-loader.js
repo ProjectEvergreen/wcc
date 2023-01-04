@@ -198,6 +198,7 @@ function parseJsxElement(element, moduleContents = '') {
 }
 
 // TODO handle if / else statements
+// https://github.com/ProjectEvergreen/wcc/issues/88
 function findThisReferences(context, statement) {
   const references = [];
   const isRenderFunctionContext = context === 'render';
@@ -232,14 +233,11 @@ function findThisReferences(context, statement) {
 export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
   // would be nice if we could do this instead, so we could know ahead of time
-  // however, this requires making parseJsx async, but WCC acorn walking is done sync
   // const { inferredObservability } = await import(moduleURL);
-  let inferredObservability = false;
+  // however, this requires making parseJsx async, but WCC acorn walking is done sync
   const hasOwnObservedAttributes = undefined;
-  const observedAttributes = {
-    constructor: [],
-    render: []
-  };
+  let inferredObservability = false;
+  let observedAttributes = [];
   let tree = acorn.Parser.extend(jsx()).parse(moduleContents, {
     ecmaVersion: 'latest',
     sourceType: 'module'
@@ -254,20 +252,13 @@ export function parseJsx(moduleURL) {
         for (const n1 of node.body.body) {
           if (n1.type === 'MethodDefinition') {
             const nodeName = n1.key.name;
-            if (nodeName === 'constructor') {
-              n1.value.body.body.forEach((statement) => {
-                observedAttributes.constructor = [
-                  ...observedAttributes.constructor,
-                  ...findThisReferences('constructor', statement)
-                ];
-              });
-            } else if (nodeName === 'render') {
+            if (nodeName === 'render') {
               for (const n2 in n1.value.body.body) {
                 const n = n1.value.body.body[n2];
 
                 if (n.type === 'VariableDeclaration') {
-                  observedAttributes.render = [
-                    ...observedAttributes.render,
+                  observedAttributes = [
+                    ...observedAttributes,
                     ...findThisReferences('render', n)
                   ];
                 } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
@@ -307,7 +298,7 @@ export function parseJsx(moduleURL) {
   });
 
   // TODO - signals: use constructor, render, HTML attributes?  some, none, or all?
-  if (inferredObservability && observedAttributes.constructor.length > 0 && !hasOwnObservedAttributes) {
+  if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
     let insertPoint;
     for (const line of tree.body) {
       // test for class MyComponent vs export default class MyComponent
@@ -330,7 +321,7 @@ export function parseJsx(moduleURL) {
     /* eslint-disable indent */
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
-        return [${[...observedAttributes.constructor].map(attr => `'${attr}'`).join(',')}]
+        return [${[...observedAttributes].map(attr => `'${attr}'`).join(',')}]
       }
 
       attributeChangedCallback(name, oldValue, newValue) {
@@ -345,7 +336,7 @@ export function parseJsx(moduleURL) {
         }
         if (newValue !== oldValue) {
           switch(name) {
-            ${observedAttributes.constructor.map((attr) => {
+            ${observedAttributes.map((attr) => {
               return `
                 case '${attr}':
                   this.${attr} = getValue(newValue);
