@@ -197,14 +197,52 @@ function parseJsxElement(element, moduleContents = '') {
   return string;
 }
 
+// TODO handle if / else statements
+// https://github.com/ProjectEvergreen/wcc/issues/88
+function findThisReferences(context, statement) {
+  const references = [];
+  const isRenderFunctionContext = context === 'render';
+  const { expression, type } = statement;
+  const isConstructorThisAssignment = context === 'constructor'
+    && type === 'ExpressionStatement'
+    && expression.type === 'AssignmentExpression'
+    && expression.left.object.type === 'ThisExpression';
+
+  if (isConstructorThisAssignment) {
+    // this.name = 'something'; // constructor
+    references.push(expression.left.property.name);
+  } else if (isRenderFunctionContext && type === 'VariableDeclaration') {
+    statement.declarations.forEach(declaration => {
+      const { init, id } = declaration;
+    
+      if (init.object && init.object.type === 'ThisExpression') {
+        // const { description } = this.todo;
+        references.push(init.property.name);
+      } else if (init.type === 'ThisExpression' && id && id.properties) {
+        // const { description } = this.todo;
+        id.properties.forEach((property) => {
+          references.push(property.key.name);
+        });
+      }
+    });
+  }
+
+  return references;
+}
+
 export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
-  string = '';
-
-  const tree = acorn.Parser.extend(jsx()).parse(moduleContents, {
+  // would be nice if we could do this instead, so we could know ahead of time
+  // const { inferredObservability } = await import(moduleURL);
+  // however, this requires making parseJsx async, but WCC acorn walking is done sync
+  const hasOwnObservedAttributes = undefined;
+  let inferredObservability = false;
+  let observedAttributes = [];
+  let tree = acorn.Parser.extend(jsx()).parse(moduleContents, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   });
+  string = '';
 
   walk.simple(tree, {
     ClassDeclaration(node) {
@@ -212,27 +250,44 @@ export function parseJsx(moduleURL) {
         const hasShadowRoot = moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
         for (const n1 of node.body.body) {
-          if (n1.type === 'MethodDefinition' && n1.key.name === 'render') {
-            for (const n2 in n1.value.body.body) {
-              const n = n1.value.body.body[n2];
+          if (n1.type === 'MethodDefinition') {
+            const nodeName = n1.key.name;
+            if (nodeName === 'render') {
+              for (const n2 in n1.value.body.body) {
+                const n = n1.value.body.body[n2];
 
-              if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                const html = parseJsxElement(n.argument, moduleContents);
-                const elementTree = getParse(html)(html);
-                const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
+                if (n.type === 'VariableDeclaration') {
+                  observedAttributes = [
+                    ...observedAttributes,
+                    ...findThisReferences('render', n)
+                  ];
+                } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
+                  const html = parseJsxElement(n.argument, moduleContents);
+                  const elementTree = getParse(html)(html);
+                  const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
-                applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
+                  applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
-                const finalHtml = serialize(elementTree);
-                const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
-                  ecmaVersion: 'latest',
-                  sourceType: 'module'
-                });
+                  const finalHtml = serialize(elementTree);
+                  const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
+                    ecmaVersion: 'latest',
+                    sourceType: 'module'
+                  });
 
-                n1.value.body.body[n2] = transformed;
+                  n1.value.body.body[n2] = transformed;
+                }
               }
             }
           }
+        }
+      }
+    },
+    ExportNamedDeclaration(node) {
+      const { declaration } = node;
+
+      if (declaration && declaration.type === 'VariableDeclaration' && declaration.kind === 'const' && declaration.declarations.length === 1) {
+        if (declaration.declarations[0].id.name === 'inferredObservability') {
+          inferredObservability = Boolean(node.declaration.declarations[0].init.raw);
         }
       }
     }
@@ -241,6 +296,68 @@ export function parseJsx(moduleURL) {
     ...walk.base,
     JSXElement: () => {}
   });
+
+  // TODO - signals: use constructor, render, HTML attributes?  some, none, or all?
+  if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
+    let insertPoint;
+    for (const line of tree.body) {
+      // test for class MyComponent vs export default class MyComponent
+      if (line.type === 'ClassDeclaration' || (line.declaration && line.declaration.type) === 'ClassDeclaration') {
+        const children = !line.declaration
+          ? line.body.body
+          : line.declaration.body.body;
+        for (const method of children) {
+          if (method.key.name === 'constructor') {
+            insertPoint = method.start - 1;
+            break;
+          }
+        }
+      }
+    }
+
+    let newModuleContents = escodegen.generate(tree);
+
+    // TODO better way to determine value type?
+    /* eslint-disable indent */
+    newModuleContents = `${newModuleContents.slice(0, insertPoint)}
+      static get observedAttributes() {
+        return [${[...observedAttributes].map(attr => `'${attr}'`).join(',')}]
+      }
+
+      attributeChangedCallback(name, oldValue, newValue) {
+        function getValue(value) {
+          return value.charAt(0) === '{' || value.charAt(0) === '['
+            ? JSON.parse(value)
+            : !isNaN(value)
+              ? parseInt(value, 10)
+              : value === 'true' || value === 'false'
+                ? value === 'true' ? true : false
+                : value;
+        }
+        if (newValue !== oldValue) {
+          switch(name) {
+            ${observedAttributes.map((attr) => {
+              return `
+                case '${attr}':
+                  this.${attr} = getValue(newValue);
+                  break;
+              `;
+            }).join('\n')}
+          }
+
+          this.render();
+        }
+      }
+
+      ${newModuleContents.slice(insertPoint)}
+    `;
+    /* eslint-enable indent */
+
+    tree = acorn.Parser.extend(jsx()).parse(newModuleContents, {
+      ecmaVersion: 'latest',
+      sourceType: 'module'
+    });
+  }
 
   return tree;
 }
