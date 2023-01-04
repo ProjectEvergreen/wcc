@@ -9,6 +9,11 @@
   "main": "src/wcc.js",
   "type": "module",
   "author": "Owen Buckley <owen@thegreenhouse.io>",
+  "keywords": [
+    "Web Components",
+    "JSX",
+    "Greenwood"
+  ],
   "license": "MIT",
   "engines": {
     "node": ">=14"
