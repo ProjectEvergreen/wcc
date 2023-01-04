@@ -6,4 +6,4 @@
   skip_processing = true
 
 [build.environment]
-  NODE_VERSION = "16.13.2"
+  NODE_VERSION = "18.12.1"
