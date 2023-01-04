@@ -6,10 +6,8 @@ import escodegen from 'escodegen';
 import fs from 'fs';
 import jsx from 'acorn-jsx';
 import { parse, parseFragment, serialize } from 'parse5';
-import path from 'path';
-import { URL, pathToFileURL } from 'url';
 
-const baseURL = pathToFileURL(`${process.cwd()}/`).href;
+const baseURL = new URL(`file://${process.cwd()}/`);
 const jsxRegex = /\.(jsx)$/;
 
 // TODO same hack as definitions
@@ -25,7 +23,7 @@ function getParse(html) {
 }
 
 export function getParser(moduleURL) {
-  const isJSX = path.extname(moduleURL.pathname) === '.jsx';
+  const isJSX = moduleURL.pathname.split('.').pop() === 'jsx';
 
   if (!isJSX) {
     return;
