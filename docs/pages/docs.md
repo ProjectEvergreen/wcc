@@ -161,7 +161,8 @@ Even more experimental than WCC is the option to author a rendering function for
 
 ### Example
 
-Below is an example of what is possible right now [demonstrated](https://github.com/thescientist13/greenwood-counter-jsx) through a Counter component.
+Below is an example of what is possible right now demonstrated through a [Counter component](https://github.com/thescientist13/greenwood-counter-jsx).
+
 ```jsx
 export default class Counter extends HTMLElement {
   constructor() {
@@ -173,6 +174,11 @@ export default class Counter extends HTMLElement {
     this.render();
   }
 
+  increment() {
+    this.count += 1;
+    this.render();
+  }
+
   render() {
     const { count } = this;
 
@@ -180,7 +186,7 @@ export default class Counter extends HTMLElement {
       <div>
         <button onclick={this.count -= 1}> -</button>
         <span>You have clicked <span class="red">{count}</span> times</span>
-        <button onclick={this.count += 1}> +</button>
+        <button onclick={this.increment}> +</button>
       </div>
     );
   }
@@ -189,12 +195,17 @@ export default class Counter extends HTMLElement {
 customElements.define('wcc-counter', Counter);
 ```
 
-There is an [active discussion tracking features](https://github.com/ProjectEvergreen/wcc/discussions/84) and [issues in progress](https://github.com/ProjectEvergreen/wcc/issues?q=is%3Aopen+is%3Aissue+label%3AJSX) to continue iterating on this, so please feel free to try it out and give us your feedback!
+A couple things to observe in the above example:
+- The `this` reference is correctly bound to the `<wcc-counter>` element's state.  This works for both `this.count` and the event handler, `this.increment`.
+- Event handlers need to manage their own render function updates.
+- `this.count` will know it is a member of the `<wcc-counter>`'s state, and so will re-run `this.render` automatically in the compiled output.
+
+> There is an [active discussion tracking features](https://github.com/ProjectEvergreen/wcc/discussions/84) and [issues in progress](https://github.com/ProjectEvergreen/wcc/issues?q=is%3Aopen+is%3Aissue+label%3AJSX) to continue iterating on this, so please feel free to try it out and give us your feedback!
 
 ### Prerequisites
 
 There are of couple things you will need to do to use WCC with JSX:
-1. NodeJS version needs to be `16.x`
+1. NodeJS version needs to be >= `16.x`
 1. You will need to use the _.jsx_ extension
 1. Requires the `--experimental-loaders` flag when invoking NodeJS
     ```js
@@ -202,3 +213,40 @@ There are of couple things you will need to do to use WCC with JSX:
     ```
 
 > _See our [example's page](/examples#jsx) for some usages of WCC + JSX._  👀
+
+### (Inferred) Attribute Observability
+
+An optional feature supported by JSX based compilation is a feature called `inferredObservability`.  With this enabled, WCC will read any `this` member references in your component's `render` function and map each member instance to
+- an entry in the `observedAttributes` array
+- automatically handle `attributeChangedCallback` update (by calling `this.render()`)
+
+So taking the above counter example, and opting in to this feature, we just need to enable the `inferredObservability` option in the component
+```jsx
+export const inferredObservability = true;
+
+export default class Counter extends HTMLElement {
+  ...
+
+  render() {
+    const { count } = this;
+
+    return (
+      <div>
+        <button onclick={this.count -= 1}> -</button>
+        <span>You have clicked <span class="red">{count}</span> times</span>
+        <button onclick={this.increment}> +</button>
+      </div>
+    );
+  }
+}
+```
+
+And so now when the attribute is set on this component, the component will re-render automatically, no need to write out `observedAttributes` or `attributeChangedCallback`!
+```html
+<wcc-counter count="100"></wcc-counter>
+```
+
+Some notes / limitations:
+- Please be aware of the above linked discussion which is tracking known bugs / feature requests to all things WCC + JSX.
+- We consider the capability of this observability to be "coarse grained" at this time since WCC just re-runs the entire `render` function, replacing of the `innerHTML` for the host component.  Thought it is still WIP, we are exploring a more fine grained system that will more efficient than blowing away all the HTML, a la in the style of [**lit-html**](https://lit.dev/docs/templates/overview/) or [**Solid**'s Signals](https://www.solidjs.com/tutorial/introduction_signals).
+- This automatically _reflects properties used in the `render` function to attributes_, so YMMV.
