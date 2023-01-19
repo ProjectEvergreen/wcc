@@ -7,7 +7,6 @@ import fs from 'fs';
 import jsx from 'acorn-jsx';
 import { parse, parseFragment, serialize } from 'parse5';
 
-const baseURL = new URL(`file://${process.cwd()}/`);
 const jsxRegex = /\.(jsx)$/;
 
 // TODO same hack as definitions
@@ -212,7 +211,7 @@ function findThisReferences(context, statement) {
   } else if (isRenderFunctionContext && type === 'VariableDeclaration') {
     statement.declarations.forEach(declaration => {
       const { init, id } = declaration;
-    
+
       if (init.object && init.object.type === 'ThisExpression') {
         // const { description } = this.todo;
         references.push(init.property.name);
@@ -363,7 +362,7 @@ export function parseJsx(moduleURL) {
 // --------------
 
 export function resolve(specifier, context, defaultResolve) {
-  const { parentURL = baseURL } = context;
+  const { parentURL } = context;
 
   if (jsxRegex.test(specifier)) {
     return {
