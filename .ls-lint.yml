@@ -1,0 +1,19 @@
+ls:
+  .spec.js: kebabcase
+  .config.js: kebabcase
+  .js: kebabcase
+  .*.json: kebabcase
+  .css: kebabcase
+  .html: kebabcase
+  .ico: kebabcase
+  .jpg: kebabcase
+  .png: kebabcase
+  .svg: kebabcase
+  .tff: kebabcase
+  .woff: kebabcase
+  .woff2: kebabcase
+
+ignore: 
+  - .git
+  - coverage
+  - node_modules
