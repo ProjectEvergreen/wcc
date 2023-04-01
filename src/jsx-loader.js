@@ -366,7 +366,8 @@ export function resolve(specifier, context, defaultResolve) {
 
   if (jsxRegex.test(specifier)) {
     return {
-      url: new URL(specifier, parentURL).href
+      url: new URL(specifier, parentURL).href,
+      shortCircuit: true
     };
   }
 
