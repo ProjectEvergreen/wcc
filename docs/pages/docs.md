@@ -50,6 +50,12 @@ export default Home;
 ```
 
 > _**Note**: **WCC** will wrap or not wrap your _entry point's HTML_ in a custom element tag if you do or do not, respectively, include a `customElements.define` in your entry point.  **WCC** will use the tag name you define as the custom element tag name in the generated HTML._
+>
+> You can opt-out of this by passing `false` as the second parameter to `renderToString`.
+> <!-- eslint-disable no-unused-vars -->
+> ```js
+> const { html } = await renderToString(new URL('...'), false);
+> ```
 
 ### renderFromHTML
 

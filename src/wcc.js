@@ -160,9 +160,9 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
   }
 }
 
-async function renderToString(elementURL) {
+async function renderToString(elementURL, wrappingEntryTag = true) {
   const definitions = [];
-  const elementTagName = await getTagName(elementURL);
+  const elementTagName = wrappingEntryTag && await getTagName(elementURL);
   const isEntry = !!elementTagName;
   const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry);
 
@@ -171,7 +171,7 @@ async function renderToString(elementURL) {
     : elementInstance.innerHTML;
   const elementTree = getParse(elementHtml)(elementHtml);
   const finalTree = await renderComponentRoots(elementTree, definitions);
-  const html = elementTagName ? `
+  const html = wrappingEntryTag && elementTagName ? `
       <${elementTagName}>
         ${serialize(finalTree)}
       </${elementTagName}>
