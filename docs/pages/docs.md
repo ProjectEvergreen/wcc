@@ -8,6 +8,7 @@
 
 This function takes a `URL` "entry point" to a JavaScript file that defines a custom element, and returns the static HTML output of its rendered contents.
 
+<!-- eslint-disable no-unused-vars -->
 ```js
 const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
 ```
@@ -54,6 +55,7 @@ export default Home;
 
 This function takes a string of HTML and an array of any top-level custom elements used in the HTML, and returns the static HTML output of the rendered content.
 
+<!-- eslint-disable no-unused-vars -->
 ```js
 const { html } = await renderFromHTML(`
   <html>
@@ -105,7 +107,7 @@ console.log({ metadata });
  *     'wcc-navigation': { instanceName: 'Navigation', moduleURL: [URL],  isEntry: false }
  *   ]
  * }
- *
+ */
 ```
 
 ## Progressive Hydration
@@ -125,7 +127,8 @@ This will be reflected in the returned `metadata` array from `renderToString`.
  *     'wcc-navigation': { instanceName: 'Navigation', moduleURL: [URL] }
  *   ]
  * }
- *
+ * 
+ */
 ```
 
 The benefit is that this hint can be used to defer loading of these scripts by using an [`IntersectionObserver`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) (for example), instead of eagerly loading it on page load using a `<script>` tag.
@@ -208,7 +211,7 @@ There are of couple things you will need to do to use WCC with JSX:
 1. NodeJS version needs to be >= `16.x`
 1. You will need to use the _.jsx_ extension
 1. Requires the `--experimental-loaders` flag when invoking NodeJS
-    ```js
+    ```shell
     $ node --experimental-loader ./node_modules/wc-compiler/src/jsx-loader.js server.js
     ```
 

@@ -61,6 +61,7 @@ $ npm install wc-compiler --save-dev
     ```
 
 1. Using NodeJS, create a file that imports `renderToString` and provide it the path to your web component
+<!-- eslint-disable no-unused-vars -->
     ```js
     import { renderToString } from 'wc-compiler';
 

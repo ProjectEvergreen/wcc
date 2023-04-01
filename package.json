@@ -27,7 +27,7 @@
   },
   "scripts": {
     "clean": "rimraf ./dist",
-    "lint": "ls-lint && eslint \"*.*js\" \"./src/**/**/*.js*\" \"./test/**/**/*.js*\"",
+    "lint": "ls-lint && eslint \"*.*js\" \"./src/**/**/*.js*\" \"./docs/**/*.md\" \"./test/**/**/*.js*\"",
     "develop": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html,jsx ./build.js\" \"http-server ./dist --open\"",
     "build": "node ./build.js",
     "serve": "node ./build.js && http-server ./dist --open",
@@ -56,6 +56,8 @@
     "chai": "^4.3.6",
     "concurrently": "^7.1.0",
     "eslint": "^8.14.0",
+    "eslint-plugin-markdown": "^3.0.0",
+    "eslint-plugin-no-only-tests": "^2.6.0",
     "http-server": "^14.1.0",
     "jsdom": "^19.0.0",
     "mocha": "^9.2.2",
