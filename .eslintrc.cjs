@@ -1,6 +1,6 @@
 module.exports = {
   parserOptions: {
-    ecmaVersion: 2021,
+    ecmaVersion: 2022,
     sourceType: 'module',
     ecmaFeatures: {
       jsx: true
@@ -10,6 +10,10 @@ module.exports = {
     browser: false,
     node: true
   },
+  plugins: [
+    'no-only-tests'
+  ],
+  extends: 'plugin:markdown/recommended',
   rules: {
     'comma-dangle': [2, 'never'],
     'no-cond-assign': 2,

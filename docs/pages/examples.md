@@ -29,8 +29,6 @@ export default class ArtistsPage extends HTMLElement {
       this.shadowRoot.innerHTML = html;
     }
   }
-
-  ...
 }
 ```
 
@@ -186,8 +184,8 @@ export async function handler() {
   `);
   const lazyJs = [];
 
-  for (const asset in assets) {
-    const a = assets[asset];
+  for (const asset in metadata) {
+    const a = metadata[asset];
 
     a.tagName = asset;
 
@@ -252,7 +250,7 @@ export async function handler() {
           ${html}
         </body>
       </html>
-    `;
+    `
   };
 }
 ```
