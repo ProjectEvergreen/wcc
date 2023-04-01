@@ -60,8 +60,7 @@ $ npm install wc-compiler --save-dev
     customElements.define('wcc-footer', Footer);
     ```
 
-1. Using NodeJS, create a file that imports `renderToString` and provide it the path to your web component
-<!-- eslint-disable no-unused-vars -->
+1. Using NodeJS, create a file that imports `renderToString` and provide it the path to your web component <!-- eslint-disable no-unused-vars -->
     ```js
     import { renderToString } from 'wc-compiler';
 
