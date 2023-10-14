@@ -126,7 +126,7 @@ async function getTagName(moduleURL) {
   return tagName;
 }
 
-async function initializeCustomElement(elementURL, tagName, attrs = [], definitions = [], isEntry) {
+async function initializeCustomElement(elementURL, tagName, attrs = [], definitions = [], isEntry, props = {}) {
   if (!tagName) {
     const depth = isEntry ? 1 : 0;
     registerDependencies(elementURL, definitions, depth);
@@ -138,7 +138,11 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
     ? customElements.get(tagName)
     : (await import(pathname)).default;
   const dataLoader = (await import(pathname)).getData;
-  const data = dataLoader ? await dataLoader() : {};
+  const data = props
+    ? props
+    : dataLoader
+      ? await dataLoader(props)
+      : {};
 
   if (element) {
     const elementInstance = new element(data); // eslint-disable-line new-cap
@@ -160,11 +164,11 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
   }
 }
 
-async function renderToString(elementURL, wrappingEntryTag = true) {
+async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   const definitions = [];
   const elementTagName = wrappingEntryTag && await getTagName(elementURL);
   const isEntry = !!elementTagName;
-  const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry);
+  const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry, props);
 
   const elementHtml = elementInstance.shadowRoot
     ? elementInstance.getInnerHTML({ includeShadowRoots: true })
