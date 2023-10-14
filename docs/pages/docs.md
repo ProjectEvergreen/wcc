@@ -150,6 +150,7 @@ WCC provide a couple mechanisms for data loading.
 
 Often for frameworks that might have their own needs for data loading and orchestration, a top level "constructor prop" can be provided to `renderToString` as the final param.  The prop will then be passed to top level custom element definition's `constructor`.
 
+<!-- eslint-disable no-unused-vars -->
 ```js
 const request = new Request({ /* ... */ });
 const { html } = await renderToString(new URL(moduleUrl), false, request);
@@ -182,7 +183,9 @@ export default class PostPage extends HTMLElement {
 
 To support component-level data loading and hydration scenarios, a file with a custom element definition can also export a `getData` function to inject into the custom elements constructor at execution time.  This can be serialized right into the component's Shadow DOM!
 
-For example, you could preload a counter component with an initial counter state, which would also come through the `constructor`
+For example, you could preload a counter component with an initial counter state, which would also come through the `constructor`.
+
+<!-- eslint-disable no-unused-vars -->
 ```js
 class Counter extends HTMLElement {
   constructor(props = {}) {
