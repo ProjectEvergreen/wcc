@@ -158,9 +158,6 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
     await elementInstance.connectedCallback();
   
     return elementInstance;
-  } else {
-    console.debug('No custom element class found for this file');
-    return new HTMLElement();
   }
 }
 
@@ -169,18 +166,25 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   const elementTagName = wrappingEntryTag && await getTagName(elementURL);
   const isEntry = !!elementTagName;
   const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry, props);
+  let html;
 
-  const elementHtml = elementInstance.shadowRoot
-    ? elementInstance.getInnerHTML({ includeShadowRoots: true })
-    : elementInstance.innerHTML;
-  const elementTree = getParse(elementHtml)(elementHtml);
-  const finalTree = await renderComponentRoots(elementTree, definitions);
-  const html = wrappingEntryTag && elementTagName ? `
-      <${elementTagName}>
-        ${serialize(finalTree)}
-      </${elementTagName}>
-    `
-    : serialize(finalTree);
+  // in case the entry point isn't valid
+  if (elementInstance) {
+    const elementHtml = elementInstance.shadowRoot
+      ? elementInstance.getInnerHTML({ includeShadowRoots: true })
+      : elementInstance.innerHTML;
+    const elementTree = getParse(elementHtml)(elementHtml);
+    const finalTree = await renderComponentRoots(elementTree, definitions);
+
+    html = wrappingEntryTag && elementTagName ? `
+        <${elementTagName}>
+          ${serialize(finalTree)}
+        </${elementTagName}>
+      `
+      : serialize(finalTree);
+  } else {
+    console.warn('WARNING: No custom element class found for this entry point.');
+  }
 
   return {
     html,
