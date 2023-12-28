@@ -50,7 +50,7 @@
 1. Get HTML!
     ```html
     <wcc-footer>
-      <template shadowroot="open">
+      <template shadowrootmode="open">
         <style>
           .footer {
             color: white;

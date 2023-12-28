@@ -51,7 +51,7 @@ class Counter extends HTMLElement {
 
   render() {
     return `
-      <template shadowroot="open">
+      <template shadowrootmode="open">
         <div>
           <button id="inc">Increment</button>
           <span>Current Count: <span id="count">${this.count}</span></span>

@@ -31,7 +31,7 @@ describe('Run WCC For ', function() {
 
   describe(LABEL, function() {
     it('should have one two top level <wcc-paragraph> custom elements with a <template> with an open shadowroot', function() {
-      expect(dom.window.document.querySelectorAll('wcc-paragraph template[shadowroot="open"]').length).to.equal(2);
+      expect(dom.window.document.querySelectorAll('wcc-paragraph template[shadowrootmode="open"]').length).to.equal(2);
       expect(dom.window.document.querySelectorAll('wcc-paragraph template').length).to.equal(2);
     });
 
@@ -39,7 +39,7 @@ describe('Run WCC For ', function() {
       let paragraphContentsDom;
 
       before(function() {
-        paragraphContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-paragraph.default template[shadowroot="open"]')[0].innerHTML);
+        paragraphContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-paragraph.default template[shadowrootmode="open"]')[0].innerHTML);
       });
 
       it('should have one <my-paragraph> tag for the default content', function() {
@@ -56,7 +56,7 @@ describe('Run WCC For ', function() {
       let paragraphContentsLightDom;
 
       before(function() {
-        paragraphContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-paragraph.custom template[shadowroot="open"]')[0].innerHTML);
+        paragraphContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-paragraph.custom template[shadowrootmode="open"]')[0].innerHTML);
         paragraphContentsLightDom = new JSDOM(dom.window.document.querySelectorAll('wcc-paragraph.custom')[0].innerHTML);
       });
 

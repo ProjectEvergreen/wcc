@@ -52,7 +52,7 @@ class Counter extends HTMLElement {
 
   render() {
     return `
-      <template shadowroot="open">
+      <template shadowrootmode="open">
         <script type="application/json">
           ${JSON.stringify({ count: this.count })}
         </script>

@@ -11,7 +11,7 @@ class Header extends HTMLElement {
 
   render() {
     return `
-      <template shadowroot="open">
+      <template shadowrootmode="open">
         <header class="header">
           <div class="head-wrap">
             <div class="brand">

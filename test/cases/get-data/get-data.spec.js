@@ -30,7 +30,7 @@ describe('Run WCC For ', function() {
 
   describe(LABEL, function() {
     it('should have one top level <wcc-counter> custom element with a <template> with an open shadowroot', function() {
-      expect(dom.window.document.querySelectorAll('wcc-counter template[shadowroot="open"]').length).to.equal(1);
+      expect(dom.window.document.querySelectorAll('wcc-counter template[shadowrootmode="open"]').length).to.equal(1);
       expect(dom.window.document.querySelectorAll('wcc-counter template').length).to.equal(1);
     });
 
@@ -45,7 +45,7 @@ describe('Run WCC For ', function() {
       let count;
 
       before(function() {
-        counterContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-counter template[shadowroot="open"]')[0].innerHTML);
+        counterContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-counter template[shadowrootmode="open"]')[0].innerHTML);
         count = JSON.parse(counterContentsDom.window.document.querySelector('script[type="application/json"]').textContent).count;
       });
 

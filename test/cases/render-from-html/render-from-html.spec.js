@@ -71,7 +71,7 @@ describe('Run WCC ', function() {
       let headerContentsDom;
 
       before(function() {
-        headerContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-header template[shadowroot="open"]')[0].innerHTML);
+        headerContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-header template[shadowrootmode="open"]')[0].innerHTML);
       });
 
       it('should have a <header> tag within the <template> shadowroot', function() {
@@ -88,7 +88,7 @@ describe('Run WCC ', function() {
         let navigationContentsDom;
 
         before(function() {
-          navigationContentsDom = new JSDOM(headerContentsDom.window.document.querySelectorAll('wcc-navigation template[shadowroot="open"]')[0].innerHTML);
+          navigationContentsDom = new JSDOM(headerContentsDom.window.document.querySelectorAll('wcc-navigation template[shadowrootmode="open"]')[0].innerHTML);
         });
 
         it('should have a <nav> tag within the <template> shadowroot', function() {
