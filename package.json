@@ -1,6 +1,6 @@
 {
   "name": "wc-compiler",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "Experimental native Web Components compiler.",
   "repository": {
     "type": "git",
@@ -11,6 +11,7 @@
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "keywords": [
     "Web Components",
+    "SSR",
     "JSX",
     "Greenwood"
   ],
