@@ -31,12 +31,12 @@ describe('Run WCC For ', function() {
     const { html } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
 
     dom = new JSDOM(html);
-    pageContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-home template[shadowroot="open"]')[0].innerHTML);
+    pageContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-home template[shadowrootmode="open"]')[0].innerHTML);
   });
 
   describe(LABEL, function() {
     it('should have one top level <template> with an open shadowroot', function() {
-      expect(dom.window.document.querySelectorAll('template[shadowroot="open"]').length).to.equal(1);
+      expect(dom.window.document.querySelectorAll('template[shadowrootmode="open"]').length).to.equal(1);
       expect(dom.window.document.querySelectorAll('template').length).to.equal(1);
     });
 
@@ -44,7 +44,7 @@ describe('Run WCC For ', function() {
       let footerContentsDom;
 
       before(function() {
-        footerContentsDom = new JSDOM(pageContentsDom.window.document.querySelectorAll('wcc-footer template[shadowroot="open"]')[0].innerHTML);
+        footerContentsDom = new JSDOM(pageContentsDom.window.document.querySelectorAll('wcc-footer template[shadowrootmode="open"]')[0].innerHTML);
       });
 
       it('should have a <footer> tag within the <template> shadowroot', function() {
@@ -68,7 +68,7 @@ describe('Run WCC For ', function() {
       let headerContentsDom;
 
       before(function() {
-        headerContentsDom = new JSDOM(pageContentsDom.window.document.querySelectorAll('wcc-header template[shadowroot="open"]')[0].innerHTML);
+        headerContentsDom = new JSDOM(pageContentsDom.window.document.querySelectorAll('wcc-header template[shadowrootmode="open"]')[0].innerHTML);
       });
 
       it('should have a <header> tag within the <template> shadowroot', function() {
@@ -85,7 +85,7 @@ describe('Run WCC For ', function() {
         let navigationContentsDom;
 
         before(function() {
-          navigationContentsDom = new JSDOM(headerContentsDom.window.document.querySelectorAll('wcc-navigation template[shadowroot="open"]')[0].innerHTML);
+          navigationContentsDom = new JSDOM(headerContentsDom.window.document.querySelectorAll('wcc-navigation template[shadowrootmode="open"]')[0].innerHTML);
         });
 
         it('should have a <nav> tag within the <template> shadowroot', function() {

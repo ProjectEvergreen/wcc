@@ -70,7 +70,7 @@ $ npm install wc-compiler --save-dev
 1. You will get the following HTML output that can be used in conjunction with your preferred site framework or templating solution.
     ```html
     <wcc-footer>
-      <template shadowroot="open">
+      <template shadowrootmode="open">
         <style>
           .footer {
             color: white;

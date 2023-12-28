@@ -108,7 +108,7 @@ class HTMLTemplateElement extends HTMLElement {
   set innerHTML(html) {
     if (this.content) {
       this.content.innerHTML = `
-        <template shadowroot="open">
+        <template shadowrootmode="open">
           ${html}
         </template>
       `;
