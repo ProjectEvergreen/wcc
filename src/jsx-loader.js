@@ -265,7 +265,12 @@ export function parseJsx(moduleURL) {
 
                   applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
-                  const finalHtml = serialize(elementTree);
+                  const serializedHtml = serialize(elementTree);
+                  // would be nice to reuse HTMLTemplateElement here...
+                  const finalHtml = hasShadowRoot
+                    ? `<template shadowrootmode="open">${serializedHtml}</template>`
+                    : serializedHtml;
+
                   const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
                     ecmaVersion: 'latest',
                     sourceType: 'module'
