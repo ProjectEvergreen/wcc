@@ -38,6 +38,7 @@ export function getParser(moduleURL) {
   };
 }
 
+// replace all instances of __this__ marker with relative reference to the custom element parent node
 function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = false) {
   try {
     for (const node of tree.childNodes) {
@@ -50,9 +51,9 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
           const { value } = attrs[attr];
 
           if (value.indexOf('__this__.') >= 0) {
-            const root = hasShadowRoot ? 'parentNode.host' : 'parentElement';
-
-            node.attrs[attr].value = value.replace(/__this__/g, `this${'.parentElement'.repeat(currentDepth - 1)}.${root}`);
+            const root = hasShadowRoot ? '.getRootNode().host' : `${'.parentElement'.repeat(currentDepth)}`;
+          
+            node.attrs[attr].value = value.replace(/__this__/g, `this${root}`);
           }
         }
       }
