@@ -52,7 +52,7 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
 
           if (value.indexOf('__this__.') >= 0) {
             const root = hasShadowRoot ? '.getRootNode().host' : `${'.parentElement'.repeat(currentDepth)}`;
-          
+
             node.attrs[attr].value = value.replace(/__this__/g, `this${root}`);
           }
         }
