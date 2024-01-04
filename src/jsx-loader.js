@@ -266,12 +266,19 @@ export function parseJsx(moduleURL) {
                   applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
                   const serializedHtml = serialize(elementTree);
-                  // would be nice to reuse HTMLTemplateElement here...
-                  const finalHtml = hasShadowRoot
-                    ? `<template shadowrootmode="open">${serializedHtml}</template>`
-                    : serializedHtml;
+                  // could / should we do something else instead of .innerHTML for light DOM?
+                  // https://github.com/ProjectEvergreen/wcc/issues/130
+                  const renderHandler = hasShadowRoot
+                    ? `
+                        if(!${elementRoot}.shadowRoot) {
+                          const template = document.createElement('template');
 
-                  const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
+                          template.innerHTML = \`${serializedHtml}\`;
+                          this.shadowRoot.appendChild(template.content.cloneNode(true));
+                        }
+                      `
+                    : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
+                  const transformed = acorn.parse(renderHandler, {
                     ecmaVersion: 'latest',
                     sourceType: 'module'
                   });
