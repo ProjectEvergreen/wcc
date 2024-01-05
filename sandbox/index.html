@@ -69,6 +69,7 @@
     <hr/>
 
     <h2>JSX + Declarative Shadow DOM (has JS) 🚫</h2>
+
     <details>
       SSR Shadow DOM (and thus host styles) not working, see - https://github.com/ProjectEvergreen/wcc/issues/128
     </details>
@@ -84,8 +85,21 @@
       &gt;&lt;/sb-card-jsx&gt;
     </pre>
 
+    <hr/>
+
+    <h2>JSX + Light DOM + inferredObservability (has JS)</h2>
+
+    <sb-counter-jsx
+      count="5"
+    ></sb-counter-jsx>
+
+    <pre>
+      &lt;sb-counter-jsx
+        count="5"
+      &gt;&lt;/sb-counter-jsx&gt;
+    </pre>
+
     <!-- TODO -->
-    <!-- JSX + Light DOM + inferredObservability -->
     <!-- JSX + Declarative Shadow DOM + inferredObservability -->
 
   </body>
