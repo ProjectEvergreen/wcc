@@ -1,6 +1,7 @@
 # Contributing
 
 ## Welcome!
+
 We're excited for your interest in WCC, and maybe even your contribution!
 
 ## Setup
@@ -11,6 +12,7 @@ To develop for the project, you'll want to follow these steps:
 1. Clone the repository
 1. Run `npm ci`
 
+### NVM
 If you have **NVM (Node Version Manager)** installed, get the recommend node version:
 
 - Windows: [NVM for Windows](https://github.com/coreybutler/nvm-windows/releases)
@@ -20,8 +22,6 @@ And then running `nvm use`
 
 ```sh
 $ nvm use
-Found '/Users/<directory_location>/greenwood/.nvmrc' with version <14.17.0>
-Now using node v14.17.0 (npm v6.14.13)
 ```
 
 ## Local Development
@@ -32,7 +32,8 @@ The local development flow is based around building the docs website, using `wcc
 
 There are the main tasks, but you can see them all listed in _package.json#scripts_.
 
-- `develop` - Builds the docs website using `wcc` with live reload
-- `test` - Run all the tests
-- `test:tdd` - Run all the tests in watch mode
-- `serve` - Builds the docs website using `wcc` with standard server
+- `npm run docs:dev` - Builds the docs site for local development
+- `npm start` - Builds a production version of the docs site and serves it locally
+- `npm run sandbox` - Starts the sandbox app for live demos and testing
+- `npm test` - Run all the tests
+- `npm test:tdd` - Run all the tests in watch mode
