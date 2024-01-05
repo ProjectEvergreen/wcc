@@ -67,20 +67,26 @@
     </pre>
 
     <hr/>
-    <!-- Declarative Shadow DOM -->
-    <!-- Card -->
 
-    <!-- JSX + innerHTML -->
-    <!-- header -->
+    <h2>JSX + Declarative Shadow DOM (has JS) 🚫</h2>
+    <details>
+      SSR Shadow DOM (and thus host styles) not working, see - https://github.com/ProjectEvergreen/wcc/issues/128
+    </details>
 
-    <!-- JSX + innerHTML + inferredObservability -->
-    <!-- Card - does this really make senss with shadow dom -->
+    <sb-card-jsx
+      title="iPhone 9"
+      thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+    ></sb-card-jsx>
 
-    <!-- JSX + DSD -->
-    <!-- Counter -->
+    <pre>
+      &lt;sb-card-jsx
+        title="iPhone 9" thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+      &gt;&lt;/sb-card-jsx&gt;
+    </pre>
 
-    <!-- JSX + DSD + inferredObservability -->
-    <!-- Counter -->
+    <!-- TODO -->
+    <!-- JSX + Light DOM + inferredObservability -->
+    <!-- JSX + Declarative Shadow DOM + inferredObservability -->
 
   </body>
 </html>

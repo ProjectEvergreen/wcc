@@ -2,7 +2,8 @@ import fs from 'node:fs/promises';
 import { renderFromHTML } from './src/wcc.js';
 
 const clientSideComponents = [
-  'card.js'
+  'card.js',
+  'card.jsx'
 ];
 
 async function init() {
@@ -12,17 +13,37 @@ async function init() {
   const components = await fs.readdir(new URL('./components/', sandboxRoot));
   const componentsUrls = components.map(component => new URL(`./components/${component}`, sandboxRoot));
   const interactiveComponents = components.filter(component => clientSideComponents.includes(component));
-  const { html } = await renderFromHTML(sandboxHtml, componentsUrls);
+  const { html, metadata } = await renderFromHTML(sandboxHtml, componentsUrls);
   const scriptTags = interactiveComponents.map(component => {
-    return `<script type="module" src="./components/${component}"></script>`;
+    const ext = component.split('.').pop();
+    const outputName = ext === 'js'
+      ? component
+      : component.replace('.jsx', '-jsx.js');
+
+    return `<script type="module" src="./components/${outputName}"></script>`;
   }).join('\n');
 
   for (const component of interactiveComponents) {
+    const ext = component.split('.').pop();
+    const outputName = ext === 'js'
+      ? component
+      : component.replace('.jsx', '-jsx.js');
     const source = new URL(`./components/${component}`, sandboxRoot);
-    const destination = new URL(`./components/${component}`, distRoot);
+    const destination = new URL(`./components/${outputName}`, distRoot);
 
     await fs.mkdir(new URL('./components/', distRoot), { recursive: true });
-    await fs.copyFile(source, destination);
+
+    if (ext === 'js') {
+      await fs.copyFile(source, destination);
+    } else {
+      const key = `sb-${component.replace('.', '-')}`;
+
+      for (const element in metadata) {
+        if (element === key) {
+          await fs.writeFile(destination, metadata[element].source);
+        }
+      }
+    }
   }
 
   await fs.mkdir(distRoot, { recursive: true });
