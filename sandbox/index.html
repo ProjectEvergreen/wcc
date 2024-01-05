@@ -1,38 +1,76 @@
-<h1>WCC Sandbox</h1>
+<!DOCTYPE html>
+<html lang="en" prefix="og:http://ogp.me/ns#">
 
-<h2>Light DOM (no JS)</h2>
+  <head>
+    <title>WCC Sandbox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8">
+    <style>
+      h1, h2, p {
+        text-align: center;
+      }
 
-<sb-header></sb-header>
+      h2 {
+        color: blue;
+      }
 
-<pre>
-  &lt;sb-header&gt;&lt;/sb-header&gt;
-</pre>
+      pre {
+        width: 50%;
+        margin: 0 auto;
+        text-align: center;
+      }
+    </style>
 
-<hr/>
+    <script>
+      document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
+      ':35729/livereload.js?snipver=1"></' + 'script>')
+    </script>
 
-<h2>Declarative Shadow DOM (has JS)</h2>
+    <!-- interactive scripts can be configured in sandbox.js -->
+  </head>
 
-<sb-card
-  title="iPhone 9"
-  thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
-></sb-card>
+  <body>
 
-<pre>
-  &lt;sb-card
-    title="iPhone 9" thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
-  &gt;&lt;/sb-card&gt;
-</pre>
-<!-- Declarative Shadow DOM -->
-<!-- Card -->
+    <h1>WCC Sandbox</h1>
 
-<!-- JSX + innerHTML -->
-<!-- header -->
+    <h2>Light DOM (no JS)</h2>
 
-<!-- JSX + innerHTML + inferredObservability -->
-<!-- Card - does this really make senss with shadow dom -->
+    <sb-header></sb-header>
 
-<!-- JSX + DSD -->
-<!-- Counter -->
+    <pre>
+      &lt;sb-header&gt;&lt;/sb-header&gt;
+    </pre>
 
-<!-- JSX + DSD + inferredObservability -->
-<!-- Counter -->
+    <hr/>
+
+    <h2>Declarative Shadow DOM (has JS)</h2>
+
+    <sb-card
+      title="iPhone 9"
+      thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+    ></sb-card>
+
+    <pre>
+      &lt;sb-card
+        title="iPhone 9" thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+      &gt;&lt;/sb-card&gt;
+    </pre>
+
+    <hr/>
+    <!-- Declarative Shadow DOM -->
+    <!-- Card -->
+
+    <!-- JSX + innerHTML -->
+    <!-- header -->
+
+    <!-- JSX + innerHTML + inferredObservability -->
+    <!-- Card - does this really make senss with shadow dom -->
+
+    <!-- JSX + DSD -->
+    <!-- Counter -->
+
+    <!-- JSX + DSD + inferredObservability -->
+    <!-- Counter -->
+
+  </body>
+</html>

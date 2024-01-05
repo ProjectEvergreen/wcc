@@ -17,6 +17,10 @@ export default class Card extends HTMLElement {
             margin: 0 auto;
           }
 
+          :host h3 {
+            text-align: center;
+          }
+
           :host button {
             margin: 0 auto;
             display: block;

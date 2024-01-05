@@ -1,7 +1,9 @@
 import fs from 'node:fs/promises';
 import { renderFromHTML } from './src/wcc.js';
 
-const clientSideComponents = ['card.js'];
+const clientSideComponents = [
+  'card.js'
+];
 
 async function init() {
   const distRoot = new URL('./dist/', import.meta.url);
@@ -24,45 +26,10 @@ async function init() {
   }
 
   await fs.mkdir(distRoot, { recursive: true });
-  await fs.writeFile(new URL('./index.html', distRoot), `
-    <!DOCTYPE html>
-    <html lang="en" prefix="og:http://ogp.me/ns#">
-
-      <head>
-        <title>WCC Sandbox</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <meta charset="utf-8">
-        <script>
-          document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
-          ':35729/livereload.js?snipver=1"></' + 'script>')
-        </script>
-
-        ${scriptTags}
-
-        <style>
-          h1, h2, p {
-            text-align: center;
-          }
-
-          h2 {
-            color: blue;
-          }
-          
-          pre {
-            width: 50%;
-            margin: 0 auto;
-            text-align: center;
-          }
-        </style>
-      </head>
-
-      <body>
-
-        ${html}
-
-      </body>
-    </html>
-  `.trim());
+  await fs.writeFile(new URL('./index.html', distRoot), html.replace('</head>', `
+      ${scriptTags}
+    </head>
+  `.trim()));
 }
 
 init();
