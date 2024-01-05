@@ -64,7 +64,6 @@
     "jsdom": "^19.0.0",
     "livereload": "^0.9.3",
     "mocha": "^9.2.2",
-    "node-fetch": "^3.2.6",
     "nodemon": "^2.0.15",
     "prismjs": "^1.28.0",
     "rehype-autolink-headings": "^6.1.1",
