@@ -28,7 +28,7 @@ jobs:
         npm test
     - name: Build
       run: |
-        npm run build
+        npm run docs:build
     - name: Dist
       run: |
         npm run dist

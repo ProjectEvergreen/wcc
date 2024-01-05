@@ -28,4 +28,4 @@ jobs:
         npm run test:exp
     - name: Build
       run: |
-        npm run build
+        npm run docs:build
