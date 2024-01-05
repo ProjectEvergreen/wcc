@@ -1,8 +1,27 @@
-<h1>Hello World</h1>
+<h1>WCC Sandbox</h1>
 
-<!-- innerHTML -->
-<!-- <wcc-header></wcc-header> -->
+<h2>Light DOM (no JS)</h2>
 
+<sb-header></sb-header>
+
+<pre>
+  &lt;sb-header&gt;&lt;/sb-header&gt;
+</pre>
+
+<hr/>
+
+<h2>Declarative Shadow DOM (has JS)</h2>
+
+<sb-card
+  title="iPhone 9"
+  thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+></sb-card>
+
+<pre>
+  &lt;sb-card
+    title="iPhone 9" thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+  &gt;&lt;/sb-card&gt;
+</pre>
 <!-- Declarative Shadow DOM -->
 <!-- Card -->
 
