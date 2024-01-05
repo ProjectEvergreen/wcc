@@ -1,6 +1,6 @@
 [build]
   publish = "dist/"
-  command = "npm run www:build"
+  command = "npm run docs:build"
 
 [build.processing]
   skip_processing = true
