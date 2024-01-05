@@ -39,7 +39,7 @@ export default class CardJsx extends HTMLElement {
     const { thumbnail, title } = this;
 
     return (
-      <div>
+      <div class="card">
         <style>
           {styles}
         </style>
