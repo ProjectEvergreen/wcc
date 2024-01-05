@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 class EventsList extends HTMLElement {
   async connectedCallback() {
     if (!this.shadowRoot) {
