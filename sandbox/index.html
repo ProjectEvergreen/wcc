@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og:http://ogp.me/ns#">
+
+  <head>
+    <title>WCC Sandbox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8">
+    <style>
+      h1, h2, p {
+        text-align: center;
+      }
+
+      h2 {
+        color: blue;
+      }
+
+      pre, details {
+        width: 50%;
+        margin: 0 auto;
+        text-align: center;
+      }
+    </style>
+
+    <script>
+      document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
+      ':35729/livereload.js?snipver=1"></' + 'script>')
+    </script>
+
+    <!-- interactive scripts can be configured in sandbox.js -->
+  </head>
+
+  <body>
+
+    <h1>WCC Sandbox</h1>
+
+    <h2>Light DOM (no JS)</h2>
+
+    <sb-header></sb-header>
+
+    <pre>
+      &lt;sb-header&gt;&lt;/sb-header&gt;
+    </pre>
+
+    <hr/>
+
+    <h2>Declarative Shadow DOM (has JS)</h2>
+
+    <sb-card
+      title="iPhone 9"
+      thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+    ></sb-card>
+
+    <pre>
+      &lt;sb-card
+        title="iPhone 9" thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+      &gt;&lt;/sb-card&gt;
+    </pre>
+
+    <hr/>
+
+    <h2>JSX + Light DOM (no JS)</h2>
+
+    <sb-header-jsx></sb-header-jsx>
+
+    <pre>
+      &lt;sb-header-jsx&gt;&lt;/sb-header-jsx&gt;
+    </pre>
+
+    <hr/>
+
+    <!-- TODO - https://github.com/ProjectEvergreen/wcc/issues/128 -->
+    <h2>JSX + Declarative Shadow DOM (has JS) 🚫</h2>
+
+    <details>
+      SSR Shadow DOM (and thus host styles) not working, see - https://github.com/ProjectEvergreen/wcc/issues/128
+    </details>
+
+    <sb-card-jsx
+      title="iPhone 9"
+      thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+    ></sb-card-jsx>
+
+    <pre>
+      &lt;sb-card-jsx
+        title="iPhone 9" thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+      &gt;&lt;/sb-card-jsx&gt;
+    </pre>
+
+    <hr/>
+
+    <h2>JSX + Light DOM + inferredObservability (has JS)</h2>
+
+    <sb-counter-jsx
+      count="5"
+    ></sb-counter-jsx>
+
+    <pre>
+      &lt;sb-counter-jsx
+        count="5"
+      &gt;&lt;/sb-counter-jsx&gt;
+    </pre>
+
+    <hr/>
+
+    <!-- TODO - https://github.com/ProjectEvergreen/wcc/issues/128 -->
+    <h2>JSX + DSD + inferredObservability (has JS) 🚫</h2>
+
+    <details>
+      SSR Shadow DOM and inferredObservability not working, see - https://github.com/ProjectEvergreen/wcc/issues/128
+    </details>
+
+    <sb-counter-dsd-jsx
+      count="3"
+    ></sb-counter-dsd-jsx>
+
+    <pre>
+      &lt;sb-counter-dsd-jsx
+        count="3"
+      &gt;&lt;/sb-counter-dsd-jsx&gt;
+    </pre>
+
+  </body>
+</html>
