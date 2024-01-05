@@ -1,6 +1,7 @@
 export const inferredObservability = true;
 
-export default class Counter extends HTMLElement {
+export default class CounterJsx extends HTMLElement {
+  // having a constructor is required for inferredObservability
   constructor() {
     super();
     this.count = 0;
@@ -14,7 +15,7 @@ export default class Counter extends HTMLElement {
     const { count } = this;
 
     return (
-      <div>
+      <div style="width: 50%; margin: 0 auto; text-align:center;">
         <button onclick={this.count -= 1}> -</button>
         <span>You have clicked <span class="red">{count}</span> times</span>
         <button onclick={this.count += 1}> +</button>
@@ -23,4 +24,4 @@ export default class Counter extends HTMLElement {
   }
 }
 
-customElements.define('sb-counter-jsx', Counter);
+customElements.define('sb-counter-jsx', CounterJsx);

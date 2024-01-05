@@ -4,7 +4,8 @@ import { renderFromHTML } from './src/wcc.js';
 const clientSideComponents = [
   'card.js',
   'card.jsx',
-  'counter.jsx'
+  'counter.jsx',
+  'counter-dsd.jsx'
 ];
 
 async function init() {
