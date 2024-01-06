@@ -270,11 +270,13 @@ export function parseJsx(moduleURL) {
                   // https://github.com/ProjectEvergreen/wcc/issues/130
                   const renderHandler = hasShadowRoot
                     ? `
-                        if(!${elementRoot}.shadowRoot) {
-                          const template = document.createElement('template');
+                        const template = document.createElement('template');
+                        template.innerHTML = \`${serializedHtml}\`;
 
-                          template.innerHTML = \`${serializedHtml}\`;
+                        if(!${elementRoot}) {
                           this.shadowRoot.appendChild(template.content.cloneNode(true));
+                        } else {
+                          this.shadowRoot.innerHTML = template.innerHTML;
                         }
                       `
                     : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
