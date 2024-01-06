@@ -16,7 +16,7 @@ import { renderToString } from '../../../src/wcc.js';
 const expect = chai.expect;
 
 describe('Run WCC For ', function() {
-  const LABEL = 'Single Custom Element using JSX';
+  const LABEL = 'Single Custom Element using JSX and Inferred Observability';
   let fixtureAttributeChangedCallback;
   let fixtureGetObservedAttributes;
   let meta;
