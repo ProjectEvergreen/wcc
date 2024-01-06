@@ -1,13 +1,13 @@
 export const inferredObservability = true;
 
 export default class CounterJsx extends HTMLElement {
-  // having a constructor is required for inferredObservability
   constructor() {
     super();
     this.count = 0;
   }
 
   connectedCallback() {
+    this.count = parseInt(this.getAttribute('count'), 10) || this.count;
     this.render();
   }
 

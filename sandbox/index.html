@@ -19,7 +19,32 @@
         margin: 0 auto;
         text-align: center;
       }
+
+      button.reset {
+        display: block;
+        min-width: 5%;
+        margin: 0 auto;
+      }
     </style>
+
+    <script>
+      function randomReset() {
+        return Math.floor(Math.random() * 100);
+      }
+
+      globalThis.document.addEventListener('DOMContentLoaded', () => {
+        const counterJsxResetButton = document.getElementById('counter-jsx-reset');
+        const counterJsxDsdResetButton = document.getElementById('counter-jsx-dsd-reset');
+
+        counterJsxResetButton.addEventListener('click', () => {
+          document.querySelector('sb-counter-jsx').setAttribute('count', randomReset());
+        });
+
+        counterJsxDsdResetButton.addEventListener('click', () => {
+          document.querySelector('sb-counter-dsd-jsx').setAttribute('count', randomReset());
+        });
+      });
+    </script>
 
     <script>
       document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
@@ -68,21 +93,16 @@
 
     <hr/>
 
-    <!-- TODO - https://github.com/ProjectEvergreen/wcc/issues/128 -->
-    <h2>JSX + Declarative Shadow DOM (has JS) 🚫</h2>
-
-    <details>
-      SSR Shadow DOM (and thus host styles) not working, see - https://github.com/ProjectEvergreen/wcc/issues/128
-    </details>
+    <h2>JSX + Declarative Shadow DOM (has JS)</h2>
 
     <sb-card-jsx
-      title="iPhone 9"
-      thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+      title="iPhone X"
+      thumbnail="https://i.dummyjson.com/data/products/2/thumbnail.jpg"
     ></sb-card-jsx>
 
     <pre>
       &lt;sb-card-jsx
-        title="iPhone 9" thumbnail="https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+        title="iPhone X" thumbnail="https://i.dummyjson.com/data/products/2/thumbnail.jpg"
       &gt;&lt;/sb-card-jsx&gt;
     </pre>
 
@@ -94,6 +114,8 @@
       count="5"
     ></sb-counter-jsx>
 
+    <button class="reset" id="counter-jsx-reset">Random Reset</button>
+
     <pre>
       &lt;sb-counter-jsx
         count="5"
@@ -102,16 +124,13 @@
 
     <hr/>
 
-    <!-- TODO - https://github.com/ProjectEvergreen/wcc/issues/128 -->
-    <h2>JSX + DSD + inferredObservability (has JS) 🚫</h2>
-
-    <details>
-      SSR Shadow DOM and inferredObservability not working, see - https://github.com/ProjectEvergreen/wcc/issues/128
-    </details>
+    <h2>JSX + DSD + inferredObservability (has JS)</h2>
 
     <sb-counter-dsd-jsx
       count="3"
     ></sb-counter-dsd-jsx>
+
+    <button class="reset" id="counter-jsx-dsd-reset">Random Reset</button>
 
     <pre>
       &lt;sb-counter-dsd-jsx

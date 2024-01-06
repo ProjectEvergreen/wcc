@@ -19,12 +19,12 @@ const styles = `
 export default class CardJsx extends HTMLElement {
 
   selectItem() {
-    alert(`selected item is => ${this.getAttribute('title')}!`);
+    alert(`selected item is => ${this.title}!`);
   }
 
   connectedCallback() {
     if (!this.shadowRoot) {
-      console.log('NO shadowRoot detected for card.jsx!');
+      console.warn('NO shadowRoot detected for card.jsx!');
       this.thumbnail = this.getAttribute('thumbnail');
       this.title = this.getAttribute('title');
 
@@ -39,7 +39,7 @@ export default class CardJsx extends HTMLElement {
     const { thumbnail, title } = this;
 
     return (
-      <div>
+      <div class="card">
         <style>
           {styles}
         </style>

@@ -246,7 +246,7 @@ export default class Counter extends HTMLElement {
   }
 
   connectedCallback() {
-    this.render();
+    this.render(); // this is required
   }
 
   increment() {
@@ -289,6 +289,32 @@ There are of couple things you will need to do to use WCC with JSX:
 
 > _See our [example's page](/examples#jsx) for some usages of WCC + JSX._  👀
 
+### Declarative Shadow DOM
+
+To opt-in to Declarative Shadow DOM with JSX, you will need to signal to the WCC compiler your intentions so it can accurately mount from a `shadowRoot` on the client side.  To opt-in, simply make a call to `attachShadow` in your `connectedCallback` method.
+
+Using, the Counter example from above, we would amend it like so:
+
+```js
+export default class Counter extends HTMLElement {
+  constructor() {
+    super();
+    this.count = 0;
+  }
+
+  connectedCallback() {
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: 'open' }); // this is required for DSD support
+      this.render();
+    }
+  }
+
+  // ...
+}
+
+customElements.define('wcc-counter', Counter);
+```
+
 ### (Inferred) Attribute Observability
 
 An optional feature supported by JSX based compilation is a feature called `inferredObservability`.  With this enabled, WCC will read any `this` member references in your component's `render` function and map each member instance to
@@ -322,6 +348,6 @@ And so now when the attribute is set on this component, the component will re-re
 ```
 
 Some notes / limitations:
-- Please be aware of the above linked discussion which is tracking known bugs / feature requests to all things WCC + JSX.
+- Please be aware of the above linked discussion which is tracking known bugs / feature requests / open items related to all things WCC + JSX.
 - We consider the capability of this observability to be "coarse grained" at this time since WCC just re-runs the entire `render` function, replacing of the `innerHTML` for the host component.  Thought it is still WIP, we are exploring a more ["fine grained" approach](https://github.com/ProjectEvergreen/wcc/issues/108) that will more efficient than blowing away all the HTML, a la in the style of [**lit-html**](https://lit.dev/docs/templates/overview/) or [**Solid**'s Signals](https://www.solidjs.com/tutorial/introduction_signals).
 - This automatically _reflects properties used in the `render` function to attributes_, so YMMV.

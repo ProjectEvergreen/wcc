@@ -265,8 +265,26 @@ export function parseJsx(moduleURL) {
 
                   applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
-                  const finalHtml = serialize(elementTree);
-                  const transformed = acorn.parse(`${elementRoot}.innerHTML = \`${finalHtml}\`;`, {
+                  const serializedHtml = serialize(elementTree);
+                  // we have to Shadow DOM use cases here
+                  // 1. No shadowRoot, so we attachShadow and append the template
+                  // 2. If there is root from the attachShadow signal, so we just need to inject innerHTML, say in an htmx
+                  // could / should we do something else instead of .innerHTML
+                  // https://github.com/ProjectEvergreen/wcc/issues/138
+                  const renderHandler = hasShadowRoot
+                    ? `
+                        const template = document.createElement('template');
+                        template.innerHTML = \`${serializedHtml}\`;
+
+                        if(!${elementRoot}) {
+                          this.attachShadow({ mode: 'open' });
+                          this.shadowRoot.appendChild(template.content.cloneNode(true));
+                        } else {
+                          this.shadowRoot.innerHTML = template.innerHTML;
+                        }
+                      `
+                    : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
+                  const transformed = acorn.parse(renderHandler, {
                     ecmaVersion: 'latest',
                     sourceType: 'module'
                   });
@@ -300,15 +318,7 @@ export function parseJsx(moduleURL) {
     for (const line of tree.body) {
       // test for class MyComponent vs export default class MyComponent
       if (line.type === 'ClassDeclaration' || (line.declaration && line.declaration.type) === 'ClassDeclaration') {
-        const children = !line.declaration
-          ? line.body.body
-          : line.declaration.body.body;
-        for (const method of children) {
-          if (method.key.name === 'constructor') {
-            insertPoint = method.start - 1;
-            break;
-          }
-        }
+        insertPoint = line.declaration.body.start + 1;
       }
     }
 
