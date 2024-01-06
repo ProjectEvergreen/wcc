@@ -246,7 +246,7 @@ export default class Counter extends HTMLElement {
   }
 
   connectedCallback() {
-    this.render();
+    this.render(); // this is required
   }
 
   increment() {
@@ -288,6 +288,32 @@ There are of couple things you will need to do to use WCC with JSX:
     ```
 
 > _See our [example's page](/examples#jsx) for some usages of WCC + JSX._  👀
+
+### Declarative Shadow DOM
+
+To opt-in to Declarative Shadow DOM with JSX, you will need to signal to the WCC compiler your intentions so it can accurately mount from a `shadowRoot` on the client side.  To opt-in, simply make a call to `attachShadow` in your `connectedCallback` method.
+
+Using, the Counter example from above, we would amend it like so:
+
+```js
+export default class Counter extends HTMLElement {
+  constructor() {
+    super();
+    this.count = 0;
+  }
+
+  connectedCallback() {
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: 'open' }); // this is required for DSD support
+      this.render();
+    }
+  }
+
+  // ...
+}
+
+customElements.define('wcc-counter', Counter);
+```
 
 ### (Inferred) Attribute Observability
 
