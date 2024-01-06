@@ -19,7 +19,32 @@
         margin: 0 auto;
         text-align: center;
       }
+
+      button.reset {
+        display: block;
+        min-width: 5%;
+        margin: 0 auto;
+      }
     </style>
+
+    <script>
+      function randomReset() {
+        return Math.floor(Math.random() * 100);
+      }
+
+      globalThis.document.addEventListener('DOMContentLoaded', () => {
+        const counterJsxResetButton = document.getElementById('counter-jsx-reset');
+        const counterJsxDsdResetButton = document.getElementById('counter-jsx-dsd-reset');
+
+        counterJsxResetButton.addEventListener('click', () => {
+          document.querySelector('sb-counter-jsx').setAttribute('count', randomReset());
+        });
+
+        counterJsxDsdResetButton.addEventListener('click', () => {
+          document.querySelector('sb-counter-dsd-jsx').setAttribute('count', randomReset());
+        });
+      });
+    </script>
 
     <script>
       document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
@@ -89,6 +114,8 @@
       count="5"
     ></sb-counter-jsx>
 
+    <button class="reset" id="counter-jsx-reset">Random Reset</button>
+
     <pre>
       &lt;sb-counter-jsx
         count="5"
@@ -102,6 +129,8 @@
     <sb-counter-dsd-jsx
       count="3"
     ></sb-counter-dsd-jsx>
+
+    <button class="reset" id="counter-jsx-dsd-reset">Random Reset</button>
 
     <pre>
       &lt;sb-counter-dsd-jsx
