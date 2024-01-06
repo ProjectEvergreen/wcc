@@ -19,7 +19,7 @@ const styles = `
 export default class CardJsx extends HTMLElement {
 
   selectItem() {
-    alert(`selected item is => ${this.getAttribute('title')}!`);
+    alert(`selected item is => ${this.title}!`);
   }
 
   connectedCallback() {

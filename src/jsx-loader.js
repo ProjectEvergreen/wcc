@@ -266,8 +266,11 @@ export function parseJsx(moduleURL) {
                   applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
                   const serializedHtml = serialize(elementTree);
-                  // could / should we do something else instead of .innerHTML for light DOM?
-                  // https://github.com/ProjectEvergreen/wcc/issues/130
+                  // we have to Shadow DOM use cases here
+                  // 1. No shadowRoot, so we attachShadow and append the template
+                  // 2. If there is root from the attachShadow signal, so we just need to inject innerHTML, say in an htmx
+                  // could / should we do something else instead of .innerHTML
+                  // https://github.com/ProjectEvergreen/wcc/issues/138
                   const renderHandler = hasShadowRoot
                     ? `
                         const template = document.createElement('template');

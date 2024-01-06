@@ -348,6 +348,6 @@ And so now when the attribute is set on this component, the component will re-re
 ```
 
 Some notes / limitations:
-- Please be aware of the above linked discussion which is tracking known bugs / feature requests to all things WCC + JSX.
+- Please be aware of the above linked discussion which is tracking known bugs / feature requests / open items related to all things WCC + JSX.
 - We consider the capability of this observability to be "coarse grained" at this time since WCC just re-runs the entire `render` function, replacing of the `innerHTML` for the host component.  Thought it is still WIP, we are exploring a more ["fine grained" approach](https://github.com/ProjectEvergreen/wcc/issues/108) that will more efficient than blowing away all the HTML, a la in the style of [**lit-html**](https://lit.dev/docs/templates/overview/) or [**Solid**'s Signals](https://www.solidjs.com/tutorial/introduction_signals).
 - This automatically _reflects properties used in the `render` function to attributes_, so YMMV.

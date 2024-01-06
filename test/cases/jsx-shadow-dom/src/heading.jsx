@@ -1,6 +1,6 @@
 export default class HeadingComponent extends HTMLElement {
   sayHello() {
-    alert('hello world!');
+    alert(`Hello, ${this.greeting}!`);
   }
 
   connectedCallback() {
