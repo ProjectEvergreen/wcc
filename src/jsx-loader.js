@@ -262,7 +262,7 @@ export function parseJsx(moduleURL) {
                   const html = parseJsxElement(n.argument, moduleContents);
                   const elementTree = getParse(html)(html);
                   const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
-                  console.log({ elementRoot });
+
                   applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
                   const serializedHtml = serialize(elementTree);
@@ -314,15 +314,7 @@ export function parseJsx(moduleURL) {
     for (const line of tree.body) {
       // test for class MyComponent vs export default class MyComponent
       if (line.type === 'ClassDeclaration' || (line.declaration && line.declaration.type) === 'ClassDeclaration') {
-        const children = !line.declaration
-          ? line.body.body
-          : line.declaration.body.body;
-        for (const method of children) {
-          if (method.key.name === 'constructor') {
-            insertPoint = method.start - 1;
-            break;
-          }
-        }
+        insertPoint = line.declaration.body.start + 1;
       }
     }
 

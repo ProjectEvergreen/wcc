@@ -1,16 +1,10 @@
 export const inferredObservability = true;
 
 export default class CounterDsdJsx extends HTMLElement {
-  // having a constructor is required for inferredObservability
-  constructor() {
-    super();
-    this.count = 0;
-  }
-
   connectedCallback() {
     if (!this.shadowRoot) {
       console.warn('NO shadowRoot detected for counter-dsd.jsx!');
-      this.count = this.getAttribute('count');
+      this.count = this.getAttribute('count') || 0;
 
       // having an attachShadow call is required for DSD
       this.attachShadow({ mode: 'open' });
