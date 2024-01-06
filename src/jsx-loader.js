@@ -274,6 +274,7 @@ export function parseJsx(moduleURL) {
                         template.innerHTML = \`${serializedHtml}\`;
 
                         if(!${elementRoot}) {
+                          this.attachShadow({ mode: 'open' });
                           this.shadowRoot.appendChild(template.content.cloneNode(true));
                         } else {
                           this.shadowRoot.innerHTML = template.innerHTML;

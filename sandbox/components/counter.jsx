@@ -7,6 +7,7 @@ export default class CounterJsx extends HTMLElement {
   }
 
   connectedCallback() {
+    this.count = parseInt(this.getAttribute('count'), 10) || this.count;
     this.render();
   }
 
