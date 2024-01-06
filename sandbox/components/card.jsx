@@ -24,7 +24,7 @@ export default class CardJsx extends HTMLElement {
 
   connectedCallback() {
     if (!this.shadowRoot) {
-      console.log('NO shadowRoot detected for card.jsx!');
+      console.warn('NO shadowRoot detected for card.jsx!');
       this.thumbnail = this.getAttribute('thumbnail');
       this.title = this.getAttribute('title');
 

@@ -262,7 +262,7 @@ export function parseJsx(moduleURL) {
                   const html = parseJsxElement(n.argument, moduleContents);
                   const elementTree = getParse(html)(html);
                   const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
-
+                  console.log({ elementRoot });
                   applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
                   const serializedHtml = serialize(elementTree);

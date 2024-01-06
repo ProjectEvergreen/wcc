@@ -9,7 +9,7 @@ export default class CounterDsdJsx extends HTMLElement {
 
   connectedCallback() {
     if (!this.shadowRoot) {
-      console.log('NO shadowRoot detected for counter-dsd.jsx!');
+      console.warn('NO shadowRoot detected for counter-dsd.jsx!');
       this.count = this.getAttribute('count');
 
       // having an attachShadow call is required for DSD

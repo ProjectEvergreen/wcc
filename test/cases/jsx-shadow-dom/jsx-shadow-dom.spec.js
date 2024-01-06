@@ -54,27 +54,18 @@ describe('Run WCC For ', function() {
           const wrapper = new JSDOM(heading.innerHTML);
           const button = wrapper.window.document.querySelector('button');
 
-          expect(button.getAttribute('onclick')).to.be.equal('this.parentNode.host.sayHello()');
+          expect(button.getAttribute('onclick')).to.be.equal('this.parentElement.parentNode.host.sayHello()');
         });
       });
 
-      // describe('Expressions', () => {
-      //   // <span>You have clicked {count} times</span>
-      //   it('should handle an expression', () => {
-      //     const element = dom.window.document.querySelectorAll('span#expression')[0];
+      describe('Attribute Contents', () => {
+        it('should handle a this expression', () => {
+          const wrapper = new JSDOM(heading.innerHTML);
+          const header = wrapper.window.document.querySelector('h1');
 
-      //     expect(element.textContent).to.be.equal('0');
-      //   });    
-      // });
-
-      // describe('Inferred Observability', () => {
-      //   it('should not infer observability by default', () => {
-      //     const actual = meta['wcc-counter-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
-
-      //     expect(actual).to.not.contain('staticgetobservedAttributes()');
-      //     expect(actual).to.not.contain('attributeChangedCallback');
-      //   });
-      // });
+          expect(header.textContent).to.be.equal('Hello, World!');
+        });
+      });
     });
   });
 });
