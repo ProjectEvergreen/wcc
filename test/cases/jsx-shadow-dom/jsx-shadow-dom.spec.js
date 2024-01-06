@@ -54,7 +54,7 @@ describe('Run WCC For ', function() {
           const wrapper = new JSDOM(heading.innerHTML);
           const button = wrapper.window.document.querySelector('button');
 
-          expect(button.getAttribute('onclick')).to.be.equal('this.parentElement.parentNode.host.sayHello()');
+          expect(button.getAttribute('onclick')).to.be.equal('this.getRootNode().host.sayHello()');
         });
       });
 
