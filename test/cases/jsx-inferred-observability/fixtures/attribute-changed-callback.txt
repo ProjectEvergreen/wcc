@@ -1,9 +1,4 @@
-export const inferredObservability = true;
-export default class Counter extends HTMLElement {
-    static get observedAttributes() {
-        return ['count'];
-    }
-    attributeChangedCallback(name, oldValue, newValue) {
+attributeChangedCallback(name, oldValue, newValue) {
         console.debug('???attributeChangedCallback', { name });
         console.debug('???attributeChangedCallback', { oldValue });
         console.debug('???attributeChangedCallback', { newValue });
@@ -14,6 +9,9 @@ export default class Counter extends HTMLElement {
             switch (name) {
             case 'count':
                 this.count = getValue(newValue);
+                break;
+            case 'highlight':
+                this.highlight = getValue(newValue);
                 break;
             }
             this.update(name, oldValue, newValue);
@@ -45,35 +43,10 @@ export default class Counter extends HTMLElement {
                 break;
             }
         });
-        if (['count'].includes(name)) {
+        if ([
+                'count',
+                'highlight'
+            ].includes(name)) {
         }
         console.debug('****************************');
     }
-    constructor() {
-        super();
-        this.count = 0;
-    }
-    increment() {
-        this.count += 1;
-        this.render();
-    }
-    decrement() {
-        this.count -= 1;
-        this.render();
-    }
-    connectedCallback() {
-        this.render();
-    }
-    render() {
-        const {count} = this;
-        this.innerHTML = `<div>
-        <wcc-badge count="${ count }" data-wcc-count="count" data-wcc-ins="attr"></wcc-badge>
-        <h3 data-test="hello123">Counter JSX</h3>
-        <button id="evt-this" onclick="this.parentElement.parentElement.decrement()"> -  (function reference)</button>
-        <button id="evt-assignment" onclick="this.parentElement.parentElement.count-=1; this.parentElement.parentElement.setAttribute(\'count\', this.parentElement.parentElement.count);"> - (inline state update)</button>
-        <span>You have clicked <span class="red" id="expression" data-wcc-count="${ this.count }" data-wcc-ins="text">${ count }</span> times</span>
-        <button onclick="this.parentElement.parentElement.count+=1; this.parentElement.parentElement.setAttribute(\'count\', this.parentElement.parentElement.count);"> + (inline state update)</button>
-        <button onclick="this.parentElement.parentElement.increment()"> + (function reference)</button>
-      </div>`;
-    }
-}
