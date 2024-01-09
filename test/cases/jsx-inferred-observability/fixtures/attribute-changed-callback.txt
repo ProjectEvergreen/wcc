@@ -1,43 +1,79 @@
-attributeChangedCallback(name, oldValue, newValue) {
-    function getValue(value) {
-        return value.charAt(0) === '{' || value.charAt(0) === '[' ? JSON.parse(value) : !isNaN(value) ? parseInt(value, 10) : value === 'true' || value === 'false' ? value === 'true' ? true : false : value;
+export const inferredObservability = true;
+export default class Counter extends HTMLElement {
+    static get observedAttributes() {
+        return ['count'];
     }
-    if (newValue !== oldValue) {
-        switch (name) {
-        case 'count':
-            this.count = getValue(newValue);
-            break;
+    attributeChangedCallback(name, oldValue, newValue) {
+        console.debug('???attributeChangedCallback', { name });
+        console.debug('???attributeChangedCallback', { oldValue });
+        console.debug('???attributeChangedCallback', { newValue });
+        function getValue(value) {
+            return value.charAt(0) === '{' || value.charAt(0) === '[' ? JSON.parse(value) : !isNaN(value) ? parseInt(value, 10) : value === 'true' || value === 'false' ? value === 'true' ? true : false : value;
         }
-        this.update(name, oldValue, newValue);
-    }
-}
-update(name, oldValue, newValue) {
-    console.debug('Update tracking against....', this.constructor.observedAttributes);
-    console.debug('Updating', name);
-    console.debug('Swap old', oldValue);
-    console.debug('For new', newValue);
-    console.debug('this[name]', this[name]);
-    const attr = `data-wcc-${ name }`;
-    const selector = `[${ attr }]`;
-    console.debug({ attr });
-    console.debug({ selector });
-    this.querySelectorAll(selector).forEach(el => {
-        const needle = oldValue || el.getAttribute(attr);
-        console.debug({ el });
-        console.debug({ needle });
-        console.debug({ newValue });
-        switch (el.getAttribute('data-wcc-ins')) {
-        case 'text':
-            el.textContent = el.textContent.replace(needle, newValue);
-            break;
-        case 'attr':
-            if (el.hasAttribute(el.getAttribute(attr))) {
-                el.setAttribute(el.getAttribute(attr), newValue);
+        if (newValue !== oldValue) {
+            switch (name) {
+            case 'count':
+                this.count = getValue(newValue);
+                break;
             }
-            break;
+            this.update(name, oldValue, newValue);
         }
-    });
-    if (['count'].includes(name)) {
     }
-    console.debug('****************************');
+    update(name, oldValue, newValue) {
+        console.debug('Update tracking against....', this.constructor.observedAttributes);
+        console.debug('Updating', name);
+        console.debug('Swap old', oldValue);
+        console.debug('For new', newValue);
+        console.debug('this[name]', this[name]);
+        const attr = `data-wcc-${ name }`;
+        const selector = `[${ attr }]`;
+        console.debug({ attr });
+        console.debug({ selector });
+        this.querySelectorAll(selector).forEach(el => {
+            const needle = oldValue || el.getAttribute(attr);
+            console.debug({ el });
+            console.debug({ needle });
+            console.debug({ newValue });
+            switch (el.getAttribute('data-wcc-ins')) {
+            case 'text':
+                el.textContent = el.textContent.replace(needle, newValue);
+                break;
+            case 'attr':
+                if (el.hasAttribute(el.getAttribute(attr))) {
+                    el.setAttribute(el.getAttribute(attr), newValue);
+                }
+                break;
+            }
+        });
+        if (['count'].includes(name)) {
+        }
+        console.debug('****************************');
+    }
+    constructor() {
+        super();
+        this.count = 0;
+    }
+    increment() {
+        this.count += 1;
+        this.render();
+    }
+    decrement() {
+        this.count -= 1;
+        this.render();
+    }
+    connectedCallback() {
+        this.render();
+    }
+    render() {
+        const {count} = this;
+        this.innerHTML = `<div>
+        <wcc-badge count="${ count }" data-wcc-count="count" data-wcc-ins="attr"></wcc-badge>
+        <h3 data-test="hello123">Counter JSX</h3>
+        <button id="evt-this" onclick="this.parentElement.parentElement.decrement()"> -  (function reference)</button>
+        <button id="evt-assignment" onclick="this.parentElement.parentElement.count-=1; this.parentElement.parentElement.setAttribute(\'count\', this.parentElement.parentElement.count);"> - (inline state update)</button>
+        <span>You have clicked <span class="red" id="expression" data-wcc-count="${ this.count }" data-wcc-ins="text">${ count }</span> times</span>
+        <button onclick="this.parentElement.parentElement.count+=1; this.parentElement.parentElement.setAttribute(\'count\', this.parentElement.parentElement.count);"> + (inline state update)</button>
+        <button onclick="this.parentElement.parentElement.increment()"> + (function reference)</button>
+      </div>`;
+    }
 }
