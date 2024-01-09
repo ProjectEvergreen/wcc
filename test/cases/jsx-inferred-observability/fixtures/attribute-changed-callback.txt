@@ -1,13 +1,43 @@
 attributeChangedCallback(name, oldValue, newValue) {
-  function getValue(value) {
-      return value.charAt(0) === '{' || value.charAt(0) === '[' ? JSON.parse(value) : !isNaN(value) ? parseInt(value, 10) : value === 'true' || value === 'false' ? value === 'true' ? true : false : value;
-  }
-  if (newValue !== oldValue) {
-      switch (name) {
-      case 'count':
-          this.count = getValue(newValue);
-          break;
-      }
-      this.render();
-  }
+    function getValue(value) {
+        return value.charAt(0) === '{' || value.charAt(0) === '[' ? JSON.parse(value) : !isNaN(value) ? parseInt(value, 10) : value === 'true' || value === 'false' ? value === 'true' ? true : false : value;
+    }
+    if (newValue !== oldValue) {
+        switch (name) {
+        case 'count':
+            this.count = getValue(newValue);
+            break;
+        }
+        this.update(name, oldValue, newValue);
+    }
+}
+update(name, oldValue, newValue) {
+    console.debug('Update tracking against....', this.constructor.observedAttributes);
+    console.debug('Updating', name);
+    console.debug('Swap old', oldValue);
+    console.debug('For new', newValue);
+    console.debug('this[name]', this[name]);
+    const attr = `data-wcc-${ name }`;
+    const selector = `[${ attr }]`;
+    console.debug({ attr });
+    console.debug({ selector });
+    this.querySelectorAll(selector).forEach(el => {
+        const needle = oldValue || el.getAttribute(attr);
+        console.debug({ el });
+        console.debug({ needle });
+        console.debug({ newValue });
+        switch (el.getAttribute('data-wcc-ins')) {
+        case 'text':
+            el.textContent = el.textContent.replace(needle, newValue);
+            break;
+        case 'attr':
+            if (el.hasAttribute(el.getAttribute(attr))) {
+                el.setAttribute(el.getAttribute(attr), newValue);
+            }
+            break;
+        }
+    });
+    if (['count'].includes(name)) {
+    }
+    console.debug('****************************');
 }

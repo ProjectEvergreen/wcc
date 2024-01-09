@@ -24,6 +24,7 @@ describe('Run WCC For ', function () {
   before(async function () {
     const { html, metadata } = await renderToString(new URL('./src/counter.jsx', import.meta.url));
 
+    console.log({ html });
     meta = metadata;
     dom = new JSDOM(html);
   });
@@ -75,7 +76,7 @@ describe('Run WCC For ', function () {
           );
 
           expect(element.getAttribute('onclick')).to.be.equal(
-            'this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();',
+            'this.parentElement.parentElement.count-=1; this.parentElement.parentElement.setAttribute(\'count\', this.parentElement.parentElement.count);'
           );
         });
       });
