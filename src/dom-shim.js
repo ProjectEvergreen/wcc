@@ -31,6 +31,18 @@ class Element extends Node {
     this.attributes = {};
   }
 
+  attachShadow(options) {
+    this.shadowRoot = new ShadowRoot(options);
+
+    return this.shadowRoot;
+  }
+
+  // https://github.com/mfreed7/declarative-shadow-dom/blob/master/README.md#serialization
+  // eslint-disable-next-line
+  getInnerHTML() {
+    return this.shadowRoot ? this.shadowRoot.innerHTML : this.innerHTML;
+  }
+
   setAttribute(name, value) {
     this.attributes[name] = value;
   }
@@ -68,19 +80,7 @@ class Document extends Node {
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement
 // EventTarget <- Node <- Element <- HTMLElement
 class HTMLElement extends Element {
-  attachShadow(options) {
-    this.shadowRoot = new ShadowRoot(options);
-
-    return this.shadowRoot;
-  }
-
   connectedCallback() { }
-
-  // https://github.com/mfreed7/declarative-shadow-dom/blob/master/README.md#serialization
-  // eslint-disable-next-line
-  getInnerHTML(options = {}) {
-    return this.shadowRoot.innerHTML;
-  }
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment
