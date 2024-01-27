@@ -17,7 +17,7 @@ export default class HeadingComponent extends HTMLElement {
 
     return (
       <div>
-        <h1>Hello, {greeting}!</h1>
+        <h1>Hello, <span>{greeting}</span>!</h1>
         <button onclick={this.sayHello}>Get a greeting!</button>
       </div>
     );

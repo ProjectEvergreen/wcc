@@ -117,7 +117,8 @@ function parseJsxElement(element, moduleContents = '') {
               if (left.object.type === 'ThisExpression') {
                 if (left.property.type === 'Identifier') {
                   // very naive (fine grained?) reactivity
-                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
+                  // string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.update(\\'${left.property.name}\\', null, __this__.${left.property.name});"`;
+                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.setAttribute(\\'${left.property.name}\\', __this__.${left.property.name});"`;
                 }
               }
             }
@@ -145,6 +146,9 @@ function parseJsxElement(element, moduleContents = '') {
                   }
                 }
               }
+
+              // TODO make sure this only applies to `this` references!
+              string += ` data-wcc-${expression.name}="${name}" data-wcc-ins="attr"`;
             }
           } else {
             // xxx >
@@ -171,6 +175,11 @@ function parseJsxElement(element, moduleContents = '') {
 
       if (type === 'Identifier') {
         // You have {count} TODOs left to complete
+        const { name } = element.expression;
+
+        string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name}="\${this.${name}}" data-wcc-ins="text">`;
+        // TODO be able to remove this extra data attribute 
+        // string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name} data-wcc-ins="text">`;
         string += `\$\{${element.expression.name}\}`;
       } else if (type === 'MemberExpression') {
         const { object } = element.expression.object;
@@ -217,10 +226,16 @@ function findThisReferences(context, statement) {
         // const { description } = this.todo;
         references.push(init.property.name);
       } else if (init.type === 'ThisExpression' && id && id.properties) {
-        // const { description } = this.todo;
+        // const { id, description } = this;
         id.properties.forEach((property) => {
           references.push(property.key.name);
         });
+      } else {
+        // TODO we are just blindly tracking anything here.
+        // everything should ideally be mapped to actual this references, to create a strong chain of direct reactivity
+        // instead of tracking any declaration as a derived tracking attr
+        // for convenience here, we push the entire declaration here, instead of the name like for direct this references (see above)
+        references.push(declaration);
       }
     });
   }
@@ -324,15 +339,40 @@ export function parseJsx(moduleURL) {
     }
 
     let newModuleContents = escodegen.generate(tree);
+    const trackingAttrs = observedAttributes.filter(attr => typeof attr === 'string');
+    // TODO ideally derivedAttrs would explicitely reference trackingAttrs
+    // and if there are no derivedAttrs, do not include the derivedGetters / derivedSetters code in the compiled output
+    const derivedAttrs = observedAttributes.filter(attr => typeof attr !== 'string');
+    const derivedGetters = derivedAttrs.map(attr => {
+      return `
+        get_${attr.id.name}(${trackingAttrs.join(',')}) {
+          console.log('@@@@@@@@@@@@@@@@@@@@ updating derivative value for => ${attr.id.name}');
+          console.log('@@@@@@@@@@@@@@@@@@@@ new derivative value is =>', ${moduleContents.slice(attr.init.start, attr.init.end)});
+          return ${moduleContents.slice(attr.init.start, attr.init.end)}
+        }
+      `;
+    }).join('\n');
+    const derivedSetters = derivedAttrs.map(attr => {
+      const name = attr.id.name;
+
+      return `
+        const old_${name} = this.get_${name}(oldValue);
+        const new_${name} = this.get_${name}(newValue);
+        this.update('${name}', old_${name}, new_${name});
+      `;
+    }).join('\n');
 
     // TODO better way to determine value type?
     /* eslint-disable indent */
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
-        return [${[...observedAttributes].map(attr => `'${attr}'`).join(',')}]
+        return [${[...trackingAttrs].map(attr => `'${attr}'`).join()}]
       }
 
       attributeChangedCallback(name, oldValue, newValue) {
+        console.debug('???attributeChangedCallback', { name });
+        console.debug('???attributeChangedCallback', { oldValue });
+        console.debug('???attributeChangedCallback', { newValue });
         function getValue(value) {
           return value.charAt(0) === '{' || value.charAt(0) === '['
             ? JSON.parse(value)
@@ -344,7 +384,7 @@ export function parseJsx(moduleURL) {
         }
         if (newValue !== oldValue) {
           switch(name) {
-            ${observedAttributes.map((attr) => {
+            ${trackingAttrs.map((attr) => {
               return `
                 case '${attr}':
                   this.${attr} = getValue(newValue);
@@ -352,10 +392,45 @@ export function parseJsx(moduleURL) {
               `;
             }).join('\n')}
           }
-
-          this.render();
+          this.update(name, oldValue, newValue);
         }
       }
+
+      update(name, oldValue, newValue) {
+        console.debug('Update tracking against....', this.constructor.observedAttributes);
+        console.debug('Updating', name);
+        console.debug('Swap old', oldValue);
+        console.debug('For new', newValue);
+        console.debug('this[name]', this[name]);
+        const attr = \`data-wcc-\${name}\`;
+        const selector = \`[\${attr}]\`;
+        console.debug({ attr });
+        console.debug({ selector });
+
+        this.querySelectorAll(selector).forEach((el) => {
+          const needle = oldValue || el.getAttribute(attr);
+          console.debug({ el })
+          console.debug({ needle });
+          console.debug({ newValue });
+          switch(el.getAttribute('data-wcc-ins')) {
+            case 'text':
+              el.textContent = el.textContent.replace(needle, newValue);
+              break;
+            case 'attr':
+              if (el.hasAttribute(el.getAttribute(attr))) {
+                el.setAttribute(el.getAttribute(attr), newValue);
+              }
+              break;
+          }
+        })
+
+        if ([${[...trackingAttrs].map(attr => `'${attr}'`).join()}].includes(name)) {
+          ${derivedSetters}
+        }
+        console.debug('****************************');
+      }
+
+      ${derivedGetters}
 
       ${newModuleContents.slice(insertPoint)}
     `;

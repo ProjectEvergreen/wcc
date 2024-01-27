@@ -24,6 +24,7 @@ describe('Run WCC For ', function() {
   before(async function() {
     const { html, metadata } = await renderToString(new URL('./src/counter.jsx', import.meta.url));
 
+    console.log({ html });
     meta = metadata;
     dom = new JSDOM(html);
   });
@@ -69,7 +70,8 @@ describe('Run WCC For ', function() {
         it('should handle an assignment expression with implicit reactivity using this.render', () => {
           const element = Array.from(buttons).find(button => button.getAttribute('id') === 'evt-assignment');
 
-          expect(element.getAttribute('onclick')).to.be.equal('this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();');
+          expect(element.getAttribute('onclick'))
+            .to.be.equal('this.parentElement.parentElement.count-=1; this.parentElement.parentElement.setAttribute(\'count\', this.parentElement.parentElement.count);');
         });
       });
 

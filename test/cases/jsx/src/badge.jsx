@@ -33,7 +33,7 @@ export default class BadgeComponent extends HTMLElement {
     const conditionalText = predicate ? ' 🥳' : '';
 
     return (
-      <span class={conditionalClass}>{count}{conditionalText}</span>
+      <span class={conditionalClass}><span>{count}</span>{conditionalText}</span>
     );
   }
 }
