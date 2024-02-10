@@ -54,6 +54,7 @@
     "@mapbox/rehype-prism": "^0.8.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "acorn-import-assertions": "^1.9.0",
     "c8": "^7.11.2",
     "chai": "^4.3.6",
     "concurrently": "^7.1.0",
