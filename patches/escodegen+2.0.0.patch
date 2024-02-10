@@ -1,5 +1,5 @@
 diff --git a/node_modules/escodegen/escodegen.js b/node_modules/escodegen/escodegen.js
-index 847fc37..dfe80e3 100644
+index 847fc37..0082e3b 100644
 --- a/node_modules/escodegen/escodegen.js
 +++ b/node_modules/escodegen/escodegen.js
 @@ -33,1219 +33,1376 @@
@@ -80,7 +80,7 @@ index 847fc37..dfe80e3 100644
 -        Primary: 21
 +import * as estraverse from 'estraverse';
 +import * as esutils from 'esutils';
-+// import packageJson from './package.json' assert { type: 'json' };
++import packageJson from './package.json' assert { type: 'json' };
 +
 +var Syntax,
 +    Precedence,
@@ -2375,7 +2375,7 @@ index 847fc37..dfe80e3 100644
                              result.push(indent);
                              result.push(that.generateExpression(stmt.specifiers[i], Precedence.Sequence, E_TTT));
                              if (i + 1 < iz) {
-@@ -1256,1392 +1413,1244 @@
+@@ -1256,1392 +1413,1237 @@
                      if (!endsWithLineTerminator(toSourceNodeWhenNeeded(result).toString())) {
                          result.push(newline);
                      }
@@ -4762,10 +4762,10 @@ index 847fc37..dfe80e3 100644
 +var attachComments = estraverse.attachComments;
 +var precedence = updateDeeply({}, Precedence);
 +var browser = false;
-+// var { version } = packageJson;
++var { version } = packageJson;
 +
 +export {
-+    // version,
++    version,
 +    generate,
 +    attachComments,
 +    precedence as Precedence,
@@ -4773,13 +4773,6 @@ index 847fc37..dfe80e3 100644
 +    FORMAT_MINIFY,
 +    FORMAT_DEFAULTS
 +}
-+// // exports.version = require('./package.json').version;
-+// exports.generate = generate;
-+// exports.attachComments = estraverse.attachComments;
-+// exports.Precedence = updateDeeply({}, Precedence);
-+// exports.browser = false;
-+// exports.FORMAT_MINIFY = FORMAT_MINIFY;
-+// exports.FORMAT_DEFAULTS = FORMAT_DEFAULTS;
  
 -    exports.version = require('./package.json').version;
 -    exports.generate = generate;
