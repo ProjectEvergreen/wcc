@@ -1,0 +1,55 @@
+diff --git a/node_modules/acorn-jsx/index.js b/node_modules/acorn-jsx/index.js
+index 004e080..84378b0 100644
+--- a/node_modules/acorn-jsx/index.js
++++ b/node_modules/acorn-jsx/index.js
+@@ -1,6 +1,7 @@
+ 'use strict';
+ 
+-const XHTMLEntities = require('./xhtml');
++import * as acorn from "acorn";
++import XHTMLEntities from './xhtml.js';
+ 
+ const hexNumber = /^[\da-fA-F]+$/;
+ const decimalNumber = /^\d+$/;
+@@ -70,7 +71,7 @@ function getQualifiedJSXName(object) {
+     getQualifiedJSXName(object.property);
+ }
+ 
+-module.exports = function(options) {
++function acornJsx(options) {
+   options = options || {};
+   return function(Parser) {
+     return plugin({
+@@ -82,16 +83,19 @@ module.exports = function(options) {
+ 
+ // This is `tokTypes` of the peer dep.
+ // This can be different instances from the actual `tokTypes` this plugin uses.
+-Object.defineProperty(module.exports, "tokTypes", {
++Object.defineProperty(acornJsx, "tokTypes", {
+   get: function get_tokTypes() {
+-    return getJsxTokens(require("acorn")).tokTypes;
++    return getJsxTokens(acorn).tokTypes;
+   },
+   configurable: true,
+   enumerable: true
+ });
+ 
++
++export default acornJsx;
++
+ function plugin(options, Parser) {
+-  const acorn = Parser.acorn || require("acorn");
++  const acorn = Parser.acorn || acorn;
+   const acornJsx = getJsxTokens(acorn);
+   const tt = acorn.tokTypes;
+   const tok = acornJsx.tokTypes;
+diff --git a/node_modules/acorn-jsx/xhtml.js b/node_modules/acorn-jsx/xhtml.js
+index c152009..8f5aa79 100644
+--- a/node_modules/acorn-jsx/xhtml.js
++++ b/node_modules/acorn-jsx/xhtml.js
+@@ -1,4 +1,4 @@
+-module.exports = {
++export default {
+   quot: '\u0022',
+   amp: '&',
+   apos: '\u0027',
