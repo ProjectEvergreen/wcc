@@ -4,7 +4,7 @@ import './dom-shim.js';
 
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
-import escodegen from 'escodegen';
+import { generate } from 'escodegen';
 import { getParser, parseJsx } from './jsx-loader.js';
 import { parse, parseFragment, serialize } from 'parse5';
 import fs from 'fs';
@@ -94,7 +94,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
         definitions[tagName] = {
           instanceName: args[1].name,
           moduleURL,
-          source: escodegen.generate(tree),
+          source: generate(tree),
           url: moduleURL,
           isEntry
         };
