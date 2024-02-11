@@ -4,7 +4,7 @@ import './dom-shim.js';
 
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
-import { generate } from 'escodegen';
+import { generate } from '@projectevergreen/escodegen-esm';
 import { getParser, parseJsx } from './jsx-loader.js';
 import { parse, parseFragment, serialize } from 'parse5';
 import fs from 'fs';

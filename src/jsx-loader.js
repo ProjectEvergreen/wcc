@@ -2,7 +2,7 @@
 // https://nodejs.org/api/esm.html#esm_loaders
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
-import { generate } from 'escodegen';
+import { generate } from '@projectevergreen/escodegen-esm';
 import fs from 'fs';
 import jsx from 'acorn-jsx';
 import { parse, parseFragment, serialize } from 'parse5';
