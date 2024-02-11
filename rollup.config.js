@@ -10,7 +10,9 @@ export default {
   },
   plugins: [
     json(),
-    nodeResolve(),
+    nodeResolve({
+      exportConditions: ['default', 'module', 'import', 'node']
+    }),
     commonjs()
   ]
 };
