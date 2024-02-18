@@ -123,15 +123,19 @@ class HTMLTemplateElement extends HTMLElement {
 // https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry
 class CustomElementsRegistry {
   constructor() {
-    this.customElementsRegistry = {};
+    this.customElementsRegistry = new Map();
   }
 
   define(tagName, BaseClass) {
-    this.customElementsRegistry[tagName] = BaseClass;
+    this.customElementsRegistry.set(tagName, BaseClass);
   }
 
   get(tagName) {
-    return this.customElementsRegistry[tagName];
+    if(this.customElementsRegistry.get(tagName)) {
+      return this.customElementsRegistry.get(tagName)
+    } else {
+      // uh oh...
+    }
   }
 }
 
