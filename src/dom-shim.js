@@ -123,6 +123,8 @@ class HTMLTemplateElement extends HTMLElement {
 // https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry
 class CustomElementsRegistry {
   constructor() {
+    // TODO this should probably be a set or otherwise follow the spec?
+    // https://github.com/ProjectEvergreen/wcc/discussions/145
     this.customElementsRegistry = new Map();
   }
 
