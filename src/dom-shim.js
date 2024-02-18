@@ -133,8 +133,8 @@ class CustomElementsRegistry {
   }
 
   get(tagName) {
-    if(this.customElementsRegistry.get(tagName)) {
-      return this.customElementsRegistry.get(tagName)
+    if (this.customElementsRegistry.get(tagName)) {
+      return this.customElementsRegistry.get(tagName);
     } else {
       // uh oh...
     }
