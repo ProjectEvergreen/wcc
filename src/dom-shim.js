@@ -129,15 +129,14 @@ class CustomElementsRegistry {
   }
 
   define(tagName, BaseClass) {
+    // TODO this should probably fail as per the spec...
+    // e.g. if(this.customElementsRegistry.set(tagName))
+    // https://github.com/ProjectEvergreen/wcc/discussions/145
     this.customElementsRegistry.set(tagName, BaseClass);
   }
 
   get(tagName) {
-    if (this.customElementsRegistry.get(tagName)) {
-      return this.customElementsRegistry.get(tagName);
-    } else {
-      // uh oh...
-    }
+    return this.customElementsRegistry.get(tagName);
   }
 }
 
