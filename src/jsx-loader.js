@@ -2,7 +2,7 @@
 // https://nodejs.org/api/esm.html#esm_loaders
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
-import escodegen from 'escodegen';
+import { generate } from '@projectevergreen/escodegen-esm';
 import fs from 'fs';
 import jsx from 'acorn-jsx';
 import { parse, parseFragment, serialize } from 'parse5';
@@ -323,7 +323,7 @@ export function parseJsx(moduleURL) {
       }
     }
 
-    let newModuleContents = escodegen.generate(tree);
+    let newModuleContents = generate(tree);
 
     // TODO better way to determine value type?
     /* eslint-disable indent */
@@ -391,7 +391,7 @@ export async function load(url, context, defaultLoad) {
 
     return {
       format: 'module',
-      source: escodegen.generate(jsFromJsx),
+      source: generate(jsFromJsx),
       shortCircuit: true
     };
   }
