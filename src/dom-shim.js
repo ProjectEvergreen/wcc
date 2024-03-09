@@ -137,7 +137,8 @@ class CustomElementsRegistry {
 
 // mock top level aliases (globalThis === window)
 // https://developer.mozilla.org/en-US/docs/Web/API/Window
-globalThis.addEventListener = noop;
-globalThis.document = new Document();
-globalThis.customElements = new CustomElementsRegistry();
-globalThis.HTMLElement = HTMLElement;
+// make this "idempotent" for now until a better idea comes along - https://github.com/ProjectEvergreen/wcc/discussions/145
+globalThis.addEventListener = globalThis.addEventListener ?? noop;
+globalThis.document = globalThis.document ?? new Document();
+globalThis.customElements = globalThis.customElements ?? new CustomElementsRegistry();
+globalThis.HTMLElement = globalThis.HTMLElement ?? HTMLElement;
