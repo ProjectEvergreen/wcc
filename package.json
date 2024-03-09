@@ -42,8 +42,8 @@
     "prepublishOnly": "npm run clean && npm run dist"
   },
   "dependencies": {
+    "@projectevergreen/acorn-jsx-esm": "~0.1.0",
     "acorn": "^8.7.0",
-    "acorn-jsx": "^5.3.2",
     "acorn-walk": "^8.2.0",
     "escodegen": "^2.0.0",
     "parse5": "^6.0.1"
