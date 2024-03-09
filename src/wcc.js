@@ -134,9 +134,7 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
 
   // https://github.com/ProjectEvergreen/wcc/pull/67/files#r902061804
   const { pathname } = elementURL;
-  const element = tagName
-    ? customElements.get(tagName)
-    : (await import(pathname)).default;
+  const element = customElements.get(tagName) ?? (await import(pathname)).default;
   const dataLoader = (await import(pathname)).getData;
   const data = props
     ? props

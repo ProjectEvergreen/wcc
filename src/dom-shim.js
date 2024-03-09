@@ -123,15 +123,20 @@ class HTMLTemplateElement extends HTMLElement {
 // https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry
 class CustomElementsRegistry {
   constructor() {
-    this.customElementsRegistry = {};
+    // TODO this should probably be a set or otherwise follow the spec?
+    // https://github.com/ProjectEvergreen/wcc/discussions/145
+    this.customElementsRegistry = new Map();
   }
 
   define(tagName, BaseClass) {
-    this.customElementsRegistry[tagName] = BaseClass;
+    // TODO this should probably fail as per the spec...
+    // e.g. if(this.customElementsRegistry.get(tagName))
+    // https://github.com/ProjectEvergreen/wcc/discussions/145
+    this.customElementsRegistry.set(tagName, BaseClass);
   }
 
   get(tagName) {
-    return this.customElementsRegistry[tagName];
+    return this.customElementsRegistry.get(tagName);
   }
 }
 
