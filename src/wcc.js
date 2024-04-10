@@ -7,6 +7,7 @@ import * as walk from 'acorn-walk';
 import { generate } from '@projectevergreen/escodegen-esm';
 import { getParser, parseJsx } from './jsx-loader.js';
 import { parse, parseFragment, serialize } from 'parse5';
+import { importAttributes } from 'acorn-import-attributes';
 import fs from 'fs';
 
 function getParse(html) {
@@ -61,12 +62,12 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
   const nextDepth = depth += 1;
   const customParser = getParser(moduleURL);
-  const parser = customParser ? customParser.parser : acorn;
+  const parser = customParser ? customParser.parser : acorn.Parser;
   const config = customParser ? customParser.config : {
     ...walk.base
   };
 
-  walk.simple(parser.parse(moduleContents, {
+  walk.simple(parser.extend(importAttributes).parse(moduleContents, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
@@ -106,13 +107,13 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
 async function getTagName(moduleURL) {
   const moduleContents = await fs.promises.readFile(moduleURL, 'utf-8');
   const customParser = getParser(moduleURL);
-  const parser = customParser ? customParser.parser : acorn;
+  const parser = customParser ? customParser.parser : acorn.Parser;
   const config = customParser ? customParser.config : {
     ...walk.base
   };
   let tagName;
 
-  walk.simple(parser.parse(moduleContents, {
+  walk.simple(parser.extend(importAttributes).parse(moduleContents, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
