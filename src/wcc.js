@@ -46,9 +46,9 @@ async function renderComponentRoots(tree, definitions) {
         console.log('elementHtml', { elementHtml });
         console.log('elementTree', { elementTree });
         console.log('elementTree.childNodes', elementTree.childNodes);
-        console.log('node.childNodes', node.childNodes)
+        console.log('node.childNodes', node.childNodes);
 
-        node.childNodes = node.childNodes.length === 0 && elementTree.childNodes > 0 && !hasShadow
+        node.childNodes = node.childNodes.length === 0 && hasLight > 0 && !hasShadow
           ? elementTree.childNodes
           : hasShadow
             ? [...elementTree.childNodes, ...node.childNodes]
@@ -188,7 +188,7 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
         if (attrs.length > 0) {
           attrs.forEach(attr => {
             innerHTML += ` ${attr.name}="${attr.value}"`;
-          })
+          });
         }
 
         innerHTML += '>';
@@ -197,15 +197,15 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
           if (c.nodeName === '#text') {
             innerHTML += c.value;
           }
-        })
+        });
 
         innerHTML += `</${nodeName}>`;
       }
-    })
+    });
 
     console.log({ innerHTML });
     elementInstance.innerHTML = innerHTML;
-    console.log('=================')
+    console.log('=================');
 
     attrs.forEach((attr) => {
       elementInstance.setAttribute(attr.name, attr.value);
