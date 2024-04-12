@@ -31,10 +31,8 @@ describe('Run WCC For ', function() {
   });
 
   describe(LABEL, function() {
-    describe('static page content', function() {
-      it('should have the expected static content for the page', function() {
-        expect(dom.window.document.querySelector('h1').textContent).to.equal('Home Page');
-      });
+    it('should have the expected static content for the page', function() {
+      expect(dom.window.document.querySelector('h1').textContent).to.equal('Home Page');
     });
 
     it('should have a <header> tag within the document', function() {
