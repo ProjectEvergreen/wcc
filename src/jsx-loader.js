@@ -6,6 +6,7 @@ import { generate } from '@projectevergreen/escodegen-esm';
 import fs from 'fs';
 import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
+// Need an acorn plugin for now - https://github.com/ProjectEvergreen/greenwood/issues/1218
 import { importAttributes } from 'acorn-import-attributes';
 
 const jsxRegex = /\.(jsx)$/;

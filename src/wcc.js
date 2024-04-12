@@ -7,6 +7,7 @@ import * as walk from 'acorn-walk';
 import { generate } from '@projectevergreen/escodegen-esm';
 import { getParser, parseJsx } from './jsx-loader.js';
 import { parse, parseFragment, serialize } from 'parse5';
+// Need an acorn plugin for now - https://github.com/ProjectEvergreen/greenwood/issues/1218
 import { importAttributes } from 'acorn-import-attributes';
 import fs from 'fs';
 
