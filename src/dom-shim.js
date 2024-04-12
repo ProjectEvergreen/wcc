@@ -100,6 +100,7 @@ class ShadowRoot extends DocumentFragment {
   constructor(options) {
     super();
     this.mode = options.mode || 'closed';
+    this.adoptedStyleSheets = [];
   }
 }
 
