@@ -18,7 +18,7 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe.only('Run WCC For ', function() {
+describe('Run WCC For ', function() {
   const LABEL = 'Import Attributes usage';
   let dom;
 
