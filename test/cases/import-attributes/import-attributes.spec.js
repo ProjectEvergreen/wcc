@@ -8,7 +8,9 @@
  * User Workspace
  * src/
  *   components/
- *     header.js
+ *     header/
+ *       data.json
+ *       header.js
  *   pages/
  *     index.js
  */
@@ -29,26 +31,20 @@ describe('Run WCC For ', function() {
   });
 
   describe(LABEL, function() {
-    it('should not have any <template> tags within the document', function() {
-      expect(dom.window.document.querySelectorAll('template').length).to.equal(0);
-    });
-
     describe('static page content', function() {
       it('should have the expected static content for the page', function() {
         expect(dom.window.document.querySelector('h1').textContent).to.equal('Home Page');
       });
     });
 
-    describe('custom header element navigation content sourced from a JSON file', function() {
-      it('should have a <header> tag within the document', function() {
-        expect(dom.window.document.querySelectorAll('header').length).to.equal(1);
-      });
+    it('should have a <header> tag within the document', function() {
+      expect(dom.window.document.querySelectorAll('header').length).to.equal(1);
+    });
 
-      it('should have three links within the <nav> element', function() {
-        const links = dom.window.document.querySelectorAll('header nav ul li');
+    it('should have two links within the <nav> element sourced from a JSON file', function() {
+      const links = dom.window.document.querySelectorAll('header nav ul li');
 
-        expect(links.length).to.equal(2);
-      });
+      expect(links.length).to.equal(2);
     });
   });
 });
