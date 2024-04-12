@@ -1,3 +1,5 @@
+// need this custom parser configuration until ESLint natively supports import attributes
+// https://github.com/eslint/eslint/discussions/15305#discussioncomment-2508948
 module.exports = {
   parser: '@babel/eslint-parser',
   parserOptions: {
