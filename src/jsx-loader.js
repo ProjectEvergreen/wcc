@@ -6,6 +6,8 @@ import { generate } from '@projectevergreen/escodegen-esm';
 import fs from 'fs';
 import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
+// Need an acorn plugin for now - https://github.com/ProjectEvergreen/greenwood/issues/1218
+import { importAttributes } from 'acorn-import-attributes';
 
 const jsxRegex = /\.(jsx)$/;
 
@@ -29,7 +31,7 @@ export function getParser(moduleURL) {
   }
 
   return {
-    parser: acorn.Parser.extend(jsx()),
+    parser: acorn.Parser.extend(jsx(), importAttributes),
     config: {
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
       ...walk.base,
@@ -236,7 +238,7 @@ export function parseJsx(moduleURL) {
   const hasOwnObservedAttributes = undefined;
   let inferredObservability = false;
   let observedAttributes = [];
-  let tree = acorn.Parser.extend(jsx()).parse(moduleContents, {
+  let tree = acorn.Parser.extend(jsx(), importAttributes).parse(moduleContents, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   });
