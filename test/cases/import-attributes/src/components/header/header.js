@@ -10,7 +10,7 @@ export default class Header extends HTMLElement {
           </ul>
         </nav>
       </header>
-    `
+    `;
   }
 }
 

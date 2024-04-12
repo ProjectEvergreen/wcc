@@ -28,7 +28,7 @@
   },
   "scripts": {
     "clean": "rimraf ./dist",
-    "lint": "ls-lint && eslint \"*.*js\" \"./src/**/**/*.js*\" \"./sandbox/**/**/*.js*\" \"./docs/**/*.md\" \"./test/**/**/*.js*\"",
+    "lint": "eslint --ignore-pattern \"*.json\" \"*.*js\" \"./src/**/**/*.js*\" \"./sandbox/**/**/*.js*\" \"./docs/**/*.md\" \"./test/**/**/*.js*\"",
     "docs:dev": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html,jsx ./build.js\" \"http-server ./dist --open\"",
     "docs:build": "node ./build.js",
     "docs:serve": "npm run clean && npm run docs:build && http-server ./dist --open",
@@ -50,6 +50,10 @@
     "parse5": "^6.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.4",
+    "@babel/eslint-parser": "^7.24.1",
+    "@babel/plugin-syntax-import-assertions": "^7.24.1",
+    "@babel/preset-react": "^7.24.1",
     "@ls-lint/ls-lint": "^1.10.0",
     "@mapbox/rehype-prism": "^0.8.0",
     "@rollup/plugin-commonjs": "^25.0.7",

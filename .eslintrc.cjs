@@ -1,9 +1,17 @@
 module.exports = {
+  parser: '@babel/eslint-parser',
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
     ecmaFeatures: {
       jsx: true
+    },
+    requireConfigFile: false,
+    babelOptions: {
+      plugins: [
+        '@babel/plugin-syntax-import-assertions'
+      ],
+      presets: ['@babel/preset-react']
     }
   },
   env: {
