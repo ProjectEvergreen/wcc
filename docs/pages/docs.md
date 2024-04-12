@@ -280,11 +280,11 @@ A couple things to observe in the above example:
 ### Prerequisites
 
 There are of couple things you will need to do to use WCC with JSX:
-1. NodeJS version needs to be >= `16.x`
+1. NodeJS version needs to be >= `18.20.0`
 1. You will need to use the _.jsx_ extension
-1. Requires the `--experimental-loaders` flag when invoking NodeJS
+1. Requires the `--loader` flag when invoking NodeJS
     ```shell
-    $ node --experimental-loader ./node_modules/wc-compiler/src/jsx-loader.js server.js
+    $ node --loader ./node_modules/wc-compiler/src/jsx-loader.js server.js
     ```
 
 > _See our [example's page](/examples#jsx) for some usages of WCC + JSX._  👀
