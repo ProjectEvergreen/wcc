@@ -2,7 +2,8 @@ function noop() { }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/CSSStyleSheet
 class CSSStyleSheet {
-  constructor() { }
+  insertRule() { }
+  deleteRule() { }
   replace() { }
   replaceSync() { }
 }
