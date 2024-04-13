@@ -1,5 +1,13 @@
 function noop() { }
 
+// https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/CSSStyleSheet
+class CSSStyleSheet {
+  insertRule() { }
+  deleteRule() { }
+  replace() { }
+  replaceSync() { }
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget
 class EventTarget {
   constructor() {
@@ -93,6 +101,7 @@ class ShadowRoot extends DocumentFragment {
   constructor(options) {
     super();
     this.mode = options.mode || 'closed';
+    this.adoptedStyleSheets = [];
   }
 }
 
@@ -147,3 +156,4 @@ globalThis.addEventListener = globalThis.addEventListener ?? noop;
 globalThis.document = globalThis.document ?? new Document();
 globalThis.customElements = globalThis.customElements ?? new CustomElementsRegistry();
 globalThis.HTMLElement = globalThis.HTMLElement ?? HTMLElement;
+globalThis.CSSStyleSheet = globalThis.CSSStyleSheet ?? CSSStyleSheet;
