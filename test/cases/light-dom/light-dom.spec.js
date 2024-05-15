@@ -26,6 +26,7 @@ describe('Run WCC For ', function() {
   before(async function() {
     const { html } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
 
+    console.log('?????', { html });
     dom = new JSDOM(html);
   });
 
