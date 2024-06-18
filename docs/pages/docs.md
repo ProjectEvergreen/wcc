@@ -228,6 +228,40 @@ export async function getData() {
 - Avoid [touching the DOM in `constructor` methods](https://twitter.com/techytacos/status/1514029967981494280)
 
 
+## TypeScript
+
+TypeScript is supported through "type stripping", which is effectively just removing all the TypeScript and leaving only valid JavaScript, before handing off to WCC to do its compiling.
+
+```ts
+interface User {
+  name: string;
+}
+
+export default class Greeting extends HTMLElement {
+  connectedCallback() {
+    const user: User = {
+      name: this.getAttribute('name') || 'World'
+    };
+
+    this.innerHTML = `
+      <h3>Hello ${user.name}! 👋</h3>
+    `;
+  }
+}
+
+customElements.define('wcc-greeting', Greeting);
+```
+
+### Prerequisites
+
+There are of couple things you will need to do to use WCC with TypeScript parsing:
+1. NodeJS version needs to be >= `18.20.0`
+1. You will need to use the _.ts_ extension
+1. Requires the `--loader` flag when invoking NodeJS
+    ```shell
+    $ node --loader ./node_modules/wc-compiler/src/ts-loader.js main.ts
+    ```
+
 ## JSX
 
 > ⚠️ _Very Experimental!_
@@ -284,7 +318,7 @@ There are of couple things you will need to do to use WCC with JSX:
 1. You will need to use the _.jsx_ extension
 1. Requires the `--loader` flag when invoking NodeJS
     ```shell
-    $ node --loader ./node_modules/wc-compiler/src/jsx-loader.js server.js
+    $ node --loader ./node_modules/wc-compiler/src/jsx-loader.js main.js
     ```
 
 > _See our [example's page](/examples#jsx) for some usages of WCC + JSX._  👀
