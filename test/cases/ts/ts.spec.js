@@ -37,7 +37,7 @@ describe('Run WCC For ', function() {
 
       it('should server render the expected greeting', () => {
         expect(headings.length).to.equal(1);
-        expect(headings[0].textContent).to.equal('Hello WCC!');
+        expect(headings[0].textContent).to.equal('Hello TypeScript!');
       });
     });
   });
