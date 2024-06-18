@@ -3,6 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { load as experimentalLoad, resolve as experimentalResolve } from './src/jsx-loader.js';
+import { transform } from 'sucrase';
 
 export async function load(url, context, defaultLoad) {
   const ext = path.extname(url);
@@ -11,6 +12,18 @@ export async function load(url, context, defaultLoad) {
     return loadBin(url, context, defaultLoad);
   } else if (ext === '.jsx') {
     return experimentalLoad(url, context, defaultLoad);
+  } else if (ext === '.ts') {
+    const contents = await fs.promises.readFile(new URL(url), 'utf-8');
+    const result = transform(contents, {
+      transforms: ['typescript', 'jsx'],
+      jsxRuntime: 'preserve'
+    });
+
+    return {
+      format: 'module',
+      shortCircuit: true,
+      source: result.code
+    };
   } else if (ext === '.css') {
     return {
       format: 'module',

@@ -8,6 +8,7 @@ import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
 // Need an acorn plugin for now - https://github.com/ProjectEvergreen/greenwood/issues/1218
 import { importAttributes } from 'acorn-import-attributes';
+import { transform } from 'sucrase';
 
 const jsxRegex = /\.(jsx)$/;
 
@@ -97,7 +98,7 @@ function parseJsxElement(element, moduleContents = '') {
                 if (expression.property.type === 'Identifier') {
                   // we leave markers for `this` so we can replace it later while also NOT accidentally replacing
                   // legitimate uses of this that might be actual content / markup of the custom element
-                  string += ` ${name}="__this__.${expression.property.name}()"`;
+                  string += ` ${name}='__this__.${expression.property.name}()'`;
                 }
               }
             }
@@ -109,7 +110,7 @@ function parseJsxElement(element, moduleContents = '') {
             if (expression.type === 'ArrowFunctionExpression') {
               if (expression.body && expression.body.type === 'CallExpression') {
                 const { start, end } = expression;
-                string += ` ${name}="${moduleContents.slice(start, end).replace(/this./g, '__this__.').replace('() => ', '')}"`;
+                string += ` ${name}='${moduleContents.slice(start, end).replace(/this./g, '__this__.').replace('() => ', '')}'`;
               }
             }
 
@@ -119,7 +120,7 @@ function parseJsxElement(element, moduleContents = '') {
               if (left.object.type === 'ThisExpression') {
                 if (left.property.type === 'Identifier') {
                   // very naive (fine grained?) reactivity
-                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
+                  string += ` ${name}='__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();'`;
                 }
               }
             }
@@ -129,8 +130,8 @@ function parseJsxElement(element, moduleContents = '') {
           // Can all these be parsed using one function>
           if (attribute.value) {
             if (attribute.value.type === 'Literal') {
-              // xxx="yyy" >
-              string += ` ${name}="${attribute.value.value}"`;
+              // xxx='yyy' >
+              string += ` ${name}='${attribute.value.value}'`;
             } else if (attribute.value.type === 'JSXExpressionContainer') {
               // xxx={allTodos.length} >
               const { value } = attribute;
@@ -232,13 +233,17 @@ function findThisReferences(context, statement) {
 
 export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
+  const result = transform(moduleContents, {
+    transforms: ['typescript', 'jsx'],
+    jsxRuntime: 'preserve'
+  });
   // would be nice if we could do this instead, so we could know ahead of time
   // const { inferredObservability } = await import(moduleURL);
   // however, this requires making parseJsx async, but WCC acorn walking is done sync
   const hasOwnObservedAttributes = undefined;
   let inferredObservability = false;
   let observedAttributes = [];
-  let tree = acorn.Parser.extend(jsx(), importAttributes).parse(moduleContents, {
+  let tree = acorn.Parser.extend(jsx(), importAttributes).parse(result.code, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   });
