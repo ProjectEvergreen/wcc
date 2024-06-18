@@ -98,7 +98,7 @@ function parseJsxElement(element, moduleContents = '') {
                 if (expression.property.type === 'Identifier') {
                   // we leave markers for `this` so we can replace it later while also NOT accidentally replacing
                   // legitimate uses of this that might be actual content / markup of the custom element
-                  string += ` ${name}='__this__.${expression.property.name}()'`;
+                  string += ` ${name}="__this__.${expression.property.name}()"`;
                 }
               }
             }
@@ -110,7 +110,7 @@ function parseJsxElement(element, moduleContents = '') {
             if (expression.type === 'ArrowFunctionExpression') {
               if (expression.body && expression.body.type === 'CallExpression') {
                 const { start, end } = expression;
-                string += ` ${name}='${moduleContents.slice(start, end).replace(/this./g, '__this__.').replace('() => ', '')}'`;
+                string += ` ${name}="${moduleContents.slice(start, end).replace(/this./g, '__this__.').replace('() => ', '')}"`;
               }
             }
 
@@ -120,7 +120,7 @@ function parseJsxElement(element, moduleContents = '') {
               if (left.object.type === 'ThisExpression') {
                 if (left.property.type === 'Identifier') {
                   // very naive (fine grained?) reactivity
-                  string += ` ${name}='__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();'`;
+                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
                 }
               }
             }
@@ -130,8 +130,8 @@ function parseJsxElement(element, moduleContents = '') {
           // Can all these be parsed using one function>
           if (attribute.value) {
             if (attribute.value.type === 'Literal') {
-              // xxx='yyy' >
-              string += ` ${name}='${attribute.value.value}'`;
+              // xxx="yyy" >
+              string += ` ${name}="${attribute.value.value}"`;
             } else if (attribute.value.type === 'JSXExpressionContainer') {
               // xxx={allTodos.length} >
               const { value } = attribute;
