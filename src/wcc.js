@@ -9,6 +9,7 @@ import { getParser, parseJsx } from './jsx-loader.js';
 import { parse, parseFragment, serialize } from 'parse5';
 // Need an acorn plugin for now - https://github.com/ProjectEvergreen/greenwood/issues/1218
 import { importAttributes } from 'acorn-import-attributes';
+import { transform } from 'sucrase';
 import fs from 'fs';
 
 function getParse(html) {
@@ -61,6 +62,10 @@ async function renderComponentRoots(tree, definitions) {
 
 function registerDependencies(moduleURL, definitions, depth = 0) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
+  const result = transform(moduleContents, {
+    transforms: ['typescript', 'jsx'],
+    jsxRuntime: 'preserve'
+  });
   const nextDepth = depth += 1;
   const customParser = getParser(moduleURL);
   const parser = customParser ? customParser.parser : acorn.Parser;
@@ -68,7 +73,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
     ...walk.base
   };
 
-  walk.simple(parser.extend(importAttributes).parse(moduleContents, {
+  walk.simple(parser.extend(importAttributes).parse(result.code, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
@@ -78,7 +83,8 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
       const extension = specifier.split('.').pop();
 
       // TODO would like to decouple .jsx from the core, ideally
-      if (!isBareSpecifier && ['js', 'jsx'].includes(extension)) {
+      // https://github.com/ProjectEvergreen/wcc/issues/122
+      if (!isBareSpecifier && ['js', 'jsx', 'ts'].includes(extension)) {
         const dependencyModuleURL = new URL(node.source.value, moduleURL);
 
         registerDependencies(dependencyModuleURL, definitions, nextDepth);
@@ -107,6 +113,10 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
 
 async function getTagName(moduleURL) {
   const moduleContents = await fs.promises.readFile(moduleURL, 'utf-8');
+  const result = transform(moduleContents, {
+    transforms: ['typescript', 'jsx'],
+    jsxRuntime: 'preserve'
+  });
   const customParser = getParser(moduleURL);
   const parser = customParser ? customParser.parser : acorn.Parser;
   const config = customParser ? customParser.config : {
@@ -114,7 +124,7 @@ async function getTagName(moduleURL) {
   };
   let tagName;
 
-  walk.simple(parser.extend(importAttributes).parse(moduleContents, {
+  walk.simple(parser.extend(importAttributes).parse(result.code, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
