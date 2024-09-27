@@ -15,9 +15,12 @@
       }
 
       pre, details {
-        width: 50%;
-        margin: 0 auto;
+        width: 30%;
+        margin: 10px auto;
+        padding: 20px;
         text-align: center;
+        white-space: collapse;
+        border: 2px dotted #222;
       }
 
       button.reset {
@@ -77,8 +80,42 @@
 
     <pre>
       &lt;sb-card
-        title="iPhone 9" thumbnail="https://d2e6ccujb3mkqf.cloudfront.net/f2c7f593-2e6b-4e39-9d9e-9d92c95d84a3-1_0f59d2ff-bd21-417f-9002-0aa1f1e8236e.jpg"
+        title="iPhone 9"
+        thumbnail="https://www.greenwoodjs.io/assets/greenwood-logo-og.png"
       &gt;&lt;/sb-card&gt;
+    </pre>
+
+    <h2>HTML Web Component (Light DOM + has JS)</h2>
+
+    <style>
+      .picture-frame {
+        width: 200px;
+        margin: 0 auto;
+        border: 1px solid #222;
+        padding: 0 0 10px 0;
+        border-radius: 10px;
+
+        & .heading {
+          text-align: center;
+          text-decoration: underline;
+          font-size: 16px;
+        }
+      }
+    </style>
+    <sb-picture-frame title="Greenwood Logo">
+      <img
+        src="https://www.greenwoodjs.io/assets/greenwood-logo-og.png"
+        alt="Greenwood logo"
+      />
+    </sb-picture-frame>
+
+    <pre>
+      &lt;sb-picture-frame title="Greenwood Logo"&gt;
+        &lt;img
+          src="https://www.greenwoodjs.io/assets/greenwood-logo-og.png"
+          alt="Greenwood logo"
+        /&gt;
+      &lt;/sb-picture-frame&gt;
     </pre>
 
     <hr/>
@@ -102,7 +139,8 @@
 
     <pre>
       &lt;sb-card-jsx
-        title="iPhone X" thumbnail="https://d2e6ccujb3mkqf.cloudfront.net/7e8317d3-cc5d-42a8-8350-ba6a02560477-1_d64a25e3-e1f3-4172-b7c9-0c96e82c4d3f.jpg"
+        title="iPhone X"
+        thumbnail="https://d2e6ccujb3mkqf.cloudfront.net/7e8317d3-cc5d-42a8-8350-ba6a02560477-1_d64a25e3-e1f3-4172-b7c9-0c96e82c4d3f.jpg"
       &gt;&lt;/sb-card-jsx&gt;
     </pre>
 
