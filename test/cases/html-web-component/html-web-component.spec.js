@@ -40,9 +40,11 @@ describe('Run WCC For ', function() {
       expect(pictureFrame.length).to.equal(1);
     });
 
-    it('should have the expected title attribute content in the heading of HTML', () => {
-      const heading = pictureFrame[0].querySelectorAll('.picture-frame .heading');
+    it('should have the expected title attribute content in a nested <wcc-caption> tag', () => {
+      const caption = pictureFrame[0].querySelectorAll('.picture-frame wcc-caption .caption');
+      const heading = caption[0].querySelectorAll('.heading');
 
+      expect(caption.length).to.equal(1);
       expect(heading.length).to.equal(1);
       expect(heading[0].textContent).to.equal('Greenwood');
     });

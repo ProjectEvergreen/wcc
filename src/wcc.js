@@ -48,7 +48,7 @@ async function renderComponentRoots(tree, definitions) {
         console.log('elementTree.childNodes', elementTree.childNodes);
         console.log('node.childNodes', node.childNodes);
 
-        node.childNodes = node.childNodes.length === 0 && hasLight > 0 && !hasShadow
+        node.childNodes = node.childNodes.length === 0 && hasLight && !hasShadow
           ? elementTree.childNodes
           : hasShadow
             ? [...elementTree.childNodes, ...node.childNodes]

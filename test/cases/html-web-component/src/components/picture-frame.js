@@ -1,10 +1,14 @@
+import './caption.js';
+
 export default class PictureFrame extends HTMLElement {
   connectedCallback() {
     const title = this.getAttribute('title');
 
     this.innerHTML = `
       <div class="picture-frame">
-        <h6 class="heading">${title}</h6>
+        <wcc-caption>
+          <h6 class="heading">${title}</h6>
+        </wcc-caption>
         ${this.innerHTML}
       </div>
     `;
