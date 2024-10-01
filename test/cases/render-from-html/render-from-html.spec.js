@@ -19,6 +19,7 @@ const expect = chai.expect;
 
 describe('Run WCC ', function() {
   const LABEL = 'Using renderFromHTML';
+  const TITLE = 'Welcome to my site';
   let rawHtml;
   let dom;
   let assetMetadata;
@@ -30,7 +31,7 @@ describe('Run WCC ', function() {
           <title>WCC</title>
         </head>
         <body>
-          <wcc-header></wcc-header>
+          <wcc-html-header title="${TITLE}"></wcc-html-header>
           <h1>Home Page</h1>
         </body>
       </html>
@@ -71,7 +72,7 @@ describe('Run WCC ', function() {
       let headerContentsDom;
 
       before(function() {
-        headerContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-header template[shadowrootmode="open"]')[0].innerHTML);
+        headerContentsDom = new JSDOM(dom.window.document.querySelectorAll('wcc-html-header template[shadowrootmode="open"]')[0].innerHTML);
       });
 
       it('should have a <header> tag within the <template> shadowroot', function() {
@@ -81,7 +82,7 @@ describe('Run WCC ', function() {
       it('should have expected content within the <header> tag', function() {
         const content = headerContentsDom.window.document.querySelector('header a h4').textContent;
 
-        expect(content).to.contain('My Personal Blog');
+        expect(content).to.contain(TITLE);
       });
 
       describe('nested navigation element', function() {
@@ -110,7 +111,7 @@ describe('Run WCC ', function() {
 
       it('should have the correct attributes for each asset', function() {
         Object.entries(assetMetadata).forEach((asset) => {
-          const isEntry = asset[0] === 'wcc-header';
+          const isEntry = asset[0] === 'wcc-html-header';
 
           expect(asset[0]).to.not.be.undefined;
           expect(asset[1].instanceName).to.not.be.undefined;
