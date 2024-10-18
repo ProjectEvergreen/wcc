@@ -207,7 +207,7 @@ async function renderFromHTML(html, elements = []) {
   const definitions = [];
 
   for (const url of elements) {
-    await initializeCustomElement(url, undefined, undefined, definitions, true);
+    registerDependencies(url, definitions, 1);
   }
 
   const elementTree = getParse(html)(html);
