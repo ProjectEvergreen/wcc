@@ -116,6 +116,41 @@ class Layout extends HTMLElement {
 export default Layout;
 ```
 
+## HTML (Light DOM) Web Components
+
+As detailed in this excellent blog post, HTML Web Components are a strategy for transcluding content into the Light DOM of a custom element instead of (or in addition to) setting attributes.  This can be useful for providing a set of styles to a block of content.
+
+So instead of setting attributes:
+
+```html
+<picture-frame img="/path/to/image.png" title="My Image"></picture-frame>
+```
+
+Pass HTML as children:
+
+```html
+<picture-frame>
+  <h3>My Image<h3>
+  <img src="/path/to/image.png" alt="My Image">
+</picture-frame>
+```
+
+With a custom element definition like so:
+
+```js
+export default class PictureFrame extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="picture-frame">
+        ${this.innerHTML}
+      </div>
+    `;
+  }
+}
+
+customElements.define('picture-frame', PictureFrame);
+```
+
 ## Progressive Hydration
 
 Using the `metadata` information from a custom element with the `hydrate=true` attribute, you can use use the metadata with an [`IntersectionObserver`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to progressively load a custom element.  In this case, _handler.js_ builds `SliderComponent` from HTML and not only uses the `hydrate` attribute and metadata for lazy hydration, but also passes in the animated color via a CSS custom property set at build time!  🤯

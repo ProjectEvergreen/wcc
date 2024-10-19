@@ -4,9 +4,6 @@ const styles = `
   :host .card {
     width: 30%;
     margin: 0 auto;
-  }
-
-  :host h3 {
     text-align: center;
   }
 
@@ -44,7 +41,7 @@ export default class CardJsx extends HTMLElement {
           {styles}
         </style>
         <h3>{title}</h3>
-        <img src={thumbnail} alt={title} loading="lazy" width="100%"/>
+        <img src={thumbnail} alt={title} loading="lazy" width="200" height="200"/>
         <button onclick={this.selectItem}>View Item Details</button>
       </div>
     );

@@ -12,6 +12,24 @@ import { importAttributes } from 'acorn-import-attributes';
 import { transform } from 'sucrase';
 import fs from 'fs';
 
+// https://developer.mozilla.org/en-US/docs/Glossary/Void_element
+const VOID_ELEMENTS = [
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param', // deprecated
+  'source',
+  'track',
+  'wbr'
+];
+
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
     ? parse
@@ -33,17 +51,26 @@ async function renderComponentRoots(tree, definitions) {
 
       if (definitions[tagName]) {
         const { moduleURL } = definitions[tagName];
-        const elementInstance = await initializeCustomElement(moduleURL, tagName, node.attrs, definitions);
-        const elementHtml = elementInstance.shadowRoot
-          ? elementInstance.getInnerHTML({ includeShadowRoots: true })
-          : elementInstance.innerHTML;
-        const elementTree = parseFragment(elementHtml);
+        const elementInstance = await initializeCustomElement(moduleURL, tagName, node, definitions);
 
-        node.childNodes = node.childNodes.length === 0
-          ? elementTree.childNodes
-          : [...elementTree.childNodes, ...node.childNodes];
+        if (elementInstance) {
+          const hasShadow = elementInstance.shadowRoot;
+          const elementHtml = hasShadow
+            ? elementInstance.getInnerHTML({ includeShadowRoots: true })
+            : elementInstance.innerHTML;
+          const elementTree = parseFragment(elementHtml);
+          const hasLight = elementTree.childNodes > 0;
+
+          node.childNodes = node.childNodes.length === 0 && hasLight && !hasShadow
+            ? elementTree.childNodes
+            : hasShadow
+              ? [...elementTree.childNodes, ...node.childNodes]
+              : elementTree.childNodes;
+        } else {
+          console.warn(`WARNING: customElement <${tagName}> detected but not serialized.  You may not have exported it.`);
+        }
       } else {
-        console.warn(`WARNING: customElement <${tagName}> is not defined.  You may not have imported it yet.`);
+        console.warn(`WARNING: customElement <${tagName}> is not defined.  You may not have imported it.`);
       }
     }
 
@@ -82,7 +109,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
       const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
       const extension = specifier.split('.').pop();
 
-      // TODO would like to decouple .jsx from the core, ideally
+      // would like to decouple .jsx from the core, ideally
       // https://github.com/ProjectEvergreen/wcc/issues/122
       if (!isBareSpecifier && ['js', 'jsx', 'ts'].includes(extension)) {
         const dependencyModuleURL = new URL(node.source.value, moduleURL);
@@ -138,7 +165,41 @@ async function getTagName(moduleURL) {
   return tagName;
 }
 
-async function initializeCustomElement(elementURL, tagName, attrs = [], definitions = [], isEntry, props = {}) {
+function renderLightDomChildren(childNodes, iHTML = '') {
+  let innerHTML = iHTML;
+
+  childNodes.forEach((child) => {
+    const { nodeName, attrs = [], value } = child;
+
+    if (nodeName !== '#text') {
+      innerHTML += `<${nodeName}`;
+
+      if (attrs.length > 0) {
+        attrs.forEach(attr => {
+          innerHTML += ` ${attr.name}="${attr.value}"`;
+        });
+      }
+
+      innerHTML += '>';
+
+      if (child.childNodes.length > 0) {
+        innerHTML = renderLightDomChildren(child.childNodes, innerHTML);
+      }
+
+      innerHTML += VOID_ELEMENTS.includes(nodeName)
+        ? ''
+        : `</${nodeName}>`;
+    } else if (nodeName === '#text') {
+      innerHTML += value;
+    }
+  });
+
+  return innerHTML;
+}
+
+async function initializeCustomElement(elementURL, tagName, node = {}, definitions = [], isEntry, props = {}) {
+  const { attrs = [], childNodes = [] } = node;
+
   if (!tagName) {
     const depth = isEntry ? 1 : 0;
     registerDependencies(elementURL, definitions, depth);
@@ -157,6 +218,9 @@ async function initializeCustomElement(elementURL, tagName, attrs = [], definiti
 
   if (element) {
     const elementInstance = new element(data); // eslint-disable-line new-cap
+
+    // support for HTML (Light DOM) Web Components
+    elementInstance.innerHTML = renderLightDomChildren(childNodes);
 
     attrs.forEach((attr) => {
       elementInstance.setAttribute(attr.name, attr.value);

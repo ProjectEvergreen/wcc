@@ -1,9 +1,8 @@
 const template = document.createElement('template');
 
-template.innerHTML = '<p>This is the NoExportComponent component.</p>';
+template.innerHTML = '<footer>This is the footer component.</footer>';
 
-// eslint-disable-next-line no-unused-vars
-class NoExportComponent extends HTMLElement {
+class FooterComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -14,4 +13,4 @@ class NoExportComponent extends HTMLElement {
   }
 }
 
-customElements.define('app-no-export-example', NoExportComponent);
+customElements.define('app-no-define-footer', FooterComponent);

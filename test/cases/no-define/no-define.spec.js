@@ -1,15 +1,15 @@
 /*
  * Use Case
- * Run wcc against a single custom element using with no default export
+ * Run wcc against a single custom element using with no customElements.define
  *
  * User Result
  * Should run without any errors from the DOM shim.
  *
  * User Workspace
  * src/
- *   no-export.js
- *   header.js
+ *   no-define.js
  *   footer.js
+ *   header.js
  */
 
 import chai from 'chai';
@@ -18,15 +18,15 @@ import { renderToString, renderFromHTML } from '../../../src/wcc.js';
 const expect = chai.expect;
 
 describe('Run WCC For ', function() {
-  const LABEL = 'Single Custom Element with no default export';
+  const LABEL = 'Single Custom Element with no customElements.define';
 
   describe(LABEL, function() {
     describe('renderToString', () => {
       let rawHtml;
       let meta;
-    
+
       before(async function() {
-        const { html, metadata } = await renderToString(new URL('./src/no-export.js', import.meta.url));
+        const { html, metadata } = await renderToString(new URL('./src/no-define.js', import.meta.url));
     
         rawHtml = html;
         meta = metadata;
@@ -40,7 +40,7 @@ describe('Run WCC For ', function() {
         expect(meta.length).to.equal(0);
       });
     });
-    
+
     describe('renderFromHTML', () => {
       let rawHtml;
       let meta;
@@ -50,9 +50,9 @@ describe('Run WCC For ', function() {
             <title>No Export Test</title>
           </head>
           <body>
-            <app-no-export-header></app-no-export-header>
+            <app-no-define-header></app-no-define-header>
             <h1>Hello World</h1>
-            <app-no-export-footer></app-no-export-footer>
+            <app-no-define-footer></app-no-define-footer>
           </body>
         </html>
       `;
