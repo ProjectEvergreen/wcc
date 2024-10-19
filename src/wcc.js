@@ -12,6 +12,25 @@ import { importAttributes } from 'acorn-import-attributes';
 import { transform } from 'sucrase';
 import fs from 'fs';
 
+const VOID_ELEMENTS = [
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'keygen',
+  'link',
+  'menuitem',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr'
+];
+
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
     ? parse
@@ -147,6 +166,38 @@ async function getTagName(moduleURL) {
   return tagName;
 }
 
+function renderLightDomChildren(childNodes, iHTML = '') {
+  let innerHTML = iHTML;
+
+  childNodes.forEach((child) => {
+    const { nodeName, attrs = [], value } = child;
+
+    if (nodeName !== '#text') {
+      innerHTML += `<${nodeName}`;
+
+      if (attrs.length > 0) {
+        attrs.forEach(attr => {
+          innerHTML += ` ${attr.name}="${attr.value}"`;
+        });
+      }
+
+      innerHTML += '>';
+
+      if (child.childNodes.length > 0) {
+        innerHTML = renderLightDomChildren(child.childNodes, innerHTML);
+      }
+
+      innerHTML += VOID_ELEMENTS.includes(nodeName)
+        ? ''
+        : `</${nodeName}>`;
+    } else if (nodeName === '#text') {
+      innerHTML += value;
+    }
+  });
+
+  return innerHTML;
+}
+
 async function initializeCustomElement(elementURL, tagName, node = {}, definitions = [], isEntry, props = {}) {
   const { attrs = [], childNodes = [] } = node;
 
@@ -168,34 +219,9 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
 
   if (element) {
     const elementInstance = new element(data); // eslint-disable-line new-cap
-    let innerHTML = elementInstance.innerHTML || '';
 
     // support for HTML (Light DOM) Web Components
-    childNodes.forEach((child) => {
-      const { nodeName, attrs = [] } = child;
-
-      if (nodeName !== '#text') {
-        innerHTML += `<${nodeName}`;
-
-        if (attrs.length > 0) {
-          attrs.forEach(attr => {
-            innerHTML += ` ${attr.name}="${attr.value}"`;
-          });
-        }
-
-        innerHTML += '>';
-
-        child.childNodes.forEach((c) => {
-          if (c.nodeName === '#text') {
-            innerHTML += c.value;
-          }
-        });
-
-        innerHTML += `</${nodeName}>`;
-      }
-    });
-
-    elementInstance.innerHTML = innerHTML;
+    elementInstance.innerHTML = renderLightDomChildren(childNodes);
 
     attrs.forEach((attr) => {
       elementInstance.setAttribute(attr.name, attr.value);

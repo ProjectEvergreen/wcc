@@ -16,6 +16,7 @@
  */
 import chai from 'chai';
 import { JSDOM } from 'jsdom';
+import fs from 'fs/promises';
 import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
@@ -24,12 +25,16 @@ describe('Run WCC For ', function() {
   const LABEL = 'HTML (Light DOM) Web Components';
   let dom;
   let pictureFrame;
+  let expectedHtml;
+  let actualHtml;
 
   before(async function() {
     const { html } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
 
-    dom = new JSDOM(html);
+    actualHtml = html;
+    dom = new JSDOM(actualHtml);
     pictureFrame = dom.window.document.querySelectorAll('wcc-picture-frame');
+    expectedHtml = await fs.readFile(new URL('./expected.html', import.meta.url), 'utf-8');
   });
 
   describe(LABEL, function() {
@@ -50,7 +55,7 @@ describe('Run WCC For ', function() {
     });
 
     it('should have the expected Author name <span> from userland in the HTML', () => {
-      const img = pictureFrame[0].querySelectorAll('.picture-frame img + span');
+      const img = pictureFrame[0].querySelectorAll('.picture-frame img + br + span');
 
       expect(img.length).to.equal(1);
       expect(img[0].textContent).to.equal('Author: WCC');
@@ -71,6 +76,10 @@ describe('Run WCC For ', function() {
 
       expect(span.length).to.equal(1);
       expect(span[0].textContent).to.equal('© 2024');
+    });
+
+    it('should have the expected recursively generated HTML', () => {
+      expect(expectedHtml.replace(/ /g, '').replace(/\n/g, '')).to.equal(actualHtml.replace(/ /g, '').replace(/\n/g, ''));
     });
   });
 });
