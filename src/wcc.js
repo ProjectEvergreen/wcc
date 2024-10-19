@@ -12,6 +12,7 @@ import { importAttributes } from 'acorn-import-attributes';
 import { transform } from 'sucrase';
 import fs from 'fs';
 
+// https://developer.mozilla.org/en-US/docs/Glossary/Void_element
 const VOID_ELEMENTS = [
   'area',
   'base',
@@ -21,11 +22,9 @@ const VOID_ELEMENTS = [
   'hr',
   'img',
   'input',
-  'keygen',
   'link',
-  'menuitem',
   'meta',
-  'param',
+  'param', // deprecated
   'source',
   'track',
   'wbr'
