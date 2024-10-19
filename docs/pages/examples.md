@@ -118,7 +118,7 @@ export default Layout;
 
 ## HTML (Light DOM) Web Components
 
-As detailed in this excellent blog post, HTML Web Components are a strategy for transcluding content into the Light DOM of a custom element instead of (or in addition to) setting attributes.  This can be useful for providing a set of styles to a block of content.
+As detailed in this excellent [blog post](https://blog.jim-nielsen.com/2023/html-web-components/), HTML Web Components are a strategy for transcluding content into the Light DOM of a custom element instead of (or in addition to) setting attributes.  This can be useful for providing a set of styles to a block of content.
 
 So instead of setting attributes:
 
