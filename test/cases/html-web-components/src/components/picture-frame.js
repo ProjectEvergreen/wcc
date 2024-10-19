@@ -6,10 +6,11 @@ export default class PictureFrame extends HTMLElement {
 
     this.innerHTML = `
       <div class="picture-frame">
+        ${this.innerHTML}
         <wcc-caption>
           <h6 class="heading">${title}</h6>
+          <span>&copy; 2024</span>
         </wcc-caption>
-        ${this.innerHTML}
       </div>
     `;
   }

@@ -32,29 +32,27 @@ async function renderComponentRoots(tree, definitions) {
       const { tagName } = node;
 
       if (definitions[tagName]) {
-        console.log('renderComponentRoots', { tagName });
         const { moduleURL } = definitions[tagName];
-        console.log({ node });
         const elementInstance = await initializeCustomElement(moduleURL, tagName, node, definitions);
-        const hasShadow = elementInstance.shadowRoot;
-        const elementHtml = hasShadow
-          ? elementInstance.getInnerHTML({ includeShadowRoots: true })
-          : elementInstance.innerHTML;
-        const elementTree = parseFragment(elementHtml);
-        const hasLight = elementTree.childNodes > 0;
 
-        console.log('elementHtml', { elementHtml });
-        console.log('elementTree', { elementTree });
-        console.log('elementTree.childNodes', elementTree.childNodes);
-        console.log('node.childNodes', node.childNodes);
+        if (elementInstance) {
+          const hasShadow = elementInstance.shadowRoot;
+          const elementHtml = hasShadow
+            ? elementInstance.getInnerHTML({ includeShadowRoots: true })
+            : elementInstance.innerHTML;
+          const elementTree = parseFragment(elementHtml);
+          const hasLight = elementTree.childNodes > 0;
 
-        node.childNodes = node.childNodes.length === 0 && hasLight && !hasShadow
-          ? elementTree.childNodes
-          : hasShadow
-            ? [...elementTree.childNodes, ...node.childNodes]
-            : elementTree.childNodes;
+          node.childNodes = node.childNodes.length === 0 && hasLight && !hasShadow
+            ? elementTree.childNodes
+            : hasShadow
+              ? [...elementTree.childNodes, ...node.childNodes]
+              : elementTree.childNodes;
+        } else {
+          console.warn(`WARNING: customElement <${tagName}> detected but not serialized.  You may not have exported it.`);
+        }
       } else {
-        console.warn(`WARNING: customElement <${tagName}> is not defined.  You may not have imported it yet.`);
+        console.warn(`WARNING: customElement <${tagName}> is not defined.  You may not have imported it.`);
       }
     }
 
@@ -93,7 +91,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
       const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
       const extension = specifier.split('.').pop();
 
-      // TODO would like to decouple .jsx from the core, ideally
+      // would like to decouple .jsx from the core, ideally
       // https://github.com/ProjectEvergreen/wcc/issues/122
       if (!isBareSpecifier && ['js', 'jsx', 'ts'].includes(extension)) {
         const dependencyModuleURL = new URL(node.source.value, moduleURL);
@@ -151,7 +149,6 @@ async function getTagName(moduleURL) {
 
 async function initializeCustomElement(elementURL, tagName, node = {}, definitions = [], isEntry, props = {}) {
   const { attrs = [], childNodes = [] } = node;
-  console.log('initializeCustomElement', { node });
 
   if (!tagName) {
     const depth = isEntry ? 1 : 0;
@@ -173,12 +170,7 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
     const elementInstance = new element(data); // eslint-disable-line new-cap
     let innerHTML = elementInstance.innerHTML || '';
 
-    // TODO
-    // 1. Needs to be recursive
-    // 2. ~~Needs to handle attributes~~
-    // 3. Needs to handle duplicate content
-    // 4. Needs to handle self closing tags
-    // 5. handle all node types
+    // support for HTML (Light DOM) Web Components
     childNodes.forEach((child) => {
       const { nodeName, attrs = [] } = child;
 
@@ -203,9 +195,7 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
       }
     });
 
-    console.log({ innerHTML });
     elementInstance.innerHTML = innerHTML;
-    console.log('=================');
 
     attrs.forEach((attr) => {
       elementInstance.setAttribute(attr.name, attr.value);

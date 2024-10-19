@@ -9,6 +9,7 @@
  * User Workspace
  * src/
  *   components/
+ *     caption.js
  *     picture-frame.js
  *   pages/
  *     index.js
@@ -20,7 +21,7 @@ import { renderToString } from '../../../src/wcc.js';
 const expect = chai.expect;
 
 describe('Run WCC For ', function() {
-  const LABEL = 'HTML Web Component';
+  const LABEL = 'HTML (Light DOM) Web Components';
   let dom;
   let pictureFrame;
 
@@ -40,7 +41,22 @@ describe('Run WCC For ', function() {
       expect(pictureFrame.length).to.equal(1);
     });
 
-    it('should have the expected title attribute content in a nested <wcc-caption> tag', () => {
+    it('should have the expected image from userland in the HTML', () => {
+      const img = pictureFrame[0].querySelectorAll('.picture-frame img');
+
+      expect(img.length).to.equal(1);
+      expect(img[0].getAttribute('alt')).to.equal('Greenwood logo');
+      expect(img[0].getAttribute('src')).to.equal('https://www.greenwoodjs.io/assets/greenwood-logo-og.png');
+    });
+
+    it('should have the expected Author name <span> from userland in the HTML', () => {
+      const img = pictureFrame[0].querySelectorAll('.picture-frame img + span');
+
+      expect(img.length).to.equal(1);
+      expect(img[0].textContent).to.equal('Author: WCC');
+    });
+
+    it('should have the expected title attribute content in the nested <wcc-caption> tag', () => {
       const caption = pictureFrame[0].querySelectorAll('.picture-frame wcc-caption .caption');
       const heading = caption[0].querySelectorAll('.heading');
 
@@ -49,12 +65,12 @@ describe('Run WCC For ', function() {
       expect(heading[0].textContent).to.equal('Greenwood');
     });
 
-    it('should have the expected image from userland in the HTML', () => {
-      const img = pictureFrame[0].querySelectorAll('.picture-frame img');
+    it('should have the expected copyright content in the nested <wcc-caption> tag', () => {
+      const caption = pictureFrame[0].querySelectorAll('.picture-frame wcc-caption .caption');
+      const span = caption[0].querySelectorAll('span');
 
-      expect(img.length).to.equal(1);
-      expect(img[0].getAttribute('alt')).to.equal('Greenwood logo');
-      expect(img[0].getAttribute('src')).to.equal('https://www.greenwoodjs.io/assets/greenwood-logo-og.png');
+      expect(span.length).to.equal(1);
+      expect(span[0].textContent).to.equal('© 2024');
     });
   });
 });

@@ -9,6 +9,7 @@ export default class HomePage extends HTMLElement {
           src="https://www.greenwoodjs.io/assets/greenwood-logo-og.png"
           alt="Greenwood logo"
         />
+        <span>Author: WCC</span>
       </wcc-picture-frame>
     `;
   }
