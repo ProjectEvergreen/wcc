@@ -1,7 +1,6 @@
 import '../components/picture-frame.js';
 
 export default class HomePage extends HTMLElement {
-
   connectedCallback() {
     this.innerHTML = `
       <wcc-picture-frame title="Greenwood">
@@ -12,14 +11,6 @@ export default class HomePage extends HTMLElement {
         <br/>
         <span>Author: <span>WCC</span></span>
       </wcc-picture-frame>
-    `;
-  }
-
-  getTemplate() {
-    return `
-      <wcc-header></wcc-header>
-
-      <h1>Home Page</h1>
     `;
   }
 }
