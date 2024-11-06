@@ -86,6 +86,6 @@ See our [website](https://merry-caramel-524e61.netlify.app/) for API docs and ex
 
 ## Motivation
 
-**WCC** is not a static site generator, framework or bundler.  It is focused on producing raw HTML from Web Components with the intent of being easily integrated into a site generator or framework, like [**Greenwood**](https://github.com/ProjectEvergreen/greenwood/) or [**Eleventy**](https://github.com/ProjectEvergreen/eleventy-plugin-wcc/), the original motivation for creating [this project](https://github.com/ProjectEvergreen/greenwood/issues/935).
+**WCC** is not a static site generator, framework or bundler.  It is designed with the intent of being able to produce raw HTML from standards compliant Web Components and easily integrated _into_ce a site generator or framework, like [**Greenwood**](https://www.greenwoodjs.dev).  The Project Evergreen team also maintains similar integrations for [**Eleventy**](https://github.com/ProjectEvergreen/eleventy-plugin-wcc/) and [Astro](https://github.com/ProjectEvergreen/astro-wcc).
 
 In addition, **WCC** hopes to provide a surface area to explore patterns around [streaming](https://github.com/ProjectEvergreen/wcc/issues/5), [serverless and edge rendering](https://github.com/thescientist13/web-components-at-the-edge), and as acting as a test bed for the [Web Components Community Groups](https://github.com/webcomponents-cg)'s discussions around community protocols, like [hydration](https://github.com/ProjectEvergreen/wcc/issues/3).

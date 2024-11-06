@@ -6,16 +6,16 @@ Below are some example of how **WCC** is being used right now.
 
 ## Server Rendering (SSR)
 
-For the project [**Greenwood**](https://github.com/ProjectEvergreen/greenwood/), **WCC** is going to be used to provide a _Next.js_ like experience by allowing users to author [server-side routes using native custom elements](https://www.greenwoodjs.io/docs/server-rendering/#routes)!  ✨
+For the project [**Greenwood**](https://www.greenwoodjs.dev/), **WCC** is used to provide a _Next.js_ like experience by allowing users to author [server-side routes using native custom elements](https://www.greenwoodjs.dev/docs/pages/server-rendering/#web-server-components)!  ✨
 
 ```js
 import '../components/card/card.js';
-import fetch from 'node-fetch';
 
 export default class ArtistsPage extends HTMLElement {
   async connectedCallback() {
     if (!this.shadowRoot) {
-      const artists = await fetch('https://www.domain.com/api/artists').then(resp => resp.json());
+      const artists = await fetch('https://www.domain.com/api/artists')
+        .then(resp => resp.json());
       const html = artists.map(artist => {
         return `
           <wc-card>
@@ -297,4 +297,4 @@ A couple examples of using WCC + JSX are available for reference and reproductio
 * [Counter](https://github.com/thescientist13/greenwood-counter-jsx)
 * [Todo App](https://github.com/thescientist13/todo-app)
 
-Both of these examples can compile JSX for _**the client or the server**_ using [Greenwood](https://www.greenwoodjs.io/), and can even be used with great testing tools like [**@web/test-runner**](https://modern-web.dev/docs/test-runner/overview/)! 💪
+Both of these examples can compile JSX for _**the client or the server**_ using [Greenwood](https://www.greenwoodjs.dev/), and can even be used with great testing tools like [**@web/test-runner**](https://modern-web.dev/docs/test-runner/overview/)! 💪
