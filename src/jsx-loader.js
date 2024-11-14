@@ -8,8 +8,6 @@ import fs from 'fs';
 // https://github.com/acornjs/acorn-jsx/issues/112
 import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
-// Need an acorn plugin for now - https://github.com/ProjectEvergreen/greenwood/issues/1218
-import { importAttributes } from 'acorn-import-attributes';
 import { transform } from 'sucrase';
 
 const jsxRegex = /\.(jsx)$/;
@@ -34,7 +32,7 @@ export function getParser(moduleURL) {
   }
 
   return {
-    parser: acorn.Parser.extend(jsx(), importAttributes),
+    parser: acorn.Parser.extend(jsx()),
     config: {
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
       ...walk.base,
@@ -245,7 +243,7 @@ export function parseJsx(moduleURL) {
   const hasOwnObservedAttributes = undefined;
   let inferredObservability = false;
   let observedAttributes = [];
-  let tree = acorn.Parser.extend(jsx(), importAttributes).parse(result.code, {
+  let tree = acorn.Parser.extend(jsx()).parse(result.code, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   });
