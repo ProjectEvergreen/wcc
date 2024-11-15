@@ -1,8 +1,11 @@
 class Counter extends HTMLElement {
+  #count;
+
   constructor(props = {}) {
     super();
 
     this.props = props;
+    this.#count = 0;
 
     if (this.shadowRoot) {
       this.hydrate();
@@ -18,20 +21,20 @@ class Counter extends HTMLElement {
   }
 
   setCount() {
-    this.count = this.hasAttribute('count')
+    this.#count = this.hasAttribute('count')
       ? parseInt(this.getAttribute('count'), 10)
       : this.props.count
         ? this.props.count
-        : 0;
+        : this.#count;
   }
 
   inc() {
-    this.count += 1;
+    this.#count += 1;
     this.update();
   }
 
   dec() {
-    this.count -= 1;
+    this.#count -= 1;
     this.update();
   }
 
@@ -46,7 +49,7 @@ class Counter extends HTMLElement {
   }
 
   update() {
-    this.shadowRoot.querySelector('span#count').textContent = this.count;
+    this.shadowRoot.querySelector('span#count').textContent = this.#count;
   }
 
   render() {
@@ -54,7 +57,7 @@ class Counter extends HTMLElement {
       <template shadowrootmode="open">
         <div>
           <button id="inc">Increment</button>
-          <span>Current Count: <span id="count">${this.count}</span></span>
+          <span>Current Count: <span id="count">${this.#count}</span></span>
           <button id="dec">Decrement</button>
         </div>
       </template>

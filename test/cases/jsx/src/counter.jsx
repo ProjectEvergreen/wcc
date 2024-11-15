@@ -1,6 +1,8 @@
 import './badge.jsx';
 
 export default class Counter extends HTMLElement {
+  #count;
+
   constructor() {
     super();
     this.count = 0;
