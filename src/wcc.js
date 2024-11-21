@@ -7,8 +7,6 @@ import * as walk from 'acorn-walk';
 import { generate } from 'astring';
 import { getParser, parseJsx } from './jsx-loader.js';
 import { parse, parseFragment, serialize } from 'parse5';
-// Need an acorn plugin for now - https://github.com/ProjectEvergreen/greenwood/issues/1218
-import { importAttributes } from 'acorn-import-attributes';
 import { transform } from 'sucrase';
 import fs from 'fs';
 
@@ -100,7 +98,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
     ...walk.base
   };
 
-  walk.simple(parser.extend(importAttributes).parse(result.code, {
+  walk.simple(parser.parse(result.code, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
@@ -151,7 +149,7 @@ async function getTagName(moduleURL) {
   };
   let tagName;
 
-  walk.simple(parser.extend(importAttributes).parse(result.code, {
+  walk.simple(parser.parse(result.code, {
     ecmaVersion: 'latest',
     sourceType: 'module'
   }), {
