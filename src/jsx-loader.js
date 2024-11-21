@@ -2,8 +2,10 @@
 // https://nodejs.org/api/esm.html#esm_loaders
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
-import { generate } from '@projectevergreen/escodegen-esm';
+import { generate } from 'astring';
 import fs from 'fs';
+// ideally we can eventually adopt an ESM compatible version of this plugin
+// https://github.com/acornjs/acorn-jsx/issues/112
 import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
 // Need an acorn plugin for now - https://github.com/ProjectEvergreen/greenwood/issues/1218

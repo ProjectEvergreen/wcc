@@ -43,10 +43,10 @@
   },
   "dependencies": {
     "@projectevergreen/acorn-jsx-esm": "~0.1.0",
-    "@projectevergreen/escodegen-esm": "~0.1.0",
     "acorn": "^8.7.0",
     "acorn-import-attributes": "^1.9.5",
     "acorn-walk": "^8.2.0",
+    "astring": "^1.9.0",
     "parse5": "^6.0.1",
     "sucrase": "^3.35.0"
   },
