@@ -45,10 +45,9 @@ class Element extends Node {
     return this.shadowRoot;
   }
 
-  // https://github.com/mfreed7/declarative-shadow-dom/blob/master/README.md#serialization
-  // eslint-disable-next-line
-  getInnerHTML() {
-    return this.shadowRoot ? this.shadowRoot.innerHTML : this.innerHTML;
+  getHTML({ serializableShadowRoots = false }) {
+    return this.shadowRoot && serializableShadowRoots ?
+      `<template shadowrootmode="open">${this.shadowRoot.innerHTML}</template>` : this.innerHTML;
   }
 
   setAttribute(name, value) {
@@ -116,11 +115,7 @@ class HTMLTemplateElement extends HTMLElement {
   // TODO open vs closed shadow root
   set innerHTML(html) {
     if (this.content) {
-      this.content.innerHTML = `
-        <template shadowrootmode="open">
-          ${html}
-        </template>
-      `;
+      this.content.innerHTML = html;
     }
   }
 

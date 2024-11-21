@@ -54,7 +54,7 @@ async function renderComponentRoots(tree, definitions) {
         if (elementInstance) {
           const hasShadow = elementInstance.shadowRoot;
           const elementHtml = hasShadow
-            ? elementInstance.getInnerHTML({ includeShadowRoots: true })
+            ? elementInstance.getHTML({ serializableShadowRoots: true })
             : elementInstance.innerHTML;
           const elementTree = parseFragment(elementHtml);
           const hasLight = elementTree.childNodes > 0;
@@ -222,14 +222,14 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
 
     attrs.forEach((attr) => {
       elementInstance.setAttribute(attr.name, attr.value);
-  
+
       if (attr.name === 'hydrate') {
         definitions[tagName].hydrate = attr.value;
       }
     });
-  
+
     await elementInstance.connectedCallback();
-  
+
     return elementInstance;
   }
 }
@@ -244,7 +244,7 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   // in case the entry point isn't valid
   if (elementInstance) {
     const elementHtml = elementInstance.shadowRoot
-      ? elementInstance.getInnerHTML({ includeShadowRoots: true })
+      ? elementInstance.getHTML({ serializableShadowRoots: true })
       : elementInstance.innerHTML;
     const elementTree = getParse(elementHtml)(elementHtml);
     const finalTree = await renderComponentRoots(elementTree, definitions);

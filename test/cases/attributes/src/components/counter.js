@@ -39,7 +39,7 @@ class Counter extends HTMLElement {
   }
 
   hydrate() {
-    this.count = parseInt(JSON.parse(this.shadowRoot.querySelector('script[type="application/json"').text).count, 10);
+    this.count = parseInt(JSON.parse(this.shadowRoot.querySelector('script[type="application/json"]').text).count, 10);
 
     const buttonDec = this.shadowRoot.querySelector('button#dec');
     const buttonInc = this.shadowRoot.querySelector('button#inc');
@@ -54,13 +54,11 @@ class Counter extends HTMLElement {
 
   render() {
     return `
-      <template shadowrootmode="open">
         <div>
           <button id="inc">Increment</button>
           <span>Current Count: <span id="count">${this.#count}</span></span>
           <button id="dec">Decrement</button>
         </div>
-      </template>
     `;
   }
 }
