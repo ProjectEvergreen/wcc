@@ -1,3 +1,57 @@
+/* eslint-disable no-warning-comments */
+
+import { parseFragment, serialize } from 'parse5';
+
+// TODO Should go into utils file?
+function isShadowRoot(element) {
+  return Object.getPrototypeOf(element).constructor.name === 'ShadowRoot';
+}
+
+// Deep clone for cloneNode(deep) - TODO should this go into a utils file?
+// structuredClone doesn't work with functions. TODO This works with
+// all current tests but would it be worth considering a lightweight
+// library here to better cover edge cases?
+function deepClone(obj, map = new WeakMap()) {
+  if (obj === null || typeof obj !== 'object') {
+    return obj; // Return primitives or functions as-is
+  }
+
+  if (typeof obj === 'function') {
+    const clonedFn = obj.bind({});
+    Object.assign(clonedFn, obj);
+    return clonedFn;
+  }
+
+  if (map.has(obj)) {
+    return map.get(obj);
+  }
+
+  const result = Array.isArray(obj) ? [] : {};
+  map.set(obj, result);
+
+  for (const key of Object.keys(obj)) {
+    result[key] = deepClone(obj[key], map);
+  }
+
+  return result;
+}
+
+// Creates an empty parse5 element without the parse5 overhead. Results in 2-10x better performance.
+// TODO Should this go into a utils files?
+function getParse5ElementDefaults(element, tagName) {
+  return {
+    addEventListener: noop,
+    attrs: [],
+    parentNode: element.parentNode,
+    childNodes: [],
+    nodeName: tagName,
+    tagName: tagName,
+    namespaceURI: 'http://www.w3.org/1999/xhtml',
+    // eslint-disable-next-line no-extra-parens
+    ...(tagName === 'template' ? { content: { nodeName: '#document-fragment', childNodes: [] } } : {})
+  };
+}
+
 function noop() { }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/CSSStyleSheet
@@ -19,13 +73,56 @@ class EventTarget {
 // EventTarget <- Node
 // TODO should be an interface?
 class Node extends EventTarget {
-  // eslint-disable-next-line
+  constructor() {
+    super();
+    // Parse5 properties
+    this.attrs = [];
+    this.parentNode = null;
+    this.childNodes = [];
+  }
+
   cloneNode(deep) {
-    return this;
+    return deep ? deepClone(this) : Object.assign({}, this);
   }
 
   appendChild(node) {
-    this.innerHTML = this.innerHTML ? this.innerHTML += node.innerHTML : node.innerHTML;
+    const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
+
+    if (node.parentNode) {
+      node.parentNode?.removeChild?.(node); // Remove from current parent
+    }
+
+    if (node.nodeName === 'template') {
+      if (isShadowRoot(this) && this.mode) {
+        node.attrs = [{ name: 'shadowrootmode', value: this.mode }];
+        childNodes.push(node);
+        node.parentNode = this;
+      } else {
+        this.childNodes = [...this.childNodes, ...node.content.childNodes];
+      }
+    } else {
+      childNodes.push(node);
+      node.parentNode = this;
+    }
+
+    return node;
+  }
+
+  removeChild(node) {
+    const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
+    if (!childNodes || !childNodes.length) {
+      return null;
+    }
+
+    const index = childNodes.indexOf(node);
+    if (index === -1) {
+      return null;
+    }
+
+    childNodes.splice(index, 1);
+    node.parentNode = null;
+
+    return node;
   }
 }
 
@@ -34,33 +131,44 @@ class Node extends EventTarget {
 class Element extends Node {
   constructor() {
     super();
-    this.shadowRoot = null;
-    this.innerHTML = '';
-    this.attributes = {};
   }
 
   attachShadow(options) {
     this.shadowRoot = new ShadowRoot(options);
-
+    this.shadowRoot.parentNode = this;
     return this.shadowRoot;
   }
 
-  // https://github.com/mfreed7/declarative-shadow-dom/blob/master/README.md#serialization
-  // eslint-disable-next-line
-  getInnerHTML() {
-    return this.shadowRoot ? this.shadowRoot.innerHTML : this.innerHTML;
+  set innerHTML(html) {
+    (this.nodeName === 'template' ? this.content : this).childNodes = parseFragment(html).childNodes; // Replace content's child nodes
+  }
+
+  // Serialize the content of the DocumentFragment when getting innerHTML
+  get innerHTML() {
+    const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
+    return childNodes ? serialize({ childNodes }) : '';
   }
 
   setAttribute(name, value) {
-    this.attributes[name] = value;
+    // Modified attribute handling to work with parse5
+    const attr = this.attrs?.find((attr) => attr.name === name);
+
+    if (attr) {
+      attr.value = value;
+    } else {
+      this.attrs?.push({ name, value });
+    }
   }
 
   getAttribute(name) {
-    return this.attributes[name];
+    // Modified attribute handling to work with parse5
+    const attr = this.attrs.find((attr) => attr.name === name);
+    return attr ? attr.value : null;
   }
 
   hasAttribute(name) {
-    return !!this.attributes[name];
+    // Modified attribute handling to work with parse5
+    return this.attrs.some((attr) => attr.name === name);
   }
 }
 
@@ -75,7 +183,7 @@ class Document extends Node {
         return new HTMLTemplateElement();
 
       default:
-        return new HTMLElement();
+        return new HTMLElement(tagName);
 
     }
   }
@@ -88,6 +196,10 @@ class Document extends Node {
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement
 // EventTarget <- Node <- Element <- HTMLElement
 class HTMLElement extends Element {
+  constructor(tagName) {
+    super();
+    Object.assign(this, getParse5ElementDefaults(this, tagName));
+  }
   connectedCallback() { }
 }
 
@@ -103,6 +215,23 @@ class ShadowRoot extends DocumentFragment {
     this.mode = options.mode || 'closed';
     this.adoptedStyleSheets = [];
   }
+
+  get innerHTML() {
+    return this.childNodes ? serialize({ childNodes: this.childNodes }) : '';
+  }
+
+  set innerHTML(html) {
+    // Replaces auto wrapping functionality that was previously done
+    // in HTMLTemplateElement. This allows parse5 to add declarative
+    // shadow roots when necessary. To pass tests that wrap innerHTML
+    // in a template, we only wrap when if a template isn't found at the
+    // start of the html string (this can be removed if those tests are
+    // changed)
+    html = html.trim().toLowerCase().startsWith('<template')
+      ? html
+      : `<template shadowrootmode="${this.mode}">${html}</template>`;
+    this.childNodes = parseFragment(html).childNodes;
+  }
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLTemplateElement
@@ -110,22 +239,11 @@ class ShadowRoot extends DocumentFragment {
 class HTMLTemplateElement extends HTMLElement {
   constructor() {
     super();
-    this.content = new DocumentFragment();
-  }
-
-  // TODO open vs closed shadow root
-  set innerHTML(html) {
-    if (this.content) {
-      this.content.innerHTML = `
-        <template shadowrootmode="open">
-          ${html}
-        </template>
-      `;
-    }
-  }
-
-  get innerHTML() {
-    return this.content && this.content.innerHTML ? this.content.innerHTML : undefined;
+    // Gets element defaults for template element instead of parsing a
+    // <template></template> with parse5. Results in 2-5x better performance
+    // when creating templates
+    Object.assign(this, getParse5ElementDefaults(this, 'template'));
+    this.content.cloneNode = this.cloneNode.bind(this);
   }
 }
 
@@ -138,6 +256,14 @@ class CustomElementsRegistry {
   }
 
   define(tagName, BaseClass) {
+    // TODO Should we throw an error here when a tagName is already defined?
+    // Would require altering tests
+    // if (this.customElementsRegistry.has(tagName)) {
+    //   throw new Error(
+    //     `Custom element with tag name ${tagName} is already defined.`
+    //   );
+    // }
+
     // TODO this should probably fail as per the spec...
     // e.g. if(this.customElementsRegistry.get(tagName))
     // https://github.com/ProjectEvergreen/wcc/discussions/145
