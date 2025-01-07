@@ -188,7 +188,8 @@ function renderLightDomChildren(childNodes, iHTML = '') {
         ? ''
         : `</${nodeName}>`;
     } else if (nodeName === '#text') {
-      innerHTML += value;
+      // TODO what about legitimate < content?
+      innerHTML += value.replace(/</g, '&lt;');
     }
   });
 
