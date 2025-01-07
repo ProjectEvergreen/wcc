@@ -1,6 +1,6 @@
 /*
  * Use Case
- * Run wcc against HTML with Light DOM HTML entities.
+ * Run wcc against HTML with Light DOM HTML entities in text nodes.
  * 
  * User Result
  * Should return the expected HTML with all the HTML entities preserved.
