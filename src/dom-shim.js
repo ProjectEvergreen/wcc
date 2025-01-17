@@ -139,14 +139,29 @@ class Element extends Node {
     return this.shadowRoot;
   }
 
-  set innerHTML(html) {
-    (this.nodeName === 'template' ? this.content : this).childNodes = parseFragment(html).childNodes; // Replace content's child nodes
+  getHTML({ serializableShadowRoots = false }) {
+    return this.shadowRoot && serializableShadowRoots && this.shadowRoot.serializable ? this.shadowRoot.innerHTML : '';
   }
 
   // Serialize the content of the DocumentFragment when getting innerHTML
   get innerHTML() {
     const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
     return childNodes ? serialize({ childNodes }) : '';
+  }
+
+  set innerHTML(html) {
+    (this.nodeName === 'template' ? this.content : this).childNodes = parseFragment(html).childNodes; // Replace content's child nodes
+  }
+
+  hasAttribute(name) {
+    // Modified attribute handling to work with parse5
+    return this.attrs.some((attr) => attr.name === name);
+  }
+
+  getAttribute(name) {
+    // Modified attribute handling to work with parse5
+    const attr = this.attrs.find((attr) => attr.name === name);
+    return attr ? attr.value : null;
   }
 
   setAttribute(name, value) {
@@ -158,17 +173,6 @@ class Element extends Node {
     } else {
       this.attrs?.push({ name, value });
     }
-  }
-
-  getAttribute(name) {
-    // Modified attribute handling to work with parse5
-    const attr = this.attrs.find((attr) => attr.name === name);
-    return attr ? attr.value : null;
-  }
-
-  hasAttribute(name) {
-    // Modified attribute handling to work with parse5
-    return this.attrs.some((attr) => attr.name === name);
   }
 }
 
@@ -212,25 +216,17 @@ class DocumentFragment extends Node { }
 class ShadowRoot extends DocumentFragment {
   constructor(options) {
     super();
-    this.mode = options.mode || 'closed';
+    this.mode = options.mode ?? 'closed';
+    this.serializable = options.serializable ?? false;
     this.adoptedStyleSheets = [];
   }
 
   get innerHTML() {
-    return this.childNodes ? serialize({ childNodes: this.childNodes }) : '';
+    return this.childNodes?.[0]?.content?.childNodes ? serialize({ childNodes: this.childNodes[0].content.childNodes }) : '';
   }
 
   set innerHTML(html) {
-    // Replaces auto wrapping functionality that was previously done
-    // in HTMLTemplateElement. This allows parse5 to add declarative
-    // shadow roots when necessary. To pass tests that wrap innerHTML
-    // in a template, we only wrap when if a template isn't found at the
-    // start of the html string (this can be removed if those tests are
-    // changed)
-    html = html.trim().toLowerCase().startsWith('<template')
-      ? html
-      : `<template shadowrootmode="${this.mode}">${html}</template>`;
-    this.childNodes = parseFragment(html).childNodes;
+    this.childNodes = parseFragment(`<template shadowrootmode="${this.mode}">${html}</template>`).childNodes;
   }
 }
 
@@ -240,7 +236,7 @@ class HTMLTemplateElement extends HTMLElement {
   constructor() {
     super();
     // Gets element defaults for template element instead of parsing a
-    // <template></template> with parse5. Results in 2-5x better performance
+    // <template></template> with parse5. Results in better performance
     // when creating templates
     Object.assign(this, getParse5ElementDefaults(this, 'template'));
     this.content.cloneNode = this.cloneNode.bind(this);

@@ -17,6 +17,11 @@ class Counter extends HTMLElement {
       this.setCount();
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.innerHTML = this.render();
+
+      // After juggling content, element should still render
+      const fragment = document.createDocumentFragment();
+      fragment.innerHTML = this.shadowRoot.innerHTML;
+      this.shadowRoot.innerHTML = fragment.innerHTML;
     }
   }
 

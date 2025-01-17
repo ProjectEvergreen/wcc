@@ -53,7 +53,7 @@ export default async function (request, context) {
     <html lang="en">
       <body>
         <wc-greeting>
-          ${greeting.getInnerHTML({ includeShadowRoots: true })}
+          ${greeting.getHTML({ serializableShadowRoots: true })}
           <details slot="details">
             <pre>
               ${JSON.stringify(context.geo)}
