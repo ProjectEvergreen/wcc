@@ -7,15 +7,10 @@ export default class HomePage extends HTMLElement {
   }
 
   getTemplate() {
-    return `<!DOCTYPE html>
-      <html>
-      <head>
-          <title>App Layout</title>
-        </head>
-        <body>
+    return `
       <wcc-header></wcc-header>
 
-      <h1>Home Page</h1></body></html>
+      <h1>Home Page</h1>
     `;
   }
 }
