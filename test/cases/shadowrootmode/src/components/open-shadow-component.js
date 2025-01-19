@@ -3,13 +3,13 @@ export default class OpenShadowComponent extends HTMLElement {
     super();
   }
 
-  async connectedCallback() {
+  connectedCallback() {
 
     if (!this.shadowRoot) {
       this.attachShadow({ mode: 'open' });
       const template = document.createElement('template');
       template.innerHTML = `
-        <h1>Shadow Root Open</h1>
+        <h2>Shadow Root Open</h2>
       `;
       this.shadowRoot.appendChild(template.content.cloneNode(true));
     }

@@ -3,13 +3,13 @@ export default class ClosedShadowComponent extends HTMLElement {
     super();
   }
 
-  async connectedCallback() {
+  connectedCallback() {
 
     if (!this.shadowRoot) {
       this.attachShadow({ mode: 'closed' });
       const template = document.createElement('template');
       template.innerHTML = `
-        <h1>Shadow Root Closed</h1>
+        <h2>Shadow Root Closed</h2>
       `;
       this.shadowRoot.appendChild(template.content.cloneNode(true));
     }

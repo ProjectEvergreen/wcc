@@ -1,16 +1,17 @@
 /* eslint-disable no-warning-comments */
 
-import { parseFragment, serialize } from 'parse5';
+import { parse, parseFragment, serialize } from 'parse5';
 
-// TODO Should go into utils file?
+export function getParse(html) {
+  return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
+    ? parse
+    : parseFragment;
+}
+
 function isShadowRoot(element) {
   return Object.getPrototypeOf(element).constructor.name === 'ShadowRoot';
 }
 
-// Deep clone for cloneNode(deep) - TODO should this go into a utils file?
-// structuredClone doesn't work with functions. TODO This works with
-// all current tests but would it be worth considering a lightweight
-// library here to better cover edge cases?
 function deepClone(obj, map = new WeakMap()) {
   if (obj === null || typeof obj !== 'object') {
     return obj; // Return primitives or functions as-is
@@ -36,8 +37,7 @@ function deepClone(obj, map = new WeakMap()) {
   return result;
 }
 
-// Creates an empty parse5 element without the parse5 overhead. Results in 2-10x better performance.
-// TODO Should this go into a utils files?
+// Creates an empty parse5 element without the parse5 overhead resulting in better performance
 function getParse5ElementDefaults(element, tagName) {
   return {
     addEventListener: noop,
@@ -79,6 +79,7 @@ class Node extends EventTarget {
     this.attrs = [];
     this.parentNode = null;
     this.childNodes = [];
+    this.nodeName = '';
   }
 
   cloneNode(deep) {
@@ -100,6 +101,8 @@ class Node extends EventTarget {
       } else {
         this.childNodes = [...this.childNodes, ...node.content.childNodes];
       }
+    } else if (node instanceof DocumentFragment) {
+      this.childNodes = [...this.childNodes, ...node.childNodes];
     } else {
       childNodes.push(node);
       node.parentNode = this;
@@ -123,6 +126,31 @@ class Node extends EventTarget {
     node.parentNode = null;
 
     return node;
+  }
+
+  get textContent() {
+    if (this.nodeName === '#text') {
+      return this.value || ''; // Text nodes should return their value
+    }
+
+    // Compute textContent for elements by concatenating text of all descendants
+    return this.childNodes
+      .map((child) => child.nodeName === '#text' ? child.value : child.textContent)
+      .join('');
+  }
+
+  set textContent(value) {
+    // Remove all current child nodes
+    this.childNodes = [];
+
+    if (value) {
+      // Create a single text node with the given value
+      const textNode = new Node();
+      textNode.nodeName = '#text';
+      textNode.value = value; // Text node content
+      textNode.parentNode = this;
+      this.childNodes.push(textNode);
+    }
   }
 }
 
@@ -150,7 +178,7 @@ class Element extends Node {
   }
 
   set innerHTML(html) {
-    (this.nodeName === 'template' ? this.content : this).childNodes = parseFragment(html).childNodes; // Replace content's child nodes
+    (this.nodeName === 'template' ? this.content : this).childNodes = getParse(html)(html).childNodes; // Replace content's child nodes
   }
 
   hasAttribute(name) {
@@ -226,7 +254,7 @@ class ShadowRoot extends DocumentFragment {
   }
 
   set innerHTML(html) {
-    this.childNodes = parseFragment(`<template shadowrootmode="${this.mode}">${html}</template>`).childNodes;
+    this.childNodes = getParse(html)(`<template shadowrootmode="${this.mode}">${html}</template>`).childNodes;
   }
 }
 
@@ -252,14 +280,6 @@ class CustomElementsRegistry {
   }
 
   define(tagName, BaseClass) {
-    // TODO Should we throw an error here when a tagName is already defined?
-    // Would require altering tests
-    // if (this.customElementsRegistry.has(tagName)) {
-    //   throw new Error(
-    //     `Custom element with tag name ${tagName} is already defined.`
-    //   );
-    // }
-
     // TODO this should probably fail as per the spec...
     // e.g. if(this.customElementsRegistry.get(tagName))
     // https://github.com/ProjectEvergreen/wcc/discussions/145
@@ -278,4 +298,5 @@ globalThis.addEventListener = globalThis.addEventListener ?? noop;
 globalThis.document = globalThis.document ?? new Document();
 globalThis.customElements = globalThis.customElements ?? new CustomElementsRegistry();
 globalThis.HTMLElement = globalThis.HTMLElement ?? HTMLElement;
+globalThis.DocumentFragment = globalThis.DocumentFragment ?? DocumentFragment;
 globalThis.CSSStyleSheet = globalThis.CSSStyleSheet ?? CSSStyleSheet;

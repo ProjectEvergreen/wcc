@@ -1,5 +1,5 @@
-import './open-shadow-component.js';
-import './closed-shadow-component.js';
+import './components/open-shadow-component.js';
+import './components/closed-shadow-component.js';
 
 export default class HomePage extends HTMLElement {
   constructor() {

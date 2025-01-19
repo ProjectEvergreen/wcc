@@ -1,20 +1,14 @@
 /* eslint-disable max-depth */
 // this must come first
-import './dom-shim.js';
+import { getParse } from './dom-shim.js';
 
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { generate } from 'astring';
 import { getParser, parseJsx } from './jsx-loader.js';
-import { parse, parseFragment, serialize } from 'parse5';
+import { serialize } from 'parse5';
 import { transform } from 'sucrase';
 import fs from 'fs';
-
-function getParse(html) {
-  return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
-    ? parse
-    : parseFragment;
-}
 
 function isCustomElementDefinitionNode(node) {
   const { expression } = node;
@@ -184,6 +178,7 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   const elementTagName = wrappingEntryTag && await getTagName(elementURL);
   const isEntry = !!elementTagName;
   const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry, props);
+
   let html;
 
   // in case the entry point isn't valid
