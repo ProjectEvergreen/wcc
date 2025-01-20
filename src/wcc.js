@@ -144,7 +144,6 @@ async function getTagName(moduleURL) {
 }
 
 async function initializeCustomElement(elementURL, tagName, node = {}, definitions = [], isEntry, props = {}) {
-  const { attrs = [], childNodes = [] } = node;
 
   if (!tagName) {
     const depth = isEntry ? 1 : 0;
@@ -161,11 +160,7 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
   if (element) {
     const elementInstance = new element(data); // eslint-disable-line new-cap
 
-    elementInstance.childNodes = childNodes;
-
-    attrs.forEach((attr) => {
-      elementInstance.setAttribute(attr.name, attr.value);
-    });
+    Object.assign(elementInstance, node);
 
     await elementInstance.connectedCallback();
 
