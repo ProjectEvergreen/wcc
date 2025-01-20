@@ -1,3 +1,57 @@
+/* eslint-disable no-warning-comments */
+
+import { parse, parseFragment, serialize } from 'parse5';
+
+export function getParse(html) {
+  return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
+    ? parse
+    : parseFragment;
+}
+
+function isShadowRoot(element) {
+  return Object.getPrototypeOf(element).constructor.name === 'ShadowRoot';
+}
+
+function deepClone(obj, map = new WeakMap()) {
+  if (obj === null || typeof obj !== 'object') {
+    return obj; // Return primitives or functions as-is
+  }
+
+  if (typeof obj === 'function') {
+    const clonedFn = obj.bind({});
+    Object.assign(clonedFn, obj);
+    return clonedFn;
+  }
+
+  if (map.has(obj)) {
+    return map.get(obj);
+  }
+
+  const result = Array.isArray(obj) ? [] : {};
+  map.set(obj, result);
+
+  for (const key of Object.keys(obj)) {
+    result[key] = deepClone(obj[key], map);
+  }
+
+  return result;
+}
+
+// Creates an empty parse5 element without the parse5 overhead resulting in better performance
+function getParse5ElementDefaults(element, tagName) {
+  return {
+    addEventListener: noop,
+    attrs: [],
+    parentNode: element.parentNode,
+    childNodes: [],
+    nodeName: tagName,
+    tagName: tagName,
+    namespaceURI: 'http://www.w3.org/1999/xhtml',
+    // eslint-disable-next-line no-extra-parens
+    ...(tagName === 'template' ? { content: { nodeName: '#document-fragment', childNodes: [] } } : {})
+  };
+}
+
 function noop() { }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/CSSStyleSheet
@@ -19,13 +73,84 @@ class EventTarget {
 // EventTarget <- Node
 // TODO should be an interface?
 class Node extends EventTarget {
-  // eslint-disable-next-line
+  constructor() {
+    super();
+    // Parse5 properties
+    this.attrs = [];
+    this.parentNode = null;
+    this.childNodes = [];
+    this.nodeName = '';
+  }
+
   cloneNode(deep) {
-    return this;
+    return deep ? deepClone(this) : Object.assign({}, this);
   }
 
   appendChild(node) {
-    this.innerHTML = this.innerHTML ? this.innerHTML += node.innerHTML : node.innerHTML;
+    const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
+
+    if (node.parentNode) {
+      node.parentNode?.removeChild?.(node); // Remove from current parent
+    }
+
+    if (node.nodeName === 'template') {
+      if (isShadowRoot(this) && this.mode) {
+        node.attrs = [{ name: 'shadowrootmode', value: this.mode }];
+        childNodes.push(node);
+        node.parentNode = this;
+      } else {
+        this.childNodes = [...this.childNodes, ...node.content.childNodes];
+      }
+    } else if (node instanceof DocumentFragment) {
+      this.childNodes = [...this.childNodes, ...node.childNodes];
+    } else {
+      childNodes.push(node);
+      node.parentNode = this;
+    }
+
+    return node;
+  }
+
+  removeChild(node) {
+    const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
+    if (!childNodes || !childNodes.length) {
+      return null;
+    }
+
+    const index = childNodes.indexOf(node);
+    if (index === -1) {
+      return null;
+    }
+
+    childNodes.splice(index, 1);
+    node.parentNode = null;
+
+    return node;
+  }
+
+  get textContent() {
+    if (this.nodeName === '#text') {
+      return this.value || ''; // Text nodes should return their value
+    }
+
+    // Compute textContent for elements by concatenating text of all descendants
+    return this.childNodes
+      .map((child) => child.nodeName === '#text' ? child.value : child.textContent)
+      .join('');
+  }
+
+  set textContent(value) {
+    // Remove all current child nodes
+    this.childNodes = [];
+
+    if (value) {
+      // Create a single text node with the given value
+      const textNode = new Node();
+      textNode.nodeName = '#text';
+      textNode.value = value; // Text node content
+      textNode.parentNode = this;
+      this.childNodes.push(textNode);
+    }
   }
 }
 
@@ -34,32 +159,48 @@ class Node extends EventTarget {
 class Element extends Node {
   constructor() {
     super();
-    this.shadowRoot = null;
-    this.innerHTML = '';
-    this.attributes = {};
   }
 
   attachShadow(options) {
     this.shadowRoot = new ShadowRoot(options);
-
+    this.shadowRoot.parentNode = this;
     return this.shadowRoot;
   }
 
   getHTML({ serializableShadowRoots = false }) {
-    return this.shadowRoot && serializableShadowRoots ?
-      `<template shadowrootmode="open">${this.shadowRoot.innerHTML}</template>` : this.innerHTML;
+    return this.shadowRoot && serializableShadowRoots && this.shadowRoot.serializable ? this.shadowRoot.innerHTML : '';
   }
 
-  setAttribute(name, value) {
-    this.attributes[name] = value;
+  // Serialize the content of the DocumentFragment when getting innerHTML
+  get innerHTML() {
+    const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
+    return childNodes ? serialize({ childNodes }) : '';
   }
 
-  getAttribute(name) {
-    return this.attributes[name];
+  set innerHTML(html) {
+    (this.nodeName === 'template' ? this.content : this).childNodes = getParse(html)(html).childNodes; // Replace content's child nodes
   }
 
   hasAttribute(name) {
-    return !!this.attributes[name];
+    // Modified attribute handling to work with parse5
+    return this.attrs.some((attr) => attr.name === name);
+  }
+
+  getAttribute(name) {
+    // Modified attribute handling to work with parse5
+    const attr = this.attrs.find((attr) => attr.name === name);
+    return attr ? attr.value : null;
+  }
+
+  setAttribute(name, value) {
+    // Modified attribute handling to work with parse5
+    const attr = this.attrs?.find((attr) => attr.name === name);
+
+    if (attr) {
+      attr.value = value;
+    } else {
+      this.attrs?.push({ name, value });
+    }
   }
 }
 
@@ -74,7 +215,7 @@ class Document extends Node {
         return new HTMLTemplateElement();
 
       default:
-        return new HTMLElement();
+        return new HTMLElement(tagName);
 
     }
   }
@@ -87,6 +228,10 @@ class Document extends Node {
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement
 // EventTarget <- Node <- Element <- HTMLElement
 class HTMLElement extends Element {
+  constructor(tagName) {
+    super();
+    Object.assign(this, getParse5ElementDefaults(this, tagName));
+  }
   connectedCallback() { }
 }
 
@@ -99,8 +244,17 @@ class DocumentFragment extends Node { }
 class ShadowRoot extends DocumentFragment {
   constructor(options) {
     super();
-    this.mode = options.mode || 'closed';
+    this.mode = options.mode ?? 'closed';
+    this.serializable = options.serializable ?? false;
     this.adoptedStyleSheets = [];
+  }
+
+  get innerHTML() {
+    return this.childNodes?.[0]?.content?.childNodes ? serialize({ childNodes: this.childNodes[0].content.childNodes }) : '';
+  }
+
+  set innerHTML(html) {
+    this.childNodes = getParse(html)(`<template shadowrootmode="${this.mode}">${html}</template>`).childNodes;
   }
 }
 
@@ -109,18 +263,11 @@ class ShadowRoot extends DocumentFragment {
 class HTMLTemplateElement extends HTMLElement {
   constructor() {
     super();
-    this.content = new DocumentFragment();
-  }
-
-  // TODO open vs closed shadow root
-  set innerHTML(html) {
-    if (this.content) {
-      this.content.innerHTML = html;
-    }
-  }
-
-  get innerHTML() {
-    return this.content && this.content.innerHTML ? this.content.innerHTML : undefined;
+    // Gets element defaults for template element instead of parsing a
+    // <template></template> with parse5. Results in better performance
+    // when creating templates
+    Object.assign(this, getParse5ElementDefaults(this, 'template'));
+    this.content.cloneNode = this.cloneNode.bind(this);
   }
 }
 
@@ -151,4 +298,5 @@ globalThis.addEventListener = globalThis.addEventListener ?? noop;
 globalThis.document = globalThis.document ?? new Document();
 globalThis.customElements = globalThis.customElements ?? new CustomElementsRegistry();
 globalThis.HTMLElement = globalThis.HTMLElement ?? HTMLElement;
+globalThis.DocumentFragment = globalThis.DocumentFragment ?? DocumentFragment;
 globalThis.CSSStyleSheet = globalThis.CSSStyleSheet ?? CSSStyleSheet;

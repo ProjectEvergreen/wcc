@@ -1,38 +1,14 @@
 /* eslint-disable max-depth */
 // this must come first
-import './dom-shim.js';
+import { getParse } from './dom-shim.js';
 
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { generate } from 'astring';
 import { getParser, parseJsx } from './jsx-loader.js';
-import { parse, parseFragment, serialize } from 'parse5';
+import { serialize } from 'parse5';
 import { transform } from 'sucrase';
 import fs from 'fs';
-
-// https://developer.mozilla.org/en-US/docs/Glossary/Void_element
-const VOID_ELEMENTS = [
-  'area',
-  'base',
-  'br',
-  'col',
-  'embed',
-  'hr',
-  'img',
-  'input',
-  'link',
-  'meta',
-  'param', // deprecated
-  'source',
-  'track',
-  'wbr'
-];
-
-function getParse(html) {
-  return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
-    ? parse
-    : parseFragment;
-}
 
 function isCustomElementDefinitionNode(node) {
   const { expression } = node;
@@ -45,7 +21,7 @@ function isCustomElementDefinitionNode(node) {
 async function renderComponentRoots(tree, definitions) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
-      const { tagName } = node;
+      const { attrs, tagName } = node;
 
       if (definitions[tagName]) {
         const { moduleURL } = definitions[tagName];
@@ -53,31 +29,35 @@ async function renderComponentRoots(tree, definitions) {
 
         if (elementInstance) {
           const hasShadow = elementInstance.shadowRoot;
-          const elementHtml = hasShadow
-            ? elementInstance.getHTML({ serializableShadowRoots: true })
-            : elementInstance.innerHTML;
-          const elementTree = parseFragment(elementHtml);
-          const hasLight = elementTree.childNodes > 0;
 
-          node.childNodes = node.childNodes.length === 0 && hasLight && !hasShadow
-            ? elementTree.childNodes
-            : hasShadow
-              ? [...elementTree.childNodes, ...node.childNodes]
-              : elementTree.childNodes;
+          node.childNodes = hasShadow
+            ? [...elementInstance.shadowRoot.childNodes, ...node.childNodes]
+            : elementInstance.childNodes;
         } else {
           console.warn(`WARNING: customElement <${tagName}> detected but not serialized.  You may not have exported it.`);
         }
       } else {
         console.warn(`WARNING: customElement <${tagName}> is not defined.  You may not have imported it.`);
       }
+
+      attrs.forEach((attr) => {
+        if (attr.name === 'hydrate') {
+          definitions[tagName].hydrate = attr.value;
+        }
+      });
+
     }
 
     if (node.childNodes && node.childNodes.length > 0) {
       await renderComponentRoots(node, definitions);
     }
 
+    if (node.shadowRoot && node.shadowRoot.childNodes?.length > 0) {
+      await renderComponentRoots(node.shadowRoot, definitions);
+    }
+
     // does this only apply to `<template>` tags?
-    if (node.content && node.content.childNodes && node.content.childNodes.length > 0) {
+    if (node.content && node.content.childNodes?.length > 0) {
       await renderComponentRoots(node.content, definitions);
     }
   }
@@ -163,38 +143,6 @@ async function getTagName(moduleURL) {
   return tagName;
 }
 
-function renderLightDomChildren(childNodes, iHTML = '') {
-  let innerHTML = iHTML;
-
-  childNodes.forEach((child) => {
-    const { nodeName, attrs = [], value } = child;
-
-    if (nodeName !== '#text') {
-      innerHTML += `<${nodeName}`;
-
-      if (attrs.length > 0) {
-        attrs.forEach(attr => {
-          innerHTML += ` ${attr.name}="${attr.value}"`;
-        });
-      }
-
-      innerHTML += '>';
-
-      if (child.childNodes.length > 0) {
-        innerHTML = renderLightDomChildren(child.childNodes, innerHTML);
-      }
-
-      innerHTML += VOID_ELEMENTS.includes(nodeName)
-        ? ''
-        : `</${nodeName}>`;
-    } else if (nodeName === '#text') {
-      innerHTML += value;
-    }
-  });
-
-  return innerHTML;
-}
-
 async function initializeCustomElement(elementURL, tagName, node = {}, definitions = [], isEntry, props = {}) {
   const { attrs = [], childNodes = [] } = node;
 
@@ -208,24 +156,15 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
   const { href } = elementURL;
   const element = customElements.get(tagName) ?? (await import(href)).default;
   const dataLoader = (await import(href)).getData;
-  const data = props
-    ? props
-    : dataLoader
-      ? await dataLoader(props)
-      : {};
+  const data = props ? props : dataLoader ? await dataLoader(props) : {};
 
   if (element) {
     const elementInstance = new element(data); // eslint-disable-line new-cap
 
-    // support for HTML (Light DOM) Web Components
-    elementInstance.innerHTML = renderLightDomChildren(childNodes);
+    elementInstance.childNodes = childNodes;
 
     attrs.forEach((attr) => {
       elementInstance.setAttribute(attr.name, attr.value);
-
-      if (attr.name === 'hydrate') {
-        definitions[tagName].hydrate = attr.value;
-      }
     });
 
     await elementInstance.connectedCallback();
@@ -239,22 +178,31 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   const elementTagName = wrappingEntryTag && await getTagName(elementURL);
   const isEntry = !!elementTagName;
   const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry, props);
+
   let html;
 
   // in case the entry point isn't valid
   if (elementInstance) {
-    const elementHtml = elementInstance.shadowRoot
-      ? elementInstance.getHTML({ serializableShadowRoots: true })
-      : elementInstance.innerHTML;
-    const elementTree = getParse(elementHtml)(elementHtml);
-    const finalTree = await renderComponentRoots(elementTree, definitions);
+    elementInstance.nodeName = elementTagName ?? '';
+    elementInstance.tagName = elementTagName ?? '';
+
+    await renderComponentRoots(
+      elementInstance.shadowRoot
+        ? 
+        { 
+          nodeName: '#document-fragment', 
+          childNodes: [elementInstance] 
+        }
+        : elementInstance,
+      definitions
+    );
 
     html = wrappingEntryTag && elementTagName ? `
         <${elementTagName}>
-          ${serialize(finalTree)}
+          ${serialize(elementInstance)}
         </${elementTagName}>
       `
-      : serialize(finalTree);
+      : serialize(elementInstance);
   } else {
     console.warn('WARNING: No custom element class found for this entry point.');
   }
