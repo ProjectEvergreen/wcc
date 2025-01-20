@@ -14,7 +14,7 @@ function isShadowRoot(element) {
 
 function deepClone(obj, map = new WeakMap()) {
   if (obj === null || typeof obj !== 'object') {
-    return obj; // Return primitives or functions as-is
+    return obj;
   }
 
   if (typeof obj === 'function') {
@@ -90,7 +90,7 @@ class Node extends EventTarget {
     const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
 
     if (node.parentNode) {
-      node.parentNode?.removeChild?.(node); // Remove from current parent
+      node.parentNode?.removeChild?.(node);
     }
 
     if (node.nodeName === 'template') {
@@ -130,24 +130,21 @@ class Node extends EventTarget {
 
   get textContent() {
     if (this.nodeName === '#text') {
-      return this.value || ''; // Text nodes should return their value
+      return this.value || '';
     }
 
-    // Compute textContent for elements by concatenating text of all descendants
     return this.childNodes
       .map((child) => child.nodeName === '#text' ? child.value : child.textContent)
       .join('');
   }
 
   set textContent(value) {
-    // Remove all current child nodes
     this.childNodes = [];
 
     if (value) {
-      // Create a single text node with the given value
       const textNode = new Node();
       textNode.nodeName = '#text';
-      textNode.value = value; // Text node content
+      textNode.value = value;
       textNode.parentNode = this;
       this.childNodes.push(textNode);
     }
@@ -171,29 +168,25 @@ class Element extends Node {
     return this.shadowRoot && serializableShadowRoots && this.shadowRoot.serializable ? this.shadowRoot.innerHTML : '';
   }
 
-  // Serialize the content of the DocumentFragment when getting innerHTML
   get innerHTML() {
     const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
     return childNodes ? serialize({ childNodes }) : '';
   }
 
   set innerHTML(html) {
-    (this.nodeName === 'template' ? this.content : this).childNodes = getParse(html)(html).childNodes; // Replace content's child nodes
+    (this.nodeName === 'template' ? this.content : this).childNodes = getParse(html)(html).childNodes;
   }
 
   hasAttribute(name) {
-    // Modified attribute handling to work with parse5
     return this.attrs.some((attr) => attr.name === name);
   }
 
   getAttribute(name) {
-    // Modified attribute handling to work with parse5
     const attr = this.attrs.find((attr) => attr.name === name);
     return attr ? attr.value : null;
   }
 
   setAttribute(name, value) {
-    // Modified attribute handling to work with parse5
     const attr = this.attrs?.find((attr) => attr.name === name);
 
     if (attr) {
