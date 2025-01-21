@@ -2,7 +2,6 @@ const template = document.createElement('template');
 
 template.innerHTML = '<p>This is the NoExportComponent component.</p>';
 
-// eslint-disable-next-line no-unused-vars
 class NoExportComponent extends HTMLElement {
   constructor() {
     super();
