@@ -152,12 +152,9 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
 }
 
 function getTagName(moduleContents) {
-  if (!moduleContents) {
-    return;
-  }
 
   const regex = /customElements\.define\(\s*['"`]\s*([\w-]+)\s*['"`]/;
-  const match = moduleContents.match(regex);
+  const match = moduleContents?.match(regex);
 
   return match ? match[1] : undefined;
 }
@@ -178,13 +175,7 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
     );
 
     html =
-      wrappingEntryTag && elementInstance.tagName
-        ? `
-        <${elementInstance.tagName}>
-          ${serialize(elementInstance)}
-        </${elementInstance.tagName}>
-      `
-        : serialize(elementInstance);
+      wrappingEntryTag && elementInstance.tagName ? elementInstance.outerHTML : elementInstance.innerHTML;
   } else {
     console.warn('WARNING: No custom element class found for this entry point.');
   }

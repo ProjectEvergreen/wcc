@@ -1,6 +1,6 @@
 /* eslint-disable no-warning-comments */
 
-import { parse, parseFragment, serialize } from 'parse5';
+import { parse, parseFragment, serialize, serializeOuter } from 'parse5';
 
 export function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
@@ -175,6 +175,10 @@ class Element extends Node {
 
   set innerHTML(html) {
     (this.nodeName === 'template' ? this.content : this).childNodes = getParse(html)(html).childNodes;
+  }
+
+  get outerHTML() {
+    return serializeOuter(this);
   }
 
   hasAttribute(name) {
