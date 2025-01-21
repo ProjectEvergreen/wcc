@@ -2,152 +2,133 @@
 // this must come first
 import { getParse } from './dom-shim.js';
 
-import * as acorn from 'acorn';
-import * as walk from 'acorn-walk';
-import { generate } from 'astring';
-import { getParser, parseJsx } from './jsx-loader.js';
+import { generateParsedJsx } from './jsx-loader.js';
 import { serialize } from 'parse5';
-import { transform } from 'sucrase';
 import fs from 'fs';
 
-function isCustomElementDefinitionNode(node) {
-  const { expression } = node;
-
-  return expression.type === 'CallExpression' && expression.callee && expression.callee.object
-    && expression.callee.property && expression.callee.object.name === 'customElements'
-    && expression.callee.property.name === 'define';
-}
+const processedModules = new Set();
+const PARSE_FILE_TYPES = ['jsx', 'ts'];
 
 async function renderComponentRoots(tree, definitions) {
   for (const node of tree.childNodes) {
-    if (node.tagName && node.tagName.indexOf('-') > 0) {
-      const { attrs, tagName } = node;
+    if (!node.tagName || node.tagName.indexOf('-') <= 0) {
+      await processChildNodes(node, definitions);
+      continue;
+    }
 
-      if (definitions[tagName]) {
-        const { moduleURL } = definitions[tagName];
-        const elementInstance = await initializeCustomElement(moduleURL, tagName, node, definitions);
+    const { attrs, tagName } = node;
+    if (definitions[tagName]) {
+      await handleCustomElement(node, definitions);
+    } else {
+      console.warn(`WARNING: customElement <${tagName}> is not defined. You may not have imported it.`);
+    }
 
-        if (elementInstance) {
-          const hasShadow = elementInstance.shadowRoot;
-
-          node.childNodes = hasShadow
-            ? [...elementInstance.shadowRoot.childNodes, ...node.childNodes]
-            : elementInstance.childNodes;
-        } else {
-          console.warn(`WARNING: customElement <${tagName}> detected but not serialized.  You may not have exported it.`);
-        }
-      } else {
-        console.warn(`WARNING: customElement <${tagName}> is not defined.  You may not have imported it.`);
+    attrs.forEach((attr) => {
+      if (attr.name === 'hydrate') {
+        definitions[tagName].hydrate = attr.value;
       }
+    });
 
-      attrs.forEach((attr) => {
-        if (attr.name === 'hydrate') {
-          definitions[tagName].hydrate = attr.value;
-        }
-      });
-
-    }
-
-    if (node.childNodes && node.childNodes.length > 0) {
-      await renderComponentRoots(node, definitions);
-    }
-
-    if (node.shadowRoot && node.shadowRoot.childNodes?.length > 0) {
-      await renderComponentRoots(node.shadowRoot, definitions);
-    }
-
-    // does this only apply to `<template>` tags?
-    if (node.content && node.content.childNodes?.length > 0) {
-      await renderComponentRoots(node.content, definitions);
-    }
+    await processChildNodes(node, definitions);
   }
 
   return tree;
 }
 
-function registerDependencies(moduleURL, definitions, depth = 0) {
-  const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
-  const result = transform(moduleContents, {
-    transforms: ['typescript', 'jsx'],
-    jsxRuntime: 'preserve'
-  });
-  const nextDepth = depth += 1;
-  const customParser = getParser(moduleURL);
-  const parser = customParser ? customParser.parser : acorn.Parser;
-  const config = customParser ? customParser.config : {
-    ...walk.base
-  };
+async function handleCustomElement(node, definitions) {
+  const { tagName } = node;
+  const { moduleURL } = definitions[tagName];
+  const elementInstance = await initializeCustomElement(moduleURL, tagName, node, definitions);
 
-  walk.simple(parser.parse(result.code, {
-    ecmaVersion: 'latest',
-    sourceType: 'module'
-  }), {
-    ImportDeclaration(node) {
-      const specifier = node.source.value;
+  if (elementInstance) {
+    const hasShadow = elementInstance.shadowRoot;
+
+    node.childNodes = hasShadow
+      ? [...elementInstance.shadowRoot.childNodes, ...node.childNodes]
+      : elementInstance.childNodes;
+  } else {
+    console.warn(`WARNING: customElement <${tagName}> detected but not serialized.  You may not have exported it.`);
+  }
+}
+
+async function processChildNodes(node, definitions) {
+  if (node.childNodes?.length) {
+    await renderComponentRoots(node, definitions);
+  }
+  if (node.shadowRoot?.childNodes?.length) {
+    await renderComponentRoots(node.shadowRoot, definitions);
+  }
+  if (node.content?.childNodes?.length) {
+    await renderComponentRoots(node.content, definitions);
+  }
+}
+
+function registerDependencies(moduleURL, definitions, depth = 0) {
+  if (processedModules.has(moduleURL.href)) {
+    return;
+  }
+
+  processedModules.add(moduleURL.href);
+
+  let moduleContents;
+
+  try {
+    moduleContents = fs.readFileSync(moduleURL, 'utf-8');
+  } catch (error) {
+    console.error(`Error reading file at ${moduleURL.href}:`, error);
+    return;
+  }
+  
+  const shouldTransformAndParse = PARSE_FILE_TYPES.includes(moduleURL.pathname.split('.').pop());
+  const source = shouldTransformAndParse ? generateParsedJsx(moduleURL) : moduleContents;
+
+  const customElementDefinitionFound = source.includes('customElements.define');
+
+  let match;
+  const nextDepth = depth + 1;
+
+  const containsImport = moduleContents.includes('import');
+
+  if (containsImport) {
+    const importRegex = /import\s+(['"`])(.*?)\1/g;
+
+    while ((match = importRegex.exec(source))) {
+      const specifier = match[2];
       const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
       const extension = specifier.split('.').pop();
 
-      // would like to decouple .jsx from the core, ideally
-      // https://github.com/ProjectEvergreen/wcc/issues/122
       if (!isBareSpecifier && ['js', 'jsx', 'ts'].includes(extension)) {
-        const dependencyModuleURL = new URL(node.source.value, moduleURL);
-
+        const dependencyModuleURL = new URL(specifier, moduleURL);
         registerDependencies(dependencyModuleURL, definitions, nextDepth);
       }
-    },
-    ExpressionStatement(node) {
-      if (isCustomElementDefinitionNode(node)) {
-        const { arguments: args } = node.expression;
-        const tagName = args[0].type === 'Literal'
-          ? args[0].value // single and double quotes
-          : args[0].quasis[0].value.raw; // template literal
-        const tree = parseJsx(moduleURL);
-        const isEntry = nextDepth - 1 === 1;
-
-        definitions[tagName] = {
-          instanceName: args[1].name,
-          moduleURL,
-          source: generate(tree),
-          url: moduleURL,
-          isEntry
-        };
-      }
     }
-  }, config);
+  }
+
+  if (customElementDefinitionFound) {
+    const customElementRegex = /customElements\.define\s*\(\s*(['"`])([^'"`]+)\1\s*,/g;
+
+    while ((match = customElementRegex.exec(source))) {
+      const tagName = match[2];
+      definitions[tagName] = {
+        instanceName: tagName,
+        moduleURL,
+        source,
+        url: moduleURL,
+        isEntry: depth === 1
+      };
+    }
+  }
+
+  return moduleContents;
 }
 
-async function getTagName(moduleURL) {
-  const moduleContents = await fs.promises.readFile(moduleURL, 'utf-8');
-  const result = transform(moduleContents, {
-    transforms: ['typescript', 'jsx'],
-    jsxRuntime: 'preserve'
-  });
-  const customParser = getParser(moduleURL);
-  const parser = customParser ? customParser.parser : acorn.Parser;
-  const config = customParser ? customParser.config : {
-    ...walk.base
-  };
-  let tagName;
-
-  walk.simple(parser.parse(result.code, {
-    ecmaVersion: 'latest',
-    sourceType: 'module'
-  }), {
-    ExpressionStatement(node) {
-      if (isCustomElementDefinitionNode(node)) {
-        tagName = node.expression.arguments[0].value;
-      }
-    }
-  }, config);
-
-  return tagName;
-}
-
-async function initializeCustomElement(elementURL, tagName, node = {}, definitions = [], isEntry, props = {}) {
+async function initializeCustomElement(elementURL, tagName, node = {}, definitions = [], props = {}) {
 
   if (!tagName) {
-    const depth = isEntry ? 1 : 0;
-    registerDependencies(elementURL, definitions, depth);
+    const moduleContents = registerDependencies(elementURL, definitions);
+    if (moduleContents) {
+      tagName = getTagName(moduleContents);
+    }
   }
 
   // https://github.com/ProjectEvergreen/wcc/pull/67/files#r902061804
@@ -159,8 +140,10 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
 
   if (element) {
     const elementInstance = new element(data); // eslint-disable-line new-cap
-
+    
     Object.assign(elementInstance, node);
+    elementInstance.nodeName = tagName ?? '';
+    elementInstance.tagName = tagName ?? '';
 
     await elementInstance.connectedCallback();
 
@@ -168,36 +151,40 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
   }
 }
 
+function getTagName(moduleContents) {
+  if (!moduleContents) {
+    return;
+  }
+
+  const regex = /customElements\.define\(\s*['"`]\s*([\w-]+)\s*['"`]/;
+  const match = moduleContents.match(regex);
+
+  return match ? match[1] : undefined;
+}
+
 async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   const definitions = [];
-  const elementTagName = wrappingEntryTag && await getTagName(elementURL);
-  const isEntry = !!elementTagName;
-  const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry, props);
+  const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, props);
 
   let html;
 
   // in case the entry point isn't valid
   if (elementInstance) {
-    elementInstance.nodeName = elementTagName ?? '';
-    elementInstance.tagName = elementTagName ?? '';
-
     await renderComponentRoots(
       elementInstance.shadowRoot
-        ? 
-        { 
-          nodeName: '#document-fragment', 
-          childNodes: [elementInstance] 
-        }
+        ? { nodeName: '#document-fragment', childNodes: [elementInstance] }
         : elementInstance,
       definitions
     );
 
-    html = wrappingEntryTag && elementTagName ? `
-        <${elementTagName}>
+    html =
+      wrappingEntryTag && elementInstance.tagName
+        ? `
+        <${elementInstance.tagName}>
           ${serialize(elementInstance)}
-        </${elementTagName}>
+        </${elementInstance.tagName}>
       `
-      : serialize(elementInstance);
+        : serialize(elementInstance);
   } else {
     console.warn('WARNING: No custom element class found for this entry point.');
   }
@@ -224,7 +211,4 @@ async function renderFromHTML(html, elements = []) {
   };
 }
 
-export {
-  renderToString,
-  renderFromHTML
-};
+export { renderToString, renderFromHTML };

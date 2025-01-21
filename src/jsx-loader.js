@@ -24,6 +24,18 @@ function getParse(html) {
     : parseFragment;
 }
 
+// NOTE Potentially OK to not export
+export function transformJsx(code) {
+  return transform(code, {
+    transforms: ['typescript', 'jsx'],
+    jsxRuntime: 'preserve'
+  });
+}
+
+export function generateParsedJsx(moduleURL) {
+  return generate(parseJsx(moduleURL));
+}
+
 export function getParser(moduleURL) {
   const isJSX = moduleURL.pathname.split('.').pop() === 'jsx';
 
@@ -233,10 +245,7 @@ function findThisReferences(context, statement) {
 
 export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
-  const result = transform(moduleContents, {
-    transforms: ['typescript', 'jsx'],
-    jsxRuntime: 'preserve'
-  });
+  const result = transformJsx(moduleContents);
   // would be nice if we could do this instead, so we could know ahead of time
   // const { inferredObservability } = await import(moduleURL);
   // however, this requires making parseJsx async, but WCC acorn walking is done sync

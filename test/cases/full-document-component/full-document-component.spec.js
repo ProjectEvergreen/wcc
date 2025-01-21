@@ -16,7 +16,7 @@ import { renderToString } from '../../../src/wcc.js';
 const expect = chai.expect;
 
 describe('Run WCC For ', function () {
-  const LABEL = 'Custom Element w/ Document Fragments';
+  const LABEL = 'Custom Element w/ Full HTML Document';
   let renderedContent;
 
   before(async function () {
@@ -25,7 +25,7 @@ describe('Run WCC For ', function () {
   });
 
   describe(LABEL, function () {
-    it('should have a heading tag with text renderedContent equal to "document.createDocumentFragment()"', function () {
+    it('should have a full-document-component with a full document rendered inside', function () {
       expect(renderedContent).to.equal(
         '<full-document-component><!DOCTYPE html><html><head><title>App Layout</title></head><body><h1>App Layout</h1></body></html></full-document-component>'.replace(
           /\s+/g,

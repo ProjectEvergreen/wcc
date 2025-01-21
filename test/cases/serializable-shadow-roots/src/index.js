@@ -3,7 +3,7 @@ import './components/serializable-non-ssr-component.js';
 import './components/unserializable-ssr-component.js';
 import './components/unserializable-non-ssr-component.js';
 
-export default class HomePage extends HTMLElement {
+export default class SerializableContainer extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
       <serializable-ssr-component></serializable-ssr-component>
@@ -14,4 +14,4 @@ export default class HomePage extends HTMLElement {
   }
 }
 
-customElements.define('wcc-home', HomePage);
+customElements.define('serializable-container', SerializableContainer);

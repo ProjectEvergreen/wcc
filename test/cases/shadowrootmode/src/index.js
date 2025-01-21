@@ -1,7 +1,7 @@
 import './components/open-shadow-component.js';
 import './components/closed-shadow-component.js';
 
-export default class HomePage extends HTMLElement {
+export default class ShadowRootModeContainer extends HTMLElement {
   constructor() {
     super();
   }
@@ -14,4 +14,4 @@ export default class HomePage extends HTMLElement {
   }
 }
 
-customElements.define('wcc-home', HomePage);
+customElements.define('shadowrootmode-container', ShadowRootModeContainer);
