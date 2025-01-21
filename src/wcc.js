@@ -82,18 +82,14 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
   const shouldTransformAndParse = PARSE_FILE_TYPES.includes(moduleURL.pathname.split('.').pop());
   const source = shouldTransformAndParse ? generateParsedJsx(moduleURL) : moduleContents;
 
-  const customElementDefinitionFound = source.includes('customElements.define');
-
   let match;
   const nextDepth = depth + 1;
 
-  const containsImport = moduleContents.includes('import');
-
-  if (containsImport) {
-    const importRegex = /import\s+(['"`])(.*?)\1/g;
+  if (source.includes('import')) {
+    const importRegex = /import(?:\s+[\w{},*\s]+)?\s+from\s+['"`](.*?)['"`]|import\s+['"`](.*?)['"`]/g;
 
     while ((match = importRegex.exec(source))) {
-      const specifier = match[2];
+      const specifier = match[1] || match[2];
       const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
       const extension = specifier.split('.').pop();
 
@@ -104,7 +100,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
     }
   }
 
-  if (customElementDefinitionFound) {
+  if (source.includes('customElements.define')) {
     const customElementRegex = /customElements\.define\s*\(\s*(['"`])([^'"`]+)\1\s*,/g;
 
     while ((match = customElementRegex.exec(source))) {
