@@ -86,9 +86,10 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
   const nextDepth = depth + 1;
 
   if (source.includes('import')) {
-    const importRegex = /import(?:\s+[\w{},*\s]+)?\s+from\s+['"`](.*?)['"`]|import\s+['"`](.*?)['"`]/g;
+    const importRegex = /import(?:\s+[\w{},*\s]+)?\s+from\s+['"`]([^'"`\n]+)['"`]|import\s+['"`]([^'"`\n]+)['"`]/gm;
 
-    while ((match = importRegex.exec(source))) {
+    // Remove comments before matching imports
+    while ((match = importRegex.exec(source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '')))) {
       const specifier = match[1] || match[2];
       const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
       const extension = specifier.split('.').pop();
