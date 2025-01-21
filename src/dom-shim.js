@@ -1,5 +1,3 @@
-/* eslint-disable no-warning-comments */
-
 import { parse, parseFragment, serialize } from 'parse5';
 
 export function getParse(html) {
@@ -47,7 +45,6 @@ function getParse5ElementDefaults(element, tagName) {
     nodeName: tagName,
     tagName: tagName,
     namespaceURI: 'http://www.w3.org/1999/xhtml',
-    // eslint-disable-next-line no-extra-parens
     ...(tagName === 'template' ? { content: { nodeName: '#document-fragment', childNodes: [] } } : {})
   };
 }

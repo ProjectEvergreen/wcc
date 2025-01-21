@@ -1,4 +1,3 @@
-/* eslint-disable max-depth */
 // this must come first
 import { getParse } from './dom-shim.js';
 
@@ -158,7 +157,7 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
   const data = props ? props : dataLoader ? await dataLoader(props) : {};
 
   if (element) {
-    const elementInstance = new element(data); // eslint-disable-line new-cap
+    const elementInstance = new element(data);
 
     Object.assign(elementInstance, node);
 
