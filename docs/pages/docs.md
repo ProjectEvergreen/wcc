@@ -49,6 +49,40 @@ class Home extends HTMLElement {
 export default Home;
 ```
 
+You can also manually set `innerHTML` of Shadow Root if you don't want to use a template element
+
+```js
+// index.js
+import './components/footer.js';
+import './components/header.js';
+
+class Home extends HTMLElement {
+
+  connectedCallback() {
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.innerHTML = `
+        <style>
+          :root {
+            --accent: #367588;
+          }
+        </style>
+
+        <wcc-header></wcc-header>
+
+        <main>
+          <h1>My Website</h1>
+        </main>
+
+        <wcc-footer></wcc-footer>
+      `;
+    }
+  }
+}
+
+export default Home;
+```
+
 > _**Note**: **WCC** will wrap or not wrap your _entry point's HTML_ in a custom element tag if you do or do not, respectively, include a `customElements.define` in your entry point.  **WCC** will use the tag name you define as the custom element tag name in the generated HTML._
 >
 > You can opt-out of this by passing `false` as the second parameter to `renderToString`.
@@ -195,21 +229,19 @@ class Counter extends HTMLElement {
     this.render();
   }
 
-  // ....
+  // setup your shadow root ...
 
   render() {
-    return `
-      <template shadowrootmode="open">
-        <script type="application/json">
-          ${JSON.stringify({ count: this.count })}
-        </script>
+    this.shadowRoot.innerHTML = `
+      <script type="application/json">
+        ${JSON.stringify({ count: this.count })}
+      </script>
 
-        <div>
-          <button id="inc">Increment</button>
-          <span>Current Count: <span id="count">${this.count}</span></span>
-          <button id="dec">Decrement</button>
-        </div>
-      </template>
+      <div>
+        <button id="inc">Increment</button>
+        <span>Current Count: <span id="count">${this.count}</span></span>
+        <button id="dec">Decrement</button>
+      </div>
     `;
   }
 }
