@@ -1,4 +1,3 @@
-/* eslint-disable max-depth, complexity */
 // https://nodejs.org/api/esm.html#esm_loaders
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
@@ -138,13 +137,13 @@ function parseJsxElement(element, moduleContents = '') {
               const { expression } = value;
 
               if (expression.type === 'Identifier') {
-                string += ` ${name}=\$\{${expression.name}\}`;
+                string += ` ${name}=$\{${expression.name}}`;
               }
 
               if (expression.type === 'MemberExpression') {
                 if (expression.object.type === 'Identifier') {
                   if (expression.property.type === 'Identifier') {
-                    string += ` ${name}=\$\{${expression.object.name}.${expression.property.name}\}`;
+                    string += ` ${name}=$\{${expression.object.name}.${expression.property.name}}`;
                   }
                 }
               }
@@ -174,7 +173,7 @@ function parseJsxElement(element, moduleContents = '') {
 
       if (type === 'Identifier') {
         // You have {count} TODOs left to complete
-        string += `\$\{${element.expression.name}\}`;
+        string += `$\{${element.expression.name}}`;
       } else if (type === 'MemberExpression') {
         const { object } = element.expression.object;
 
@@ -187,7 +186,7 @@ function parseJsxElement(element, moduleContents = '') {
           // const { todos } = this;
           // ....
           // You have {todos.length} Todos left to complete
-          string += `\$\{${element.expression.object.name}.${element.expression.property.name}\}`;
+          string += `$\{${element.expression.object.name}.${element.expression.property.name}}`;
         }
       }
     }
@@ -333,7 +332,6 @@ export function parseJsx(moduleURL) {
     let newModuleContents = generate(tree);
 
     // TODO better way to determine value type?
-    /* eslint-disable indent */
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
         return [${[...observedAttributes].map(attr => `'${attr}'`).join(',')}]
@@ -366,7 +364,6 @@ export function parseJsx(moduleURL) {
 
       ${newModuleContents.slice(insertPoint)}
     `;
-    /* eslint-enable indent */
 
     tree = acorn.Parser.extend(jsx()).parse(newModuleContents, {
       ecmaVersion: 'latest',
