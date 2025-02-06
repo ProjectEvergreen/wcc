@@ -37,9 +37,7 @@
     "test": "mocha --exclude \"./test/cases/jsx*/**\" --exclude \"./test/cases/ts*/**\" --exclude \"./test/cases/custom-extension/**\" \"./test/**/**/*.spec.js\"",
     "test:exp": "c8 node --loader ./test-exp-loader.js ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
     "test:tdd": "npm run test -- --watch",
-    "test:tdd:exp": "npm run test:exp -- --watch",
-    "dist": "rollup -c rollup.config.js",
-    "prepublishOnly": "npm run clean && npm run dist"
+    "test:tdd:exp": "npm run test:exp -- --watch"
   },
   "dependencies": {
     "@projectevergreen/acorn-jsx-esm": "~0.1.0",
@@ -56,8 +54,6 @@
     "@eslint/js": "^9.11.1",
     "@ls-lint/ls-lint": "^1.10.0",
     "@mapbox/rehype-prism": "^0.8.0",
-    "@rollup/plugin-commonjs": "^28.0.0",
-    "@rollup/plugin-node-resolve": "^15.2.3",
     "c8": "^7.11.2",
     "chai": "^4.3.6",
     "concurrently": "^7.1.0",
@@ -78,7 +74,6 @@
     "remark-rehype": "^10.1.0",
     "remark-toc": "^8.0.1",
     "rimraf": "^3.0.2",
-    "rollup": "^4.26.0",
     "simple.css": "^0.1.3",
     "unified": "^10.1.2"
   }
