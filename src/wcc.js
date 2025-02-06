@@ -149,11 +149,8 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
     registerDependencies(elementURL, definitions, depth);
   }
 
-  // https://github.com/ProjectEvergreen/wcc/pull/67/files#r902061804
-  // https://github.com/ProjectEvergreen/wcc/pull/159
-  const { href } = elementURL;
-  const element = customElements.get(tagName) ?? (await import(href)).default;
-  const dataLoader = (await import(href)).getData;
+  const element = customElements.get(tagName) ?? (await import(elementURL)).default;
+  const dataLoader = (await import(elementURL)).getData;
   const data = props ? props : dataLoader ? await dataLoader(props) : {};
 
   if (element) {
