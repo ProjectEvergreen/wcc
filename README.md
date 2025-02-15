@@ -4,8 +4,9 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/e718eac2-b3bc-4986-8569-49706a430beb/deploy-status)](https://app.netlify.com/sites/merry-caramel-524e61/deploys)
 [![GitHub release](https://img.shields.io/github/tag/ProjectEvergreen/wcc.svg)](https://github.com/ProjectEvergreen/wcc/tags)
-![GitHub Actions status](https://github.com/ProjectEvergreen/wcc/workflows/Master%20Integration/badge.svg)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/ProjectEvergreen/wcc/master/LICENSE.md)
+[![NodeJS compatibility](https://img.shields.io/node/v/wc-compiler.svg)](https://nodejs.org/en/about/previous-releases")
+[![Discord Chat](https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord)](https://www.greenwoodjs.dev/discord/)
 
 > _Experimental Web Components compiler.  It's Web Components all the way down!_  🐢
 
