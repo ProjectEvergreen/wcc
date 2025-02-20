@@ -6,8 +6,12 @@
     "type": "git",
     "url": "https://github.com/ProjectEvergreen/wcc.git"
   },
-  "main": "src/wcc.js",
   "type": "module",
+  "main": "src/wcc.js",
+  "exports": {
+    ".": "./src/wcc.js",
+    "./types": "./src/index.d.ts"
+  },
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "keywords": [
     "Web Components",

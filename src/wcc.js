@@ -169,13 +169,7 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
   }
 }
 
-/**
- * @param {URL} elementURL - The entry point custom element definition
- * @param {boolean} wrappingEntryTag - Whether to wrap (or not wrap) your entry point's HTML in a custom element tag 
- * @param {any} props - Constructor props
- *
- * @returns {Promise<{ html: string, metadata: any[] }>}- Fully rendered HTML contents and custom elements metadata
- */
+/** @type {import('./index.d.ts').renderToString} */
 async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   const definitions = [];
   const elementTagName = wrappingEntryTag && await getTagName(elementURL);
@@ -216,12 +210,7 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   };
 }
 
-/**
- * @param {string} html - The HTML contents to render from
- * @param {URL[]} elements - Custom element definitions to pass to the renderer
- *
- * @returns {Promise<{ html: string, metadata: any[] }>} Fully rendered HTML contents and custom elements metadata
- */
+/** @type {import('./index.d.ts').renderFromHTML} */
 async function renderFromHTML(html, elements = []) {
   const definitions = [];
 
