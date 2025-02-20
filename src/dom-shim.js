@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { parse, parseFragment, serialize } from 'parse5';
 
 export function getParse(html) {

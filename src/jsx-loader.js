@@ -5,6 +5,8 @@ import { generate } from 'astring';
 import fs from 'fs';
 // ideally we can eventually adopt an ESM compatible version of this plugin
 // https://github.com/acornjs/acorn-jsx/issues/112
+// @ts-ignore
+// but it does have a default export???
 import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
 import { transform } from 'sucrase';
@@ -250,11 +252,13 @@ export function parseJsx(moduleURL) {
 
   walk.simple(tree, {
     ClassDeclaration(node) {
+      // @ts-ignore
       if (node.superClass.name === 'HTMLElement') {
         const hasShadowRoot = moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
         for (const n1 of node.body.body) {
           if (n1.type === 'MethodDefinition') {
+            // @ts-ignore
             const nodeName = n1.key.name;
             if (nodeName === 'render') {
               for (const n2 in n1.value.body.body) {
@@ -265,6 +269,7 @@ export function parseJsx(moduleURL) {
                     ...observedAttributes,
                     ...findThisReferences('render', n)
                   ];
+                  // @ts-ignore
                 } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
                   const html = parseJsxElement(n.argument, moduleContents);
                   const elementTree = getParse(html)(html);
@@ -296,6 +301,7 @@ export function parseJsx(moduleURL) {
                     sourceType: 'module'
                   });
 
+                  // @ts-ignore
                   n1.value.body.body[n2] = transformed;
                 }
               }
@@ -308,7 +314,9 @@ export function parseJsx(moduleURL) {
       const { declaration } = node;
 
       if (declaration && declaration.type === 'VariableDeclaration' && declaration.kind === 'const' && declaration.declarations.length === 1) {
+        // @ts-ignore
         if (declaration.declarations[0].id.name === 'inferredObservability') {
+          // @ts-ignore
           inferredObservability = Boolean(node.declaration.declarations[0].init.raw);
         }
       }
@@ -316,6 +324,7 @@ export function parseJsx(moduleURL) {
   }, {
     // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
     ...walk.base,
+    // @ts-ignore
     JSXElement: () => {}
   });
 
@@ -324,7 +333,9 @@ export function parseJsx(moduleURL) {
     let insertPoint;
     for (const line of tree.body) {
       // test for class MyComponent vs export default class MyComponent
+      // @ts-ignore
       if (line.type === 'ClassDeclaration' || (line.declaration && line.declaration.type) === 'ClassDeclaration') {
+        // @ts-ignore
         insertPoint = line.declaration.body.start + 1;
       }
     }

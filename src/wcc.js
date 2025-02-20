@@ -83,19 +83,23 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
   }), {
     ImportDeclaration(node) {
       const specifier = node.source.value;
-      const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
-      const extension = specifier.split('.').pop();
 
-      // would like to decouple .jsx from the core, ideally
-      // https://github.com/ProjectEvergreen/wcc/issues/122
-      if (!isBareSpecifier && ['js', 'jsx', 'ts'].includes(extension)) {
-        const dependencyModuleURL = new URL(node.source.value, moduleURL);
+      if (typeof specifier === 'string') {
+        const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
+        const extension = typeof specifier === "string" ? specifier.split('.').pop() : "";
 
-        registerDependencies(dependencyModuleURL, definitions, nextDepth);
+        // would like to decouple .jsx from the core, ideally
+        // https://github.com/ProjectEvergreen/wcc/issues/122
+        if (!isBareSpecifier && ['js', 'jsx', 'ts'].includes(extension)) {
+          const dependencyModuleURL = new URL(specifier, moduleURL);
+
+          registerDependencies(dependencyModuleURL, definitions, nextDepth);
+        }
       }
     },
     ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
+        // @ts-ignore
         const { arguments: args } = node.expression;
         const tagName = args[0].type === 'Literal'
           ? args[0].value // single and double quotes
@@ -134,6 +138,7 @@ async function getTagName(moduleURL) {
   }), {
     ExpressionStatement(node) {
       if (isCustomElementDefinitionNode(node)) {
+        // @ts-ignore
         tagName = node.expression.arguments[0].value;
       }
     }
@@ -164,6 +169,13 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
   }
 }
 
+/**
+ * @param {URL} elementURL - The entry point custom element definition
+ * @param {boolean} wrappingEntryTag - Whether to wrap (or not wrap) your entry point's HTML in a custom element tag 
+ * @param {any} props - Constructor props
+ *
+ * @returns {Promise<{ html: string, metadata: any[] }>}- Fully rendered HTML contents and custom elements metadata
+ */
 async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   const definitions = [];
   const elementTagName = wrappingEntryTag && await getTagName(elementURL);
@@ -204,6 +216,12 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   };
 }
 
+/**
+ * @param {string} html - The HTML contents to render from
+ * @param {URL[]} elements - Custom element definitions to pass to the renderer
+ *
+ * @returns {Promise<{ html: string, metadata: any[] }>} Fully rendered HTML contents and custom elements metadata
+ */
 async function renderFromHTML(html, elements = []) {
   const definitions = [];
 
