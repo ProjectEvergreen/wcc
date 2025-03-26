@@ -29,6 +29,3 @@ jobs:
     - name: Build
       run: |
         npm run docs:build
-    - name: Dist
-      run: |
-        npm run dist
