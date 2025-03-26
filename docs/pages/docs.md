@@ -287,12 +287,11 @@ customElements.define('wcc-greeting', Greeting);
 ### Prerequisites
 
 There are of couple things you will need to do to use WCC with TypeScript parsing:
-1. NodeJS version needs to be >= `18.20.0`
+1. NodeJS version needs to be >= `22.6.0`
 1. You will need to use the _.ts_ extension
-1. Requires the `--loader` flag when invoking NodeJS
-    ```shell
-    $ node --loader ./node_modules/wc-compiler/src/ts-loader.js main.ts
-    ```
+1. You'll want to enable the [`erasableSyntaxOnly`](https://devblogs.microsoft.com/typescript/announcing-typescript-5-8/#the---erasablesyntaxonly-option) flag in your _tsconfig.json_
+
+> If you're feeling adventurous, you can use NodeJS **>=23.x** and omit the `--experimental-strip-types` flag. Keep an eye on this PR for when unflagged type-stripping support may come to Node LTS 22.x. 👀
 
 ## JSX
 
