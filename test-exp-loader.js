@@ -3,7 +3,6 @@
 import fs from 'fs';
 import path from 'path';
 import { load as experimentalLoadJsx, resolve as experimentalResolveJsx } from './src/jsx-loader.js';
-import { load as experimentalLoadTs, resolve as experimentalResolveTs } from './src/ts-loader.js';
 
 export async function load(url, context, defaultLoad) {
   const ext = path.extname(url);
@@ -12,8 +11,6 @@ export async function load(url, context, defaultLoad) {
     return loadBin(url, context, defaultLoad);
   } else if (ext === '.jsx') {
     return experimentalLoadJsx(url, context, defaultLoad);
-  } else if (ext === '.ts') {
-    return experimentalLoadTs(url, context, defaultLoad);
   } else if (ext === '.css') {
     return {
       format: 'module',
@@ -30,8 +27,6 @@ export function resolve(specifier, context, defaultResolve) {
 
   if (ext === '.jsx') {
     return experimentalResolveJsx(specifier, context, defaultResolve);
-  } else if (ext === '.ts') {
-    return experimentalResolveTs(specifier, context, defaultResolve);
   } else {
     return defaultResolve(specifier, context, defaultResolve);
   }

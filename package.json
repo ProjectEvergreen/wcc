@@ -41,7 +41,7 @@
     "sandbox": "npm run clean && concurrently \"nodemon --loader ./test-exp-loader.js --watch src --watch sandbox -e js,md,css,html,jsx,ts ./sandbox.js\" \"http-server ./dist --open\" \"livereload ./dist\"",
     "start": "npm run docs:serve",
     "test": "mocha --exclude \"./test/cases/jsx*/**\" --exclude \"./test/cases/ts*/**\" --exclude \"./test/cases/custom-extension/**\" \"./test/**/**/*.spec.js\"",
-    "test:exp": "c8 node --import ./test-exp-register.js ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
+    "test:exp": "c8 node --import ./test-exp-register.js --experimental-strip-types ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
     "test:tdd": "npm run test -- --watch",
     "test:tdd:exp": "npm run test:exp -- --watch"
   },

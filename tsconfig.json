@@ -5,6 +5,7 @@
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
     "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "checkJs": true,
     "allowJs": true,
     "noEmit": true,
