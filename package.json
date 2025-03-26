@@ -6,8 +6,12 @@
     "type": "git",
     "url": "https://github.com/ProjectEvergreen/wcc.git"
   },
-  "main": "src/wcc.js",
   "type": "module",
+  "main": "src/wcc.js",
+  "exports": {
+    ".": "./src/wcc.js",
+    "./types": "./src/index.d.ts"
+  },
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "keywords": [
     "Web Components",
@@ -28,6 +32,7 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "lint": "eslint",
+    "lint:types": "tsc --project tsconfig.json",
     "docs:dev": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html,jsx ./build.js\" \"http-server ./dist --open\"",
     "docs:build": "node ./build.js",
     "docs:serve": "npm run clean && npm run docs:build && http-server ./dist --open",
@@ -53,6 +58,8 @@
     "@eslint/js": "^9.11.1",
     "@ls-lint/ls-lint": "^1.10.0",
     "@mapbox/rehype-prism": "^0.8.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.13.4",
     "c8": "^7.11.2",
     "chai": "^4.3.6",
     "concurrently": "^7.1.0",
@@ -74,6 +81,7 @@
     "remark-toc": "^8.0.1",
     "rimraf": "^3.0.2",
     "simple.css": "^0.1.3",
+    "typescript": "^5.7.3",
     "unified": "^10.1.2"
   }
 }
