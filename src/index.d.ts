@@ -6,7 +6,6 @@ export type Metadata = object[{
   }
 }]
 
-// async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
 export type renderToString = (elementURL: URL, wrappingEntryTag?: boolean, props?: any) => Promise<{
   html: string;
   metadata: Metadata
