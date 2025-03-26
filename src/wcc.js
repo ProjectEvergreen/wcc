@@ -147,7 +147,7 @@ async function getTagName(moduleURL) {
   return tagName;
 }
 
-async function initializeCustomElement(elementURL, tagName, node = {}, definitions = [], isEntry, props = {}) {
+async function initializeCustomElement(elementURL, tagName, node = {}, definitions = {}, isEntry, props = {}) {
 
   if (!tagName) {
     const depth = isEntry ? 1 : 0;
@@ -171,7 +171,8 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
 
 /** @type {import('./index.d.ts').renderToString} */
 async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
-  const definitions = [];
+  /** @type {import('./index.d.ts').Metadata} */
+  const definitions = {};
   const elementTagName = wrappingEntryTag && await getTagName(elementURL);
   const isEntry = !!elementTagName;
   const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry, props);
@@ -212,7 +213,8 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
 
 /** @type {import('./index.d.ts').renderFromHTML} */
 async function renderFromHTML(html, elements = []) {
-  const definitions = [];
+  /** @type {import('./index.d.ts').Metadata} */
+  const definitions = {};
 
   for (const url of elements) {
     registerDependencies(url, definitions, 1);
