@@ -37,7 +37,7 @@ describe('Run WCC For ', function() {
       });
   
       it('should not have any definition', function() {
-        expect(meta.length).to.equal(0);
+        expect(Object.keys(meta).length).to.equal(0);
       });
     });
 
@@ -71,9 +71,8 @@ describe('Run WCC For ', function() {
         expect(rawHtml.replace(/ /g, '').replace(/\n/g, '')).to.equal(contents.replace(/ /g, '').replace(/\n/g, ''));
       });
 
-      // I think this is broken, should actually be equal to 2?
       it('should not have any definition', function() {
-        expect(meta.length).to.equal(0);
+        expect(Object.keys(meta).length).to.equal(2);
       });
     });
   });

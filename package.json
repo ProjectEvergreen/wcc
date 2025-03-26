@@ -10,9 +10,12 @@
   "main": "src/wcc.js",
   "types": "./src/index.d.ts",
   "exports": {
-    ".": "./src/wcc.js",
-    "./types": "./src/index.d.ts",
-    "./register": "./src/register.js"
+    ".": {
+      "import": "./src/wcc.js",
+      "types": "./src/index.d.ts"
+    },
+    "./register": "./src/register.js",
+    "./src/jsx-loader.js": "./src/jsx-loader.js"
   },
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "keywords": [
