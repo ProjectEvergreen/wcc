@@ -141,11 +141,11 @@ const { metadata } = await renderToString(new URL('./src/index.js', import.meta.
 console.log({ metadata });
 /*
  * {
- *   metadata: [
+ *   metadata: {
  *     'wcc-footer': { instanceName: 'Footer', moduleURL: [URL], isEntry: true },
  *     'wcc-header': { instanceName: 'Header', moduleURL: [URL],  isEntry: true },
  *     'wcc-navigation': { instanceName: 'Navigation', moduleURL: [URL],  isEntry: false }
- *   ]
+ *   }
  * }
  */
 ```
@@ -157,15 +157,15 @@ To achieve an islands architecture implementation, if you add `hydration="true"`
 <wcc-footer hydration="true"></wcc-footer>
 ```
 
-This will be reflected in the returned `metadata` array from `renderToString`.
+This will be reflected in the returned `metadata` object from `renderToString`.
 ```js
 /*
  * {
- *   metadata: [
+ *   metadata: {
  *     'wcc-footer': { instanceName: 'Footer', moduleURL: [URL], hydrate: 'true' },
  *     'wcc-header': { instanceName: 'Header', moduleURL: [URL] },
  *     'wcc-navigation': { instanceName: 'Navigation', moduleURL: [URL] }
- *   ]
+ *   }
  * }
  * 
  */

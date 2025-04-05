@@ -16,7 +16,7 @@
     ]
   },
   "include": [
-    "./src/",
+    "./src/**/**/*.js",
     "./test/**/*.spec.js"
   ]
 }
