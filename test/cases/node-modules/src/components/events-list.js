@@ -1,7 +1,7 @@
 class EventsList extends HTMLElement {
   async connectedCallback() {
     if (!this.shadowRoot) {
-      const events = await fetch('http://www.analogstudios.net/api/v2/events').then(resp => resp.json());
+      const events = await fetch('http://www.analogstudios.net/api/events').then(resp => resp.json());
 
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.innerHTML = `<h1>Events List (${events.length})</h1>`;
