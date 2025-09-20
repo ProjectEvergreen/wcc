@@ -6,12 +6,12 @@ export type Metadata = {
   }
 }
 
-type renderToString = (elementURL: URL, wrappingEntryTag?: boolean, props?: any) => Promise<{
+export type renderToString = (elementURL: URL, wrappingEntryTag?: boolean, props?: any) => Promise<{
   html: string;
   metadata: Metadata
 }>
 
-type renderFromHTML = (html: string, elementURLs: URL[]) => Promise<{
+export type renderFromHTML = (html: string, elementURLs: URL[]) => Promise<{
   html: string;
   metadata: Metadata
 }>

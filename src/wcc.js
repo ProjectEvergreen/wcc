@@ -169,9 +169,7 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
   }
 }
 
-/** @type {import('./index.d.ts').renderToString} */
 async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
-  /** @type {import('./index.d.ts').Metadata} */
   const definitions = {};
   const elementTagName = wrappingEntryTag && await getTagName(elementURL);
   const isEntry = !!elementTagName;
@@ -211,9 +209,7 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   };
 }
 
-/** @type {import('./index.d.ts').renderFromHTML} */
 async function renderFromHTML(html, elements = []) {
-  /** @type {import('./index.d.ts').Metadata} */
   const definitions = {};
 
   for (const url of elements) {
