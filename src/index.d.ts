@@ -16,4 +16,7 @@ export type renderFromHTML = (html: string, elementURLs: URL[]) => Promise<{
   metadata: Metadata
 }>
 
-declare module "wc-compiler" { }
+declare module "wc-compiler" {
+  export const renderToString: renderToString;
+  export const renderFromHTML: renderFromHTML;
+}
