@@ -354,6 +354,38 @@ There are of couple things you will need to do to use WCC with JSX:
 
 > _See our [example's page](/examples#jsx) for some usages of WCC + JSX._  👀
 
+### TSX
+
+TSX (.tsx) file are also supported.  You'll need to configure your _tsconfig.json_ by adding these two lines to your `compilerOptions` settings to configure JSX syntax:
+
+```json5
+{
+  "compilerOptions": {
+    // required options
+    "jsx": "preserve",
+    "jsxImportSource": "wc-compiler",
+
+    // additional recommended options
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+  }
+}
+```
+
+If you create your own custom elements and use them in your TSX components, you'll need to define your own `interface` for them:
+
+```ts
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "my-counter": {
+        count?: number;
+      };
+    }
+  }
+}
+```
+
 ### Declarative Shadow DOM
 
 To opt-in to Declarative Shadow DOM with JSX, you will need to signal to the WCC compiler your intentions so it can accurately mount from a `shadowRoot` on the client side.  To opt-in, simply make a call to `attachShadow` in your `connectedCallback` method.
