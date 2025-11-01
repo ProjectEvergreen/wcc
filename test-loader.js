@@ -9,7 +9,7 @@ export async function load(url, context, defaultLoad) {
 
   if (ext === '') {
     return loadBin(url, context, defaultLoad);
-  } else if (ext === '.jsx') {
+  } else if (ext === '.jsx' || ext === '.tsx') {
     return experimentalLoadJsx(url, context, defaultLoad);
   } else if (ext === '.css') {
     return {
@@ -25,7 +25,7 @@ export async function load(url, context, defaultLoad) {
 export function resolve(specifier, context, defaultResolve) {
   const ext = path.extname(specifier);
 
-  if (ext === '.jsx') {
+  if (ext === '.jsx' || ext === '.tsx') {
     return experimentalResolveJsx(specifier, context, defaultResolve);
   } else {
     return defaultResolve(specifier, context, defaultResolve);
