@@ -1,10 +1,3 @@
-/*
- * Thoughts / Questions:
- * - global event handlers?
- * - _too_ many attributes? 
- * - can we get away without needing ElementAttributes utitlity type wrapper
- */
-
 // create a utility type to extract the attributes from any given element's DOM interface.
 type ElementAttributes<E extends HTMLElement> = {
   // Extract all properties from the element, including inherited ones.
