@@ -1,7 +1,10 @@
+// to support `style` attributes, we override `CSSStyleDeclaration` with `string`
+type IsCSSStyleDeclaration<T> = T extends CSSStyleDeclaration ? string : T;
+
 // create a utility type to extract the attributes from any given element's DOM interface.
 type ElementAttributes<E extends HTMLElement> = {
   // Extract all properties from the element, including inherited ones.
-  [A in keyof E]?: E[A] extends (...args: any) => any ? any : E[A];
+  [A in keyof E]?: E[A] extends (...args: any) => any ? any : IsCSSStyleDeclaration<E[A]>;
 } & {
   class?: string;
 };
