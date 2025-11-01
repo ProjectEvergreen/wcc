@@ -15,7 +15,8 @@
       "types": "./src/index.d.ts"
     },
     "./register": "./src/register.js",
-    "./src/jsx-loader.js": "./src/jsx-loader.js"
+    "./src/jsx-loader.js": "./src/jsx-loader.js",
+    "./jsx-runtime": "./src/jsx-runtime.ts"
   },
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "keywords": [
@@ -41,7 +42,7 @@
     "docs:dev": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html,jsx ./build.js\" \"http-server ./dist --open\"",
     "docs:build": "node ./build.js",
     "docs:serve": "npm run clean && npm run docs:build && http-server ./dist --open",
-    "sandbox": "npm run clean && concurrently \"nodemon --loader ./test-loader.js --watch src --watch sandbox -e js,md,css,html,jsx,ts ./sandbox.js\" \"http-server ./dist --open\" \"livereload ./dist\"",
+    "sandbox": "npm run clean && concurrently \"nodemon --experimental-strip-types --loader ./test-loader.js --watch src --watch sandbox -e js,md,css,html,jsx,ts ./sandbox.js\" \"http-server ./dist --open\" \"livereload ./dist\"",
     "start": "npm run docs:serve",
     "test": "mocha --exclude \"./test/cases/jsx*/**\" --exclude \"./test/cases/ts*/**\" --exclude \"./test/cases/custom-extension/**\" \"./test/**/**/*.spec.js\"",
     "test:jsx": "c8 node --import ./test-register.js --experimental-strip-types ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
@@ -87,6 +88,7 @@
     "rimraf": "^3.0.2",
     "simple.css": "^0.1.3",
     "typescript": "^5.8.2",
+    "typescript-eslint": "^8.46.2",
     "unified": "^10.1.2"
   }
 }
