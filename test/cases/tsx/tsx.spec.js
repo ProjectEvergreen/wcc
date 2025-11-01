@@ -1,14 +1,14 @@
 /*
  * Use Case
- * Run wcc against a nested custom elements using JSX render function
+ * Run wcc against a nested custom elements using JSX render function and written in TypeScript
  *
  * User Result
  * Should return the expected HTML and JavaScript output.
  *
  * User Workspace
  * src/
- *   badge.jsx
- *   counter.jsx
+ *   badge.tsx
+ *   counter.tsx
  */
 import chai from 'chai';
 import { JSDOM } from 'jsdom';
