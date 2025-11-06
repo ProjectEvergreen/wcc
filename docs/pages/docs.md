@@ -303,8 +303,10 @@ Even more experimental than WCC is the option to author a rendering function for
 
 Below is an example of what is possible right now demonstrated through a [Counter component](https://github.com/thescientist13/greenwood-counter-jsx).
 
-```jsx
+```tsx
 export default class Counter extends HTMLElement {
+  count: number;
+
   constructor() {
     super();
     this.count = 0;
@@ -319,14 +321,20 @@ export default class Counter extends HTMLElement {
     this.render();
   }
 
+  decrement() {
+    this.count -= 1;
+    this.render();
+  }
+
   render() {
     const { count } = this;
 
     return (
-      <div>
+      <div style="color:red;">
         <button onclick={this.count -= 1}> -</button>
         <span>You have clicked <span class="red">{count}</span> times</span>
         <button onclick={this.increment}> +</button>
+        <button onclick={this.decrement}> +</button>
       </div>
     );
   }
@@ -337,8 +345,10 @@ customElements.define('wcc-counter', Counter);
 
 A couple things to observe in the above example:
 - The `this` reference is correctly bound to the `<wcc-counter>` element's state.  This works for both `this.count` and the event handler, `this.increment`.
-- Event handlers need to manage their own render function updates.
+- No need for `className`!  `class` just works ™️
+- The `style` attribute is just a string, no need to pass an object (e.g. `style={{ color: "red" }})`)
 - `this.count` will know it is a member of the `<wcc-counter>`'s state, and so will re-run `this.render` automatically in the compiled output.
+- Event handlers need to manage their own render function updates.
 
 > There is an [active discussion tracking features](https://github.com/ProjectEvergreen/wcc/discussions/84) and [issues in progress](https://github.com/ProjectEvergreen/wcc/issues?q=is%3Aopen+is%3Aissue+label%3AJSX) to continue iterating on this, so please feel free to try it out and give us your feedback!
 
@@ -356,7 +366,7 @@ There are of couple things you will need to do to use WCC with JSX:
 
 ### TSX
 
-TSX (.tsx) file are also supported.  You'll need to configure your _tsconfig.json_ by adding these two lines to your `compilerOptions` settings to configure JSX syntax:
+TSX (.tsx) file are also supported and your HTML will also be **type-safe**.  You'll need to configure JSX in your _tsconfig.json_ by adding these two lines to your `compilerOptions` settings:
 
 ```json5
 {
@@ -388,7 +398,7 @@ declare global {
 
 ### Declarative Shadow DOM
 
-To opt-in to Declarative Shadow DOM with JSX, you will need to signal to the WCC compiler your intentions so it can accurately mount from a `shadowRoot` on the client side.  To opt-in, simply make a call to `attachShadow` in your `connectedCallback` method.
+To opt-in to Declarative Shadow DOM with JSX, you will need to signal to the WCC compiler your intentions so it can accurately mount from a `shadowRoot` on the client side.  To opt-in, simply make a call to `attachShadow` in your `connectedCallback` method before calling `render`.  That's it!
 
 Using, the Counter example from above, we would amend it like so:
 
@@ -414,16 +424,16 @@ customElements.define('wcc-counter', Counter);
 
 ### (Inferred) Attribute Observability
 
-An optional feature supported by JSX based compilation is a feature called `inferredObservability`.  With this enabled, WCC will read any `this` member references in your component's `render` function and map each member instance to
+An optional feature supported by JSX based compilation is a feature called `inferredObservability`.  With this enabled, WCC will read any `this` member references in your component's `render` function and map each member instance to:
 - an entry in the `observedAttributes` array
 - automatically handle `attributeChangedCallback` update (by calling `this.render()`)
 
-So taking the above counter example, and opting in to this feature, we just need to enable the `inferredObservability` option in the component
+So taking the above counter example, and opting in to this feature, we just need to enable the `inferredObservability` option in the component by exporting it as a `const`:
 ```jsx
 export const inferredObservability = true;
 
 export default class Counter extends HTMLElement {
-  ...
+  // ...
 
   render() {
     const { count } = this;
