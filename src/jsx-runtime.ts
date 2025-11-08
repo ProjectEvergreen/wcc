@@ -1,0 +1,1 @@
+import './jsx.d.ts';

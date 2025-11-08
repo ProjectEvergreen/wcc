@@ -38,8 +38,8 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "lint": "eslint",
-    "lint:types": "tsc --project tsconfig.json",
-    "docs:dev": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html,jsx ./build.js\" \"http-server ./dist --open\"",
+    "lint:types": "tsc",
+    "docs:dev": "concurrently \"nodemon --watch src --watch docs -e js,md,css,html,jsx,ts,tsx ./build.js\" \"http-server ./dist --open\"",
     "docs:build": "node ./build.js",
     "docs:serve": "npm run clean && npm run docs:build && http-server ./dist --open",
     "sandbox": "npm run clean && concurrently \"nodemon --experimental-strip-types --loader ./test-loader.js --watch src --watch sandbox -e js,md,css,html,jsx,ts ./sandbox.js\" \"http-server ./dist --open\" \"livereload ./dist\"",

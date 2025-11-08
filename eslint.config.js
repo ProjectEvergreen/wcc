@@ -2,6 +2,7 @@ import babelParser from '@babel/eslint-parser';
 import js from '@eslint/js';
 import globals from 'globals';
 import noOnlyTests from 'eslint-plugin-no-only-tests';
+import tseslint from 'typescript-eslint';
 
 export default [
   {
@@ -32,6 +33,7 @@ export default [
     },
     rules: {
       ...js.configs.recommended.rules,
+      ...tseslint.configs.recommended.rules,
       // turn this off for Prettier
       'no-irregular-whitespace': 'off',
       'no-only-tests/no-only-tests': 'error',

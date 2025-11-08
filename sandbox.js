@@ -6,7 +6,9 @@ const clientSideComponents = [
   'card.jsx',
   'counter.jsx',
   'counter-dsd.jsx',
-  'greeting.ts'
+  'greeting.ts',
+  'counter.tsx',
+  'counter-dsd.tsx',
 ];
 
 async function init() {
@@ -21,7 +23,7 @@ async function init() {
     const ext = component.split('.').pop();
     const outputName = ext === 'js'
       ? component
-      : component.replace('.jsx', '-jsx.js').replace('.ts', '-ts.js');
+      : component.replace('.jsx', '-jsx.js').replace('.tsx', '-tsx.js').replace('.ts', '-ts.js');
 
     return `<script type="module" src="./components/${outputName}"></script>`;
   }).join('\n');
@@ -30,7 +32,7 @@ async function init() {
     const ext = component.split('.').pop();
     const outputName = ext === 'js'
       ? component
-      : component.replace('.jsx', '-jsx.js').replace('.ts', '-ts.js');
+      : component.replace('.jsx', '-jsx.js').replace('.tsx', '-tsx.js').replace('.ts', '-ts.js');
     const source = new URL(`./components/${component}`, sandboxRoot);
     const destination = new URL(`./components/${outputName}`, distRoot);
 
