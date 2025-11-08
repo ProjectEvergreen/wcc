@@ -18,6 +18,7 @@ import chai from 'chai';
 import { JSDOM } from 'jsdom';
 import fs from 'fs/promises';
 import { renderToString } from '../../../src/wcc.js';
+import { parseFragment, serialize } from 'parse5';
 
 const expect = chai.expect;
 
@@ -34,7 +35,8 @@ describe('Run WCC For ', function() {
     actualHtml = html;
     dom = new JSDOM(actualHtml);
     pictureFrame = dom.window.document.querySelectorAll('wcc-picture-frame');
-    expectedHtml = await fs.readFile(new URL('./expected.html', import.meta.url), 'utf-8');
+    const rawExpectedHtml = await fs.readFile(new URL('./expected.html', import.meta.url), 'utf-8');
+    expectedHtml = serialize(parseFragment(rawExpectedHtml));
   });
 
   describe(LABEL, function() {
@@ -79,7 +81,7 @@ describe('Run WCC For ', function() {
     });
 
     it('should have the expected recursively generated HTML', () => {
-      expect(expectedHtml.replace(/ /g, '').replace(/\n/g, '')).to.equal(actualHtml.replace(/ /g, '').replace(/\n/g, ''));
+      expect(actualHtml.replace(/ /g, '').replace(/\n/g, '')).to.equal(expectedHtml.replace(/ /g, '').replace(/\n/g, ''));
     });
   });
 });
