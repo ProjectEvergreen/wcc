@@ -2,6 +2,7 @@ import babelParser from '@babel/eslint-parser';
 import js from '@eslint/js';
 import globals from 'globals';
 import noOnlyTests from 'eslint-plugin-no-only-tests';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
 export default [
   {
@@ -16,8 +17,6 @@ export default [
     languageOptions: {
       parser: babelParser,
       parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: 'module',
         requireConfigFile: false,
         babelOptions: {
           plugins: ['@babel/plugin-syntax-import-assertions'],
@@ -40,4 +39,5 @@ export default [
       'no-only-tests': noOnlyTests,
     },
   },
+  eslintConfigPrettier,
 ];
