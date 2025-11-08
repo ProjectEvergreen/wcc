@@ -68,7 +68,8 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
   const result = transform(moduleContents, {
     transforms: ['typescript', 'jsx'],
-    jsxRuntime: 'preserve'
+    jsxRuntime: 'automatic',
+    production: true,
   });
   const nextDepth = depth += 1;
   const customParser = getParser(moduleURL);
@@ -90,7 +91,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
 
         // would like to decouple .jsx from the core, ideally
         // https://github.com/ProjectEvergreen/wcc/issues/122
-        if (!isBareSpecifier && ['js', 'jsx', 'ts'].includes(extension)) {
+        if (!isBareSpecifier && ['js', 'jsx', 'ts', 'tsx'].includes(extension)) {
           const dependencyModuleURL = new URL(specifier, moduleURL);
 
           registerDependencies(dependencyModuleURL, definitions, nextDepth);
@@ -123,7 +124,8 @@ async function getTagName(moduleURL) {
   const moduleContents = await fs.promises.readFile(moduleURL, 'utf-8');
   const result = transform(moduleContents, {
     transforms: ['typescript', 'jsx'],
-    jsxRuntime: 'preserve'
+    jsxRuntime: 'automatic',
+    production: true,
   });
   const customParser = getParser(moduleURL);
   const parser = customParser ? customParser.parser : acorn.Parser;

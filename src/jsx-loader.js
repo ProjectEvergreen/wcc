@@ -12,6 +12,7 @@ import { parse, parseFragment, serialize } from 'parse5';
 import { transform } from 'sucrase';
 
 const jsxRegex = /\.(jsx)$/;
+const tsxRegex = /\.(tsx)$/;
 
 // TODO same hack as definitions
 // https://github.com/ProjectEvergreen/wcc/discussions/74
@@ -26,7 +27,8 @@ function getParse(html) {
 }
 
 export function getParser(moduleURL) {
-  const isJSX = moduleURL.pathname.split('.').pop() === 'jsx';
+  const ext = moduleURL.pathname.split('.').pop();
+  const isJSX = ext === 'jsx' || ext === 'tsx';
 
   if (!isJSX) {
     return;
@@ -390,7 +392,7 @@ export function parseJsx(moduleURL) {
 export function resolve(specifier, context, defaultResolve) {
   const { parentURL } = context;
 
-  if (jsxRegex.test(specifier)) {
+  if (jsxRegex.test(specifier) || tsxRegex.test(specifier)) {
     return {
       url: new URL(specifier, parentURL).href,
       shortCircuit: true
@@ -401,7 +403,7 @@ export function resolve(specifier, context, defaultResolve) {
 }
 
 export async function load(url, context, defaultLoad) {
-  if (jsxRegex.test(url)) {
+  if (jsxRegex.test(url) || tsxRegex.test(url)) {
     const jsFromJsx = parseJsx(new URL(url));
 
     return {

@@ -298,3 +298,5 @@ A couple examples of using WCC + JSX are available for reference and reproductio
 * [Todo App](https://github.com/thescientist13/todo-app)
 
 Both of these examples can compile JSX for _**the client or the server**_ using [Greenwood](https://www.greenwoodjs.dev/), and can even be used with great testing tools like [**@web/test-runner**](https://modern-web.dev/docs/test-runner/overview/)! 💪
+
+For a Typescript example, you can checkout [this repo](https://github.com/thescientist13/greenwood-jsx).

@@ -38,6 +38,7 @@
       globalThis.document.addEventListener('DOMContentLoaded', () => {
         const counterJsxResetButton = document.getElementById('counter-jsx-reset');
         const counterJsxDsdResetButton = document.getElementById('counter-jsx-dsd-reset');
+        const counterTsxDsdResetButton = document.getElementById('counter-tsx-dsd-reset');
 
         counterJsxResetButton.addEventListener('click', () => {
           document.querySelector('sb-counter-jsx').setAttribute('count', randomReset());
@@ -45,6 +46,10 @@
 
         counterJsxDsdResetButton.addEventListener('click', () => {
           document.querySelector('sb-counter-dsd-jsx').setAttribute('count', randomReset());
+        });
+
+        counterTsxDsdResetButton.addEventListener('click', () => {
+          document.querySelector('sb-counter-dsd-tsx').setAttribute('count', randomReset());
         });
       });
     </script>
@@ -186,6 +191,32 @@
       &lt;sb-greeting-ts
         name="TypeScript"
       &gt;&lt;/sb-greeting-ts&gt;
+    </pre>
+
+    <h2>TSX</h2>
+
+    <sb-counter-tsx
+      count="3"
+    ></sb-counter-tsx>
+
+    <pre>
+      &lt;sb-counter-tsx
+        count="3"
+      &gt;&lt;/sb-counter-tsx&gt;
+    </pre>
+
+    <h2>TSX + DSD + inferredObservability</h2>
+
+    <sb-counter-dsd-tsx
+      count="3"
+    ></sb-counter-dsd-tsx>
+
+    <button class="reset" id="counter-tsx-dsd-reset">Random Reset</button>
+
+    <pre>
+      &lt;sb-counter-dsd-tsx
+        count="3"
+      &gt;&lt;/sb-counter-dsd-tsx&gt;
     </pre>
 
   </body>

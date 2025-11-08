@@ -6,17 +6,19 @@
     "rewriteRelativeImportExtensions": true,
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
-    "checkJs": true,
+    "checkJs": false,
     "allowJs": true,
     "noEmit": true,
     "skipLibCheck": true,
+    "noImplicitAny": true,
     "types": [
       "mocha",
-      "node"
-    ]
+      "node",
+    ],
+    "jsx": "preserve",
+    "jsxImportSource": "wc-compiler"
   },
-  "include": [
-    "./src/**/**/*.js",
-    "./test/**/*.spec.js"
-  ]
+  "exclude": [
+    "node_modules",
+  ],
 }
