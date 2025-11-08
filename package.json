@@ -37,7 +37,8 @@
   },
   "scripts": {
     "clean": "rimraf ./dist",
-    "lint": "eslint",
+    "lint": "npm run lint:js && npm run lint:ls",
+    "lint:js": "eslint",
     "lint:ls": "ls-lint",
     "lint:types": "tsc",
     "format": "prettier . --write",
