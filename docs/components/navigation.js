@@ -34,12 +34,10 @@ class Navigation extends HTMLElement {
           <li><a href="/examples">Examples</a></li>
         </ul>
       </nav>
-    `
+    `;
   }
 }
 
-export {
-  Navigation
-};
+export { Navigation };
 
 customElements.define('wcc-navigation', Navigation);

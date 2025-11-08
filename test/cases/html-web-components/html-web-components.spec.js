@@ -21,14 +21,14 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe('Run WCC For ', function () {
   const LABEL = 'HTML (Light DOM) Web Components';
   let dom;
   let pictureFrame;
   let expectedHtml;
   let actualHtml;
 
-  before(async function() {
+  before(async function () {
     const { html } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
 
     actualHtml = html;
@@ -37,12 +37,12 @@ describe('Run WCC For ', function() {
     expectedHtml = await fs.readFile(new URL('./expected.html', import.meta.url), 'utf-8');
   });
 
-  describe(LABEL, function() {
-    it('should not have any <template> tags within the document', function() {
+  describe(LABEL, function () {
+    it('should not have any <template> tags within the document', function () {
       expect(dom.window.document.querySelectorAll('template').length).to.equal(0);
     });
 
-    it('should only have one <wcc-picture-frame> tag', function() {
+    it('should only have one <wcc-picture-frame> tag', function () {
       expect(pictureFrame.length).to.equal(1);
     });
 
@@ -51,7 +51,9 @@ describe('Run WCC For ', function() {
 
       expect(img.length).to.equal(1);
       expect(img[0].getAttribute('alt')).to.equal('Greenwood logo');
-      expect(img[0].getAttribute('src')).to.equal('https://www.greenwoodjs.io/assets/greenwood-logo-og.png');
+      expect(img[0].getAttribute('src')).to.equal(
+        'https://www.greenwoodjs.io/assets/greenwood-logo-og.png',
+      );
     });
 
     it('should have the expected Author name <span> from userland in the HTML', () => {
@@ -79,7 +81,9 @@ describe('Run WCC For ', function() {
     });
 
     it('should have the expected recursively generated HTML', () => {
-      expect(expectedHtml.replace(/ /g, '').replace(/\n/g, '')).to.equal(actualHtml.replace(/ /g, '').replace(/\n/g, ''));
+      expect(expectedHtml.replace(/ /g, '').replace(/\n/g, '')).to.equal(
+        actualHtml.replace(/ /g, '').replace(/\n/g, ''),
+      );
     });
   });
 });

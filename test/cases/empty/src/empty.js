@@ -1,3 +1,1 @@
-export default class EmptyComponent extends HTMLElement {
-  
-}
+export default class EmptyComponent extends HTMLElement {}

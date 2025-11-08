@@ -14,7 +14,6 @@ const styles = `
 `;
 
 export default class CardJsx extends HTMLElement {
-
   selectItem() {
     alert(`selected item is => ${this.title}!`);
   }
@@ -37,11 +36,9 @@ export default class CardJsx extends HTMLElement {
 
     return (
       <div class="card">
-        <style>
-          {styles}
-        </style>
+        <style>{styles}</style>
         <h3>{title}</h3>
-        <img src={thumbnail} alt={title} loading="lazy" width="200" height="200"/>
+        <img src={thumbnail} alt={title} loading="lazy" width="200" height="200" />
         <button onclick={this.selectItem}>View Item Details</button>
       </div>
     );

@@ -8,11 +8,7 @@ import tseslint from 'typescript-eslint';
 export default [
   {
     // https://github.com/eslint/eslint/discussions/18304#discussioncomment-9069706
-    ignores: [
-      'node_modules/*',
-      'dist/*',
-      'coverage/*',
-    ],
+    ignores: ['node_modules/*', 'dist/*', 'coverage/*'],
   },
   {
     languageOptions: {
