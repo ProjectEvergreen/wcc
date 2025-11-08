@@ -33,7 +33,9 @@ describe('Run WCC For ', function () {
   describe(LABEL, function () {
     it('should have a serializable-ssr-component with an h2 tag with textContent equal to "Serializable Component with serializableShadowRoots"', function () {
       expect(
-        dom.window.document.querySelector('serializable-ssr-component template[shadowrootmode="open"]').innerHTML.trim()
+        dom.window.document
+          .querySelector('serializable-ssr-component template[shadowrootmode="open"]')
+          .innerHTML.trim(),
       ).to.equal('<h2>Serializable Component with serializableShadowRoots</h2>');
     });
 
@@ -41,7 +43,7 @@ describe('Run WCC For ', function () {
       expect(
         dom.window.document
           .querySelector('serializable-non-ssr-component template[shadowrootmode="open"]')
-          .innerHTML.trim()
+          .innerHTML.trim(),
       ).to.equal('');
     });
 
@@ -49,7 +51,7 @@ describe('Run WCC For ', function () {
       expect(
         dom.window.document
           .querySelector('unserializable-ssr-component template[shadowrootmode="open"]')
-          .innerHTML.trim()
+          .innerHTML.trim(),
       ).to.equal('');
     });
 
@@ -57,7 +59,7 @@ describe('Run WCC For ', function () {
       expect(
         dom.window.document
           .querySelector('unserializable-non-ssr-component template[shadowrootmode="open"]')
-          .innerHTML.trim()
+          .innerHTML.trim(),
       ).to.equal('');
     });
   });

@@ -46,18 +46,20 @@ function getParse5ElementDefaults(element, tagName) {
     nodeName: tagName,
     tagName: tagName,
     namespaceURI: 'http://www.w3.org/1999/xhtml',
-    ...(tagName === 'template' ? { content: { nodeName: '#document-fragment', childNodes: [] } } : {})
+    ...(tagName === 'template'
+      ? { content: { nodeName: '#document-fragment', childNodes: [] } }
+      : {}),
   };
 }
 
-function noop() { }
+function noop() {}
 
 // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/CSSStyleSheet
 class CSSStyleSheet {
-  insertRule() { }
-  deleteRule() { }
-  replace() { }
-  replaceSync() { }
+  insertRule() {}
+  deleteRule() {}
+  replace() {}
+  replaceSync() {}
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget
@@ -132,7 +134,7 @@ class Node extends EventTarget {
     }
 
     return this.childNodes
-      .map((child) => child.nodeName === '#text' ? child.value : child.textContent)
+      .map((child) => (child.nodeName === '#text' ? child.value : child.textContent))
       .join('');
   }
 
@@ -163,7 +165,9 @@ class Element extends Node {
   }
 
   getHTML({ serializableShadowRoots = false }) {
-    return this.shadowRoot && serializableShadowRoots && this.shadowRoot.serializable ? this.shadowRoot.innerHTML : '';
+    return this.shadowRoot && serializableShadowRoots && this.shadowRoot.serializable
+      ? this.shadowRoot.innerHTML
+      : '';
   }
 
   get innerHTML() {
@@ -172,7 +176,8 @@ class Element extends Node {
   }
 
   set innerHTML(html) {
-    (this.nodeName === 'template' ? this.content : this).childNodes = getParse(html)(html).childNodes;
+    (this.nodeName === 'template' ? this.content : this).childNodes =
+      getParse(html)(html).childNodes;
   }
 
   hasAttribute(name) {
@@ -198,16 +203,13 @@ class Element extends Node {
 // https://developer.mozilla.org/en-US/docs/Web/API/Document
 // EventTarget <- Node <- Document
 class Document extends Node {
-
   createElement(tagName) {
     switch (tagName) {
-
       case 'template':
         return new HTMLTemplateElement();
 
       default:
         return new HTMLElement(tagName);
-
     }
   }
 
@@ -223,12 +225,12 @@ class HTMLElement extends Element {
     super();
     Object.assign(this, getParse5ElementDefaults(this, tagName));
   }
-  connectedCallback() { }
+  connectedCallback() {}
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment
 // EventTarget <- Node <- DocumentFragment
-class DocumentFragment extends Node { }
+class DocumentFragment extends Node {}
 
 // https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot
 // EventTarget <- Node <- DocumentFragment <- ShadowRoot
@@ -241,11 +243,15 @@ class ShadowRoot extends DocumentFragment {
   }
 
   get innerHTML() {
-    return this.childNodes?.[0]?.content?.childNodes ? serialize({ childNodes: this.childNodes[0].content.childNodes }) : '';
+    return this.childNodes?.[0]?.content?.childNodes
+      ? serialize({ childNodes: this.childNodes[0].content.childNodes })
+      : '';
   }
 
   set innerHTML(html) {
-    this.childNodes = getParse(html)(`<template shadowrootmode="${this.mode}">${html}</template>`).childNodes;
+    this.childNodes = getParse(html)(
+      `<template shadowrootmode="${this.mode}">${html}</template>`,
+    ).childNodes;
   }
 }
 

@@ -21,30 +21,47 @@ async function init() {
   await fs.mkdir(distRoot, { recursive: true });
   await fs.mkdir(`${distRoot}/assets`, { recursive: true });
 
-  await fs.copyFile(new URL('./node_modules/prismjs/themes/prism.css', import.meta.url), new URL(`${distRoot}/prism.css`, import.meta.url));
-  await fs.copyFile(new URL('./node_modules/simple.css/dist/simple.min.css', import.meta.url), new URL(`${distRoot}/simple.min.css`, import.meta.url));
-  await fs.cp(new URL('./docs/assets', import.meta.url), new URL(`${distRoot}/assets`, import.meta.url), { recursive: true });
-  await fs.copyFile(new URL('./docs/assets/favicon.ico', import.meta.url), new URL(`${distRoot}/favicon.ico`, import.meta.url));
+  await fs.copyFile(
+    new URL('./node_modules/prismjs/themes/prism.css', import.meta.url),
+    new URL(`${distRoot}/prism.css`, import.meta.url),
+  );
+  await fs.copyFile(
+    new URL('./node_modules/simple.css/dist/simple.min.css', import.meta.url),
+    new URL(`${distRoot}/simple.min.css`, import.meta.url),
+  );
+  await fs.cp(
+    new URL('./docs/assets', import.meta.url),
+    new URL(`${distRoot}/assets`, import.meta.url),
+    { recursive: true },
+  );
+  await fs.copyFile(
+    new URL('./docs/assets/favicon.ico', import.meta.url),
+    new URL(`${distRoot}/favicon.ico`, import.meta.url),
+  );
 
   for (const page of pages) {
     const route = page.replace('.md', '');
     const outputPath = route === 'index' ? '' : `${route}/`;
     const markdown = await fs.readFile(new URL(`${pagesRoot}/${page}`, import.meta.url), 'utf-8');
-    const content = (await unified()
-      .use(remarkParse)
-      .use(remarkToc, { tight: true })
-      .use(remarkRehype, { allowDangerousHtml: true })
-      .use(rehypeSlug)
-      .use(rehypeRaw)
-      .use(rehypeAutolinkHeadings)
-      .use(rehypePrism)
-      .use(rehypeStringify)
-      .process(markdown)).value;
+    const content = (
+      await unified()
+        .use(remarkParse)
+        .use(remarkToc, { tight: true })
+        .use(remarkRehype, { allowDangerousHtml: true })
+        .use(rehypeSlug)
+        .use(rehypeRaw)
+        .use(rehypeAutolinkHeadings)
+        .use(rehypePrism)
+        .use(rehypeStringify)
+        .process(markdown)
+    ).value;
 
     await fs.mkdir(`./dist/${outputPath}`, { recursive: true });
     await fs.mkdir(`${distRoot}/${outputPath}`, { recursive: true });
 
-    await fs.writeFile(new URL(`${distRoot}/${outputPath}/index.html`, import.meta.url), `
+    await fs.writeFile(
+      new URL(`${distRoot}/${outputPath}/index.html`, import.meta.url),
+      `
       <!DOCTYPE html>
       <html lang="en" prefix="og:http://ogp.me/ns#">
 
@@ -69,7 +86,8 @@ async function init() {
 
         </body>
       </html>
-    `.trim());
+    `.trim(),
+    );
   }
 }
 

@@ -16,22 +16,21 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element using TypeScript';
   let dom;
 
-  before(async function() {
+  before(async function () {
     const { html } = await renderToString(new URL('./src/app.ts', import.meta.url));
 
     dom = new JSDOM(html);
   });
 
-  describe(LABEL, function() {
-
-    describe('Greeting component in TypeScript', function() {
+  describe(LABEL, function () {
+    describe('Greeting component in TypeScript', function () {
       let headings;
 
-      before(async function() {
+      before(async function () {
         headings = dom.window.document.querySelectorAll('h3');
       });
 

@@ -16,23 +16,34 @@ async function init() {
   const sandboxRoot = new URL('./sandbox/', import.meta.url); // './sandbox';
   const sandboxHtml = await fs.readFile(new URL('./index.html', sandboxRoot), 'utf-8');
   const components = await fs.readdir(new URL('./components/', sandboxRoot));
-  const componentsUrls = components.map(component => new URL(`./components/${component}`, sandboxRoot));
-  const interactiveComponents = components.filter(component => clientSideComponents.includes(component));
+  const componentsUrls = components.map(
+    (component) => new URL(`./components/${component}`, sandboxRoot),
+  );
+  const interactiveComponents = components.filter((component) =>
+    clientSideComponents.includes(component),
+  );
   const { html, metadata } = await renderFromHTML(sandboxHtml, componentsUrls);
-  const scriptTags = interactiveComponents.map(component => {
-    const ext = component.split('.').pop();
-    const outputName = ext === 'js'
-      ? component
-      : component.replace('.jsx', '-jsx.js').replace('.tsx', '-tsx.js').replace('.ts', '-ts.js');
+  const scriptTags = interactiveComponents
+    .map((component) => {
+      const ext = component.split('.').pop();
+      const outputName =
+        ext === 'js'
+          ? component
+          : component
+              .replace('.jsx', '-jsx.js')
+              .replace('.tsx', '-tsx.js')
+              .replace('.ts', '-ts.js');
 
-    return `<script type="module" src="./components/${outputName}"></script>`;
-  }).join('\n');
+      return `<script type="module" src="./components/${outputName}"></script>`;
+    })
+    .join('\n');
 
   for (const component of interactiveComponents) {
     const ext = component.split('.').pop();
-    const outputName = ext === 'js'
-      ? component
-      : component.replace('.jsx', '-jsx.js').replace('.tsx', '-tsx.js').replace('.ts', '-ts.js');
+    const outputName =
+      ext === 'js'
+        ? component
+        : component.replace('.jsx', '-jsx.js').replace('.tsx', '-tsx.js').replace('.ts', '-ts.js');
     const source = new URL(`./components/${component}`, sandboxRoot);
     const destination = new URL(`./components/${outputName}`, distRoot);
 
@@ -52,10 +63,16 @@ async function init() {
   }
 
   await fs.mkdir(distRoot, { recursive: true });
-  await fs.writeFile(new URL('./index.html', distRoot), html.replace('</head>', `
+  await fs.writeFile(
+    new URL('./index.html', distRoot),
+    html.replace(
+      '</head>',
+      `
       ${scriptTags}
     </head>
-  `.trim()));
+  `.trim(),
+    ),
+  );
 }
 
 init();

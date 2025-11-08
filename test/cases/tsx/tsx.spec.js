@@ -16,24 +16,23 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element using TSX';
   let dom;
   let meta;
 
-  before(async function() {
+  before(async function () {
     const { html, metadata } = await renderToString(new URL('./src/counter.tsx', import.meta.url));
 
     meta = metadata;
     dom = new JSDOM(html);
   });
 
-  describe(LABEL, function() {
-
-    describe('<Counter> component w/ <Badge>', function() {
+  describe(LABEL, function () {
+    describe('<Counter> component w/ <Badge>', function () {
       let buttons;
 
-      before(async function() {
+      before(async function () {
         buttons = dom.window.document.querySelectorAll('button');
       });
 
@@ -60,16 +59,24 @@ describe('Run WCC For ', function() {
       describe('Event Handling', () => {
         // <button onclick={this.decrement}> - </button>
         it('should handle a this expression', () => {
-          const element = Array.from(buttons).find(button => button.getAttribute('id') === 'evt-this');
+          const element = Array.from(buttons).find(
+            (button) => button.getAttribute('id') === 'evt-this',
+          );
 
-          expect(element.getAttribute('onclick')).to.be.equal('this.parentElement.parentElement.decrement()');
+          expect(element.getAttribute('onclick')).to.be.equal(
+            'this.parentElement.parentElement.decrement()',
+          );
         });
 
         // <button onclick={this.count -= 1}> - </button>
         it('should handle an assignment expression with implicit reactivity using this.render', () => {
-          const element = Array.from(buttons).find(button => button.getAttribute('id') === 'evt-assignment');
+          const element = Array.from(buttons).find(
+            (button) => button.getAttribute('id') === 'evt-assignment',
+          );
 
-          expect(element.getAttribute('onclick')).to.be.equal('this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();');
+          expect(element.getAttribute('onclick')).to.be.equal(
+            'this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();',
+          );
         });
       });
 
@@ -79,7 +86,7 @@ describe('Run WCC For ', function() {
           const element = dom.window.document.querySelectorAll('span#expression')[0];
 
           expect(element.textContent).to.be.equal('0');
-        });    
+        });
       });
 
       describe('Inferred Observability', () => {

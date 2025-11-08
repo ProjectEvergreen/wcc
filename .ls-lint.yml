@@ -13,7 +13,7 @@ ls:
   .woff: kebabcase
   .woff2: kebabcase
 
-ignore: 
+ignore:
   - .git
   - coverage
   - node_modules

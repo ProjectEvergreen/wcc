@@ -1,12 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" prefix="og:http://ogp.me/ns#">
-
   <head>
     <title>WCC Sandbox</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
     <style>
-      h1, h2, p {
+      h1,
+      h2,
+      p {
         text-align: center;
       }
 
@@ -14,7 +15,8 @@
         color: blue;
       }
 
-      pre, details {
+      pre,
+      details {
         width: 30%;
         margin: 10px auto;
         padding: 20px;
@@ -55,15 +57,18 @@
     </script>
 
     <script>
-      document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
-      ':35729/livereload.js?snipver=1"></' + 'script>')
+      document.write(
+        '<script src="http://' +
+          (location.host || 'localhost').split(':')[0] +
+          ':35729/livereload.js?snipver=1"></' +
+          'script>',
+      );
     </script>
 
     <!-- interactive scripts can be configured in sandbox.js -->
   </head>
 
   <body>
-
     <h1>WCC Sandbox</h1>
 
     <h2>Light DOM (no JS)</h2>
@@ -74,7 +79,7 @@
       &lt;sb-header&gt;&lt;/sb-header&gt;
     </pre>
 
-    <hr/>
+    <hr />
 
     <h2>Declarative Shadow DOM (has JS)</h2>
 
@@ -108,10 +113,7 @@
       }
     </style>
     <sb-picture-frame title="Greenwood Logo">
-      <img
-        src="https://www.greenwoodjs.dev/assets/greenwood-logo-og.png"
-        alt="Greenwood logo"
-      />
+      <img src="https://www.greenwoodjs.dev/assets/greenwood-logo-og.png" alt="Greenwood logo" />
     </sb-picture-frame>
 
     <pre>
@@ -123,7 +125,7 @@
       &lt;/sb-picture-frame&gt;
     </pre>
 
-    <hr/>
+    <hr />
 
     <h2>JSX + Light DOM (no JS)</h2>
 
@@ -133,7 +135,7 @@
       &lt;sb-header-jsx&gt;&lt;/sb-header-jsx&gt;
     </pre>
 
-    <hr/>
+    <hr />
 
     <h2>JSX + Declarative Shadow DOM (has JS)</h2>
 
@@ -149,13 +151,11 @@
       &gt;&lt;/sb-card-jsx&gt;
     </pre>
 
-    <hr/>
+    <hr />
 
     <h2>JSX + Light DOM + inferredObservability (has JS)</h2>
 
-    <sb-counter-jsx
-      count="5"
-    ></sb-counter-jsx>
+    <sb-counter-jsx count="5"></sb-counter-jsx>
 
     <button class="reset" id="counter-jsx-reset">Random Reset</button>
 
@@ -165,13 +165,11 @@
       &gt;&lt;/sb-counter-jsx&gt;
     </pre>
 
-    <hr/>
+    <hr />
 
     <h2>JSX + DSD + inferredObservability (has JS)</h2>
 
-    <sb-counter-dsd-jsx
-      count="3"
-    ></sb-counter-dsd-jsx>
+    <sb-counter-dsd-jsx count="3"></sb-counter-dsd-jsx>
 
     <button class="reset" id="counter-jsx-dsd-reset">Random Reset</button>
 
@@ -183,9 +181,7 @@
 
     <h2>TypeScript</h2>
 
-    <sb-greeting-ts
-      name="TypeScript"
-    ></sb-greeting-ts>
+    <sb-greeting-ts name="TypeScript"></sb-greeting-ts>
 
     <pre>
       &lt;sb-greeting-ts
@@ -195,9 +191,7 @@
 
     <h2>TSX</h2>
 
-    <sb-counter-tsx
-      count="3"
-    ></sb-counter-tsx>
+    <sb-counter-tsx count="3"></sb-counter-tsx>
 
     <pre>
       &lt;sb-counter-tsx
@@ -207,9 +201,7 @@
 
     <h2>TSX + DSD + inferredObservability</h2>
 
-    <sb-counter-dsd-tsx
-      count="3"
-    ></sb-counter-dsd-tsx>
+    <sb-counter-dsd-tsx count="3"></sb-counter-dsd-tsx>
 
     <button class="reset" id="counter-tsx-dsd-reset">Random Reset</button>
 
@@ -218,6 +210,5 @@
         count="3"
       &gt;&lt;/sb-counter-dsd-tsx&gt;
     </pre>
-
   </body>
 </html>

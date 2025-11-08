@@ -4,7 +4,6 @@ export default class OpenShadowComponent extends HTMLElement {
   }
 
   connectedCallback() {
-
     if (!this.shadowRoot) {
       this.attachShadow({ mode: 'open' });
       const template = document.createElement('template');

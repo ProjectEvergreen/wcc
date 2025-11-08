@@ -1,7 +1,7 @@
 name: 💡 Feature Request
 description: Submit a new feature request for WCC.
-title: "Support x in WCC"
-labels: ["feature"]
+title: 'Support x in WCC'
+labels: ['feature']
 body:
   - type: markdown
     attributes:
@@ -19,7 +19,7 @@ body:
     id: Motivation
     attributes:
       label: Technical Design
-      description: Detail usage within a WCC project and the API design you have in mind. 
+      description: Detail usage within a WCC project and the API design you have in mind.
       placeholder: I want to use the feature like this...
     validations:
       required: true

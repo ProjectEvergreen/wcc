@@ -1,7 +1,7 @@
 name: ⚙️ Chore
 description: Technical tasks not related to WCC
-title: "Update repo configuration, maintaining dependencies, etc"
-labels: ["chore"]
+title: 'Update repo configuration, maintaining dependencies, etc'
+labels: ['chore']
 body:
   - type: markdown
     attributes:

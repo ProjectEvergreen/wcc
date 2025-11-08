@@ -27,13 +27,17 @@ describe('Run WCC For ', function () {
 
   describe(LABEL, function () {
     it('should have a heading tag with text content equal to "document.createDocumentFragment()"', function () {
-      expect(dom.window.document.querySelectorAll('h2')[0].textContent).to.equal('document.createDocumentFragment()');
+      expect(dom.window.document.querySelectorAll('h2')[0].textContent).to.equal(
+        'document.createDocumentFragment()',
+      );
     });
   });
 
   describe(LABEL, function () {
     it('should have a heading tag with text content equal to new "DocumentFragment()"', function () {
-      expect(dom.window.document.querySelectorAll('h2')[1].textContent).to.equal('new DocumentFragment()');
+      expect(dom.window.document.querySelectorAll('h2')[1].textContent).to.equal(
+        'new DocumentFragment()',
+      );
     });
   });
 });

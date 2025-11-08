@@ -12,9 +12,14 @@ import fs from 'fs';
 function isCustomElementDefinitionNode(node) {
   const { expression } = node;
 
-  return expression.type === 'CallExpression' && expression.callee && expression.callee.object
-    && expression.callee.property && expression.callee.object.name === 'customElements'
-    && expression.callee.property.name === 'define';
+  return (
+    expression.type === 'CallExpression' &&
+    expression.callee &&
+    expression.callee.object &&
+    expression.callee.property &&
+    expression.callee.object.name === 'customElements' &&
+    expression.callee.property.name === 'define'
+  );
 }
 
 async function renderComponentRoots(tree, definitions) {
@@ -24,7 +29,12 @@ async function renderComponentRoots(tree, definitions) {
 
       if (definitions[tagName]) {
         const { moduleURL } = definitions[tagName];
-        const elementInstance = await initializeCustomElement(moduleURL, tagName, node, definitions);
+        const elementInstance = await initializeCustomElement(
+          moduleURL,
+          tagName,
+          node,
+          definitions,
+        );
 
         if (elementInstance) {
           const hasShadow = elementInstance.shadowRoot;
@@ -33,10 +43,14 @@ async function renderComponentRoots(tree, definitions) {
             ? [...elementInstance.shadowRoot.childNodes, ...node.childNodes]
             : elementInstance.childNodes;
         } else {
-          console.warn(`WARNING: customElement <${tagName}> detected but not serialized.  You may not have exported it.`);
+          console.warn(
+            `WARNING: customElement <${tagName}> detected but not serialized.  You may not have exported it.`,
+          );
         }
       } else {
-        console.warn(`WARNING: customElement <${tagName}> is not defined.  You may not have imported it.`);
+        console.warn(
+          `WARNING: customElement <${tagName}> is not defined.  You may not have imported it.`,
+        );
       }
 
       attrs.forEach((attr) => {
@@ -44,7 +58,6 @@ async function renderComponentRoots(tree, definitions) {
           definitions[tagName].hydrate = attr.value;
         }
       });
-
     }
 
     if (node.childNodes && node.childNodes.length > 0) {
@@ -71,53 +84,60 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
     jsxRuntime: 'automatic',
     production: true,
   });
-  const nextDepth = depth += 1;
+  const nextDepth = (depth += 1);
   const customParser = getParser(moduleURL);
   const parser = customParser ? customParser.parser : acorn.Parser;
-  const config = customParser ? customParser.config : {
-    ...walk.base
-  };
+  const config = customParser
+    ? customParser.config
+    : {
+        ...walk.base,
+      };
 
-  walk.simple(parser.parse(result.code, {
-    ecmaVersion: 'latest',
-    sourceType: 'module'
-  }), {
-    ImportDeclaration(node) {
-      const specifier = node.source.value;
+  walk.simple(
+    parser.parse(result.code, {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    }),
+    {
+      ImportDeclaration(node) {
+        const specifier = node.source.value;
 
-      if (typeof specifier === 'string') {
-        const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
-        const extension = typeof specifier === "string" ? specifier.split('.').pop() : "";
+        if (typeof specifier === 'string') {
+          const isBareSpecifier = specifier.indexOf('.') !== 0 && specifier.indexOf('/') !== 0;
+          const extension = typeof specifier === 'string' ? specifier.split('.').pop() : '';
 
-        // would like to decouple .jsx from the core, ideally
-        // https://github.com/ProjectEvergreen/wcc/issues/122
-        if (!isBareSpecifier && ['js', 'jsx', 'ts', 'tsx'].includes(extension)) {
-          const dependencyModuleURL = new URL(specifier, moduleURL);
+          // would like to decouple .jsx from the core, ideally
+          // https://github.com/ProjectEvergreen/wcc/issues/122
+          if (!isBareSpecifier && ['js', 'jsx', 'ts', 'tsx'].includes(extension)) {
+            const dependencyModuleURL = new URL(specifier, moduleURL);
 
-          registerDependencies(dependencyModuleURL, definitions, nextDepth);
+            registerDependencies(dependencyModuleURL, definitions, nextDepth);
+          }
         }
-      }
-    },
-    ExpressionStatement(node) {
-      if (isCustomElementDefinitionNode(node)) {
-        // @ts-ignore
-        const { arguments: args } = node.expression;
-        const tagName = args[0].type === 'Literal'
-          ? args[0].value // single and double quotes
-          : args[0].quasis[0].value.raw; // template literal
-        const tree = parseJsx(moduleURL);
-        const isEntry = nextDepth - 1 === 1;
+      },
+      ExpressionStatement(node) {
+        if (isCustomElementDefinitionNode(node)) {
+          // @ts-ignore
+          const { arguments: args } = node.expression;
+          const tagName =
+            args[0].type === 'Literal'
+              ? args[0].value // single and double quotes
+              : args[0].quasis[0].value.raw; // template literal
+          const tree = parseJsx(moduleURL);
+          const isEntry = nextDepth - 1 === 1;
 
-        definitions[tagName] = {
-          instanceName: args[1].name,
-          moduleURL,
-          source: generate(tree),
-          url: moduleURL,
-          isEntry
-        };
-      }
-    }
-  }, config);
+          definitions[tagName] = {
+            instanceName: args[1].name,
+            moduleURL,
+            source: generate(tree),
+            url: moduleURL,
+            isEntry,
+          };
+        }
+      },
+    },
+    config,
+  );
 }
 
 async function getTagName(moduleURL) {
@@ -129,28 +149,40 @@ async function getTagName(moduleURL) {
   });
   const customParser = getParser(moduleURL);
   const parser = customParser ? customParser.parser : acorn.Parser;
-  const config = customParser ? customParser.config : {
-    ...walk.base
-  };
+  const config = customParser
+    ? customParser.config
+    : {
+        ...walk.base,
+      };
   let tagName;
 
-  walk.simple(parser.parse(result.code, {
-    ecmaVersion: 'latest',
-    sourceType: 'module'
-  }), {
-    ExpressionStatement(node) {
-      if (isCustomElementDefinitionNode(node)) {
-        // @ts-ignore
-        tagName = node.expression.arguments[0].value;
-      }
-    }
-  }, config);
+  walk.simple(
+    parser.parse(result.code, {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    }),
+    {
+      ExpressionStatement(node) {
+        if (isCustomElementDefinitionNode(node)) {
+          // @ts-ignore
+          tagName = node.expression.arguments[0].value;
+        }
+      },
+    },
+    config,
+  );
 
   return tagName;
 }
 
-async function initializeCustomElement(elementURL, tagName, node = {}, definitions = {}, isEntry, props = {}) {
-
+async function initializeCustomElement(
+  elementURL,
+  tagName,
+  node = {},
+  definitions = {},
+  isEntry,
+  props = {},
+) {
   if (!tagName) {
     const depth = isEntry ? 1 : 0;
     registerDependencies(elementURL, definitions, depth);
@@ -173,9 +205,16 @@ async function initializeCustomElement(elementURL, tagName, node = {}, definitio
 
 async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   const definitions = {};
-  const elementTagName = wrappingEntryTag && await getTagName(elementURL);
+  const elementTagName = wrappingEntryTag && (await getTagName(elementURL));
   const isEntry = !!elementTagName;
-  const elementInstance = await initializeCustomElement(elementURL, undefined, undefined, definitions, isEntry, props);
+  const elementInstance = await initializeCustomElement(
+    elementURL,
+    undefined,
+    undefined,
+    definitions,
+    isEntry,
+    props,
+  );
 
   let html;
 
@@ -186,28 +225,29 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
 
     await renderComponentRoots(
       elementInstance.shadowRoot
-        ? 
-        { 
-          nodeName: '#document-fragment', 
-          childNodes: [elementInstance] 
-        }
+        ? {
+            nodeName: '#document-fragment',
+            childNodes: [elementInstance],
+          }
         : elementInstance,
-      definitions
+      definitions,
     );
 
-    html = wrappingEntryTag && elementTagName ? `
+    html =
+      wrappingEntryTag && elementTagName
+        ? `
         <${elementTagName}>
           ${serialize(elementInstance)}
         </${elementTagName}>
       `
-      : serialize(elementInstance);
+        : serialize(elementInstance);
   } else {
     console.warn('WARNING: No custom element class found for this entry point.');
   }
 
   return {
     html,
-    metadata: definitions
+    metadata: definitions,
   };
 }
 
@@ -223,11 +263,8 @@ async function renderFromHTML(html, elements = []) {
 
   return {
     html: serialize(finalTree),
-    metadata: definitions
+    metadata: definitions,
   };
 }
 
-export {
-  renderToString,
-  renderFromHTML
-};
+export { renderToString, renderFromHTML };

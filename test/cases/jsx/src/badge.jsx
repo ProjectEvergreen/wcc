@@ -1,5 +1,4 @@
 export default class BadgeComponent extends HTMLElement {
-
   constructor() {
     super();
 
@@ -11,7 +10,7 @@ export default class BadgeComponent extends HTMLElement {
     this.render();
   }
 
-  static get observedAttributes () {
+  static get observedAttributes() {
     return ['count', 'predicate'];
   }
 
@@ -33,7 +32,10 @@ export default class BadgeComponent extends HTMLElement {
     const conditionalText = predicate ? ' 🥳' : '';
 
     return (
-      <span class={conditionalClass}>{count}{conditionalText}</span>
+      <span class={conditionalClass}>
+        {count}
+        {conditionalText}
+      </span>
     );
   }
 }

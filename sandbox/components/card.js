@@ -1,5 +1,4 @@
 export default class Card extends HTMLElement {
-
   selectItem() {
     alert(`selected item is => ${this.title}!`);
   }

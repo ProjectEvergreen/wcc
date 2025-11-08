@@ -13,6 +13,7 @@ To develop for the project, you'll want to follow these steps:
 1. Run `npm ci`
 
 ### NVM
+
 If you have **NVM (Node Version Manager)** installed, get the recommend node version:
 
 - Windows: [NVM for Windows](https://github.com/coreybutler/nvm-windows/releases)

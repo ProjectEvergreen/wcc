@@ -27,7 +27,9 @@ describe('Run WCC For ', function () {
 
   describe(LABEL, function () {
     it('should have a heading tag with the "foo" attribute equal to "bar"', function () {
-      expect(dom.window.document.querySelector('set-attribute-element h2').getAttribute('foo')).to.equal('bar');
+      expect(
+        dom.window.document.querySelector('set-attribute-element h2').getAttribute('foo'),
+      ).to.equal('bar');
     });
   });
 });
