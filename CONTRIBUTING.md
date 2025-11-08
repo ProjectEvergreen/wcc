@@ -37,3 +37,4 @@ There are the main tasks, but you can see them all listed in _package.json#scrip
 - `npm run sandbox` - Starts the sandbox app for live demos and testing
 - `npm test` - Run all the tests
 - `npm test:tdd` - Run all the tests in watch mode
+- `npm run format` - Auto-format all files
