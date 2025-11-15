@@ -13,7 +13,7 @@ export default class BadgeComponent extends HTMLElement {
     this.render();
   }
 
-  static get observedAttributes () {
+  static get observedAttributes() {
     return ['count', 'predicate'];
   }
 
@@ -35,7 +35,10 @@ export default class BadgeComponent extends HTMLElement {
     const conditionalText = predicate ? ' 🥳' : '';
 
     return (
-      <span class={conditionalClass}>{count}{conditionalText}</span>
+      <span class={conditionalClass}>
+        {count}
+        {conditionalText}
+      </span>
     );
   }
 }
@@ -45,7 +48,7 @@ customElements.define('wcc-badge', BadgeComponent);
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      "wcc-badge": {
+      'wcc-badge': {
         count?: number;
       };
     }

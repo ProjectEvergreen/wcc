@@ -1,7 +1,7 @@
 name: ✨ Enhancement
 description: Improve an existing feature in WCC
-title: "Refactor Feature X to use..."
-labels: ["enhancement"]
+title: 'Refactor Feature X to use...'
+labels: ['enhancement']
 body:
   - type: markdown
     attributes:
@@ -19,7 +19,7 @@ body:
     id: desired-state
     attributes:
       label: Desired State
-      description: Describe what the desired state could look like. 
+      description: Describe what the desired state could look like.
       placeholder: Feature x could work like this instead...
     validations:
       required: true

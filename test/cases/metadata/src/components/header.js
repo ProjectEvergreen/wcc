@@ -36,8 +36,6 @@ class Header extends HTMLElement {
   }
 }
 
-export {
-  Header
-};
+export { Header };
 
 customElements.define('wcc-header', Header);

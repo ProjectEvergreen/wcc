@@ -3,7 +3,6 @@ name: Continuous Integration
 on: [pull_request]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
@@ -12,23 +11,26 @@ jobs:
         node: [18, 20, 22]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node }}
-    - name: Installing project dependencies
-      run: |
-        npm ci
-    - name: Lint
-      run: |
-        npm run lint
-    - name: Check Types
-      run: |
-        npm run lint:types
-    - name: Test
-      run: |
-        npm test
-    - name: Build
-      run: |
-        npm run docs:build
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Installing project dependencies
+        run: |
+          npm ci
+      - name: Format
+        run: |
+          npm run format:check
+      - name: Lint
+        run: |
+          npm run lint
+      - name: Check Types
+        run: |
+          npm run lint:types
+      - name: Test
+        run: |
+          npm test
+      - name: Build
+        run: |
+          npm run docs:build

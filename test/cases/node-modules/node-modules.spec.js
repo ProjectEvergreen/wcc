@@ -15,18 +15,18 @@ import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
 import { renderToString } from '../../../src/wcc.js';
 
-describe('Run WCC For ', function() {
+describe('Run WCC For ', function () {
   const LABEL = 'Custom Element w/ a node modules dependency';
   let dom;
 
-  before(async function() {
+  before(async function () {
     const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
 
     dom = new JSDOM(html);
   });
 
-  describe(LABEL, function() {
-    it('should not fail when a node module is imported in a custom element', function() {
+  describe(LABEL, function () {
+    it('should not fail when a node module is imported in a custom element', function () {
       expect(dom).to.not.be.undefined;
     });
   });

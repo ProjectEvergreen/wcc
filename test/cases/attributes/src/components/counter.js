@@ -39,7 +39,10 @@ class Counter extends HTMLElement {
   }
 
   hydrate() {
-    this.count = parseInt(JSON.parse(this.shadowRoot.querySelector('script[type="application/json"]').text).count, 10);
+    this.count = parseInt(
+      JSON.parse(this.shadowRoot.querySelector('script[type="application/json"]').text).count,
+      10,
+    );
 
     const buttonDec = this.shadowRoot.querySelector('button#dec');
     const buttonInc = this.shadowRoot.querySelector('button#inc');
@@ -63,8 +66,6 @@ class Counter extends HTMLElement {
   }
 }
 
-export {
-  Counter
-};
+export { Counter };
 
 customElements.define('wcc-counter', Counter);

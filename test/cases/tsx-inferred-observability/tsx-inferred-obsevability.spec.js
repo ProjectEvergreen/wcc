@@ -15,25 +15,29 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element using TSX and Inferred Observability';
   let fixtureAttributeChangedCallback;
   let fixtureGetObservedAttributes;
   let meta;
 
-  before(async function() {
+  before(async function () {
     const { metadata } = await renderToString(new URL('./src/counter.tsx', import.meta.url));
 
     meta = metadata;
 
-    fixtureAttributeChangedCallback = await fs.readFile(new URL('./fixtures/attribute-changed-callback.txt', import.meta.url), 'utf-8');
-    fixtureGetObservedAttributes = await fs.readFile(new URL('./fixtures/get-observed-attributes.txt', import.meta.url), 'utf-8');
+    fixtureAttributeChangedCallback = await fs.readFile(
+      new URL('./fixtures/attribute-changed-callback.txt', import.meta.url),
+      'utf-8',
+    );
+    fixtureGetObservedAttributes = await fs.readFile(
+      new URL('./fixtures/get-observed-attributes.txt', import.meta.url),
+      'utf-8',
+    );
   });
 
-  describe(LABEL, function() {
-
-    describe('<Counter> component w/ <Badge> and Inferred Observability', function() {
-
+  describe(LABEL, function () {
+    describe('<Counter> component w/ <Badge> and Inferred Observability', function () {
       it('should infer observability by generating a get observedAttributes method', () => {
         const actual = meta['wcc-counter-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
         const expected = fixtureGetObservedAttributes.replace(/ /g, '').replace(/\n/g, '');

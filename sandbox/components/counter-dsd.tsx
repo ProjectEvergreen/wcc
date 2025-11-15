@@ -21,11 +21,13 @@ export default class CounterDsdTsx extends HTMLElement {
 
     return (
       <div style="width: 50%; margin: 0 auto; text-align: center;">
-        <button onclick={this.count -= 1}> -</button>
+        <button onclick={(this.count -= 1)}> -</button>
         {/* `<img> tag here to make sure types work */}
-        <img width={10}/>
-        <span>You have clicked <span class="red">{count}</span> times</span>
-        <button onclick={this.count += 1}> +</button>
+        <img width={10} />
+        <span>
+          You have clicked <span class="red">{count}</span> times
+        </span>
+        <button onclick={(this.count += 1)}> +</button>
       </div>
     );
   }
