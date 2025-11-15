@@ -1,7 +1,7 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import noOnlyTests from 'eslint-plugin-no-only-tests';
-import tseslint from 'typescript-eslint';
+import tslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
 export default [
@@ -20,7 +20,7 @@ export default [
     },
     rules: {
       ...js.configs.recommended.rules,
-      ...tseslint.configs.recommended.rules,
+      ...tslint.configs.recommended.rules,
       // turn this off for Prettier
       'no-irregular-whitespace': 'off',
       'no-only-tests/no-only-tests': 'error',
