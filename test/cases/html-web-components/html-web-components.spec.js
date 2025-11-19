@@ -35,6 +35,8 @@ describe('Run WCC For ', function() {
     actualHtml = html;
     dom = new JSDOM(actualHtml);
     pictureFrame = dom.window.document.querySelectorAll('wcc-picture-frame');
+
+    // We want to compare using canonical html (i.e. strip self-closing tags)
     const rawExpectedHtml = await fs.readFile(new URL('./expected.html', import.meta.url), 'utf-8');
     expectedHtml = serialize(parseFragment(rawExpectedHtml));
   });
