@@ -53,7 +53,7 @@ describe('Run WCC For ', function() {
 
           expect(badge.getAttribute('count')).to.be.equal('0');
           expect(span.getAttribute('class')).to.be.equal('unmet');
-          expect(span.textContent).to.be.equal('0');
+          expect(span.textContent.trim()).to.be.equal('0');
         });
       });
 
@@ -78,7 +78,7 @@ describe('Run WCC For ', function() {
         it('should handle an expression', () => {
           const element = dom.window.document.querySelectorAll('span#expression')[0];
 
-          expect(element.textContent).to.be.equal('0');
+          expect(element.textContent.trim()).to.be.equal('0');
         });    
       });
 
