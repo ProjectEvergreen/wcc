@@ -2,21 +2,28 @@ export type Metadata = {
   [key: string]: {
     instanceName: string;
     moduleURL: URL;
-    isEntry: boolean
-  }
-}
+    isEntry: boolean;
+  };
+};
 
-export type renderToString = (elementURL: URL, wrappingEntryTag?: boolean, props?: any) => Promise<{
+export type renderToString = (
+  elementURL: URL,
+  wrappingEntryTag?: boolean,
+  props?: any,
+) => Promise<{
   html: string;
-  metadata: Metadata
-}>
+  metadata: Metadata;
+}>;
 
-export type renderFromHTML = (html: string, elementURLs: URL[]) => Promise<{
+export type renderFromHTML = (
+  html: string,
+  elementURLs: URL[],
+) => Promise<{
   html: string;
-  metadata: Metadata
-}>
+  metadata: Metadata;
+}>;
 
-declare module "wc-compiler" {
+declare module 'wc-compiler' {
   export const renderToString: renderToString;
   export const renderFromHTML: renderFromHTML;
 }

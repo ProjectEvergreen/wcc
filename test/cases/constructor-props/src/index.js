@@ -7,7 +7,9 @@ export default class PostPage extends HTMLElement {
 
   async connectedCallback() {
     const { postId } = this;
-    const post = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`).then(resp => resp.json());
+    const post = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`).then((resp) =>
+      resp.json(),
+    );
     const { id, title, body } = post;
 
     this.innerHTML = `

@@ -1,5 +1,4 @@
 export default class DocumentFragmentComponent extends HTMLElement {
-
   connectedCallback() {
     const fragment1 = document.createDocumentFragment();
     const fragment2 = new DocumentFragment();

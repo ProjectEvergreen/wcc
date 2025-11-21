@@ -19,22 +19,22 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe('Run WCC For ', function () {
   const LABEL = 'Metadata graph';
   let assetMetadata;
 
-  before(async function() {
+  before(async function () {
     const { metadata } = await renderToString(new URL('./src/pages/index.js', import.meta.url));
 
     assetMetadata = metadata;
   });
 
-  describe(LABEL, function() {
-    it('should have three custom elements in the asset graph', function() {
+  describe(LABEL, function () {
+    it('should have three custom elements in the asset graph', function () {
       expect(Object.keys(assetMetadata).length).to.equal(3);
     });
 
-    it('should have the correct attributes for each asset', function() {
+    it('should have the correct attributes for each asset', function () {
       Object.entries(assetMetadata).forEach((asset) => {
         expect(asset[0]).to.not.be.undefined;
         expect(asset[1].instanceName).to.not.be.undefined;
@@ -42,23 +42,24 @@ describe('Run WCC For ', function() {
       });
     });
 
-    it('should return the footer module with a hydrate hint', function() {
-      const hydrateScripts = Object.entries(assetMetadata)
-        .filter(asset => asset[1].hydrate === 'lazy');
+    it('should return the footer module with a hydrate hint', function () {
+      const hydrateScripts = Object.entries(assetMetadata).filter(
+        (asset) => asset[1].hydrate === 'lazy',
+      );
 
       expect(hydrateScripts[0][0]).to.equal('wcc-footer');
     });
 
     describe('Entry Points', () => {
-      it('should mark the footer module as an entry point', function() {
+      it('should mark the footer module as an entry point', function () {
         expect(assetMetadata['wcc-footer'].isEntry).to.equal(true);
       });
 
-      it('should mark the header module as an entry point', function() {
+      it('should mark the header module as an entry point', function () {
         expect(assetMetadata['wcc-header'].isEntry).to.equal(true);
       });
 
-      it('should mark the navigation module as NOT entry point', function() {
+      it('should mark the navigation module as NOT entry point', function () {
         expect(assetMetadata['wcc-navigation'].isEntry).to.equal(false);
       });
     });

@@ -1,5 +1,4 @@
 export default class SetAttributeElement extends HTMLElement {
-
   connectedCallback() {
     const heading = document.createElement('h2');
     heading.setAttribute('foo', 'bar');

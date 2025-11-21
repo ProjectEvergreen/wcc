@@ -4,9 +4,11 @@ We love contributions and appreciate any help you can offer!
 -->
 
 ## Related Issue
+
 <!-- Include a link to the issue (e.g. Resolves #12) -->
 
 ## Summary of Changes
+
 <!-- Briefly summarize the changes made, lists are appreciated, ideally with checklists
 
 1. [x] Thing I fixed

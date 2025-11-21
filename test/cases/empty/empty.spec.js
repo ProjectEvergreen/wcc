@@ -15,20 +15,19 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element with an empty class definition';
   let rawHtml;
 
-  before(async function() {
+  before(async function () {
     const { html } = await renderToString(new URL('./src/empty.js', import.meta.url));
 
     rawHtml = html;
   });
 
-  describe(LABEL, function() {
-    it('should be an empty string', function() {
+  describe(LABEL, function () {
+    it('should be an empty string', function () {
       expect(rawHtml).to.equal('');
     });
   });
-
 });

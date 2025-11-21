@@ -17,19 +17,19 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe('Run WCC For ', function () {
   const LABEL = 'Bundled Components w/ No Wrapping Entry TAag';
   let dom;
 
-  before(async function() {
+  before(async function () {
     const { html } = await renderToString(new URL('./src/no-wrap.js', import.meta.url), false);
 
     dom = new JSDOM(html);
   });
 
-  describe(LABEL, function() {
-    describe('no top level wrapping by <wcc-navigation>', function() {
-      it('should have a <footer> tag within the <template> shadowroot', function() {
+  describe(LABEL, function () {
+    describe('no top level wrapping by <wcc-navigation>', function () {
+      it('should have a <footer> tag within the <template> shadowroot', function () {
         expect(dom.window.document.querySelectorAll('wcc-navigation').length).to.equal(0);
       });
     });
