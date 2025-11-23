@@ -387,17 +387,17 @@ There are of couple things you will need to do to use WCC with JSX:
 
 TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You'll need to configure JSX in your _tsconfig.json_ by adding these two lines to your `compilerOptions` settings:
 
-```json5
+```json
 {
-  compilerOptions: {
+  "compilerOptions": {
     // required options
-    jsx: 'preserve',
-    jsxImportSource: 'wc-compiler',
+    "jsx": "preserve",
+    "jsxImportSource": "wc-compiler",
 
     // additional recommended options
-    allowImportingTsExtensions: true,
-    erasableSyntaxOnly: true,
-  },
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
+  }
 }
 ```
 
