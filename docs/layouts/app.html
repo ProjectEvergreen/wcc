@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <script src="../components/header.js" type="module" data-gwd-opt="static"></script>
+    <script src="../components/footer.js" type="module" data-gwd-opt="static"></script>
+
+    <style>
+      :root {
+        --accent: #367588;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+
+      main {
+        max-width: 1200px;
+        margin: 20px auto;
+        width: 100%;
+        padding: 0 1rem;
+      }
+
+      a:visited {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+
+  <body>
+    <wcc-header></wcc-header>
+
+    <main>
+      <page-outlet></page-outlet>
+    </main>
+
+    <wcc-footer></wcc-footer>
+  </body>
+</html>
