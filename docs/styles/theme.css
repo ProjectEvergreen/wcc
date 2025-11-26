@@ -1,0 +1,75 @@
+@import 'open-props/borders';
+@import 'open-props/fonts';
+@import 'open-props/shadows';
+@import 'open-props/sizes';
+/* @import "prism-themes/themes/prism-nord.css"; */
+
+@font-face {
+  font-family: 'Geist-Sans';
+  src: url('../../node_modules/geist/dist/fonts/geist-sans/Geist-Regular.woff2') format('truetype');
+}
+
+@font-face {
+  font-family: 'Geist-Mono';
+  src: url('../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Regular.woff2')
+    format('truetype');
+}
+
+@font-face {
+  font-family: 'Geist-Sans Bold';
+  src: url('../../node_modules/geist/dist/fonts/geist-sans/Geist-Bold.woff2') format('truetype');
+}
+
+:root,
+:host {
+  --primary: #013553;
+  --accent: #3b8ebf;
+  --background: #f5f5f5;
+  --font-primary:
+    'Geist-Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-primary-bold: 'Geist-Sans Bold';
+  --font-secondary: 'Geist-Mono', monospace;
+}
+
+* {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-3);
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  max-width: 1200px;
+  margin: 20px auto;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+/* tweaks for PrismJS */
+code[class*='language-'],
+pre[class*='language-'],
+code,
+pre,
+span.token {
+  font-family: 'Geist-Mono', monospace;
+}
+
+code[class*='language-'],
+pre[class*='language-'] {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  code[class*='language-'],
+  pre[class*='language-'],
+  .token {
+    font-size: 0.9rem;
+  }
+}
