@@ -1,5 +1,6 @@
 import type { Config } from '@greenwood/cli';
 import { greenwoodPluginMarkdown } from '@greenwood/plugin-markdown';
+import { greenwoodPluginImportJsx } from '@greenwood/plugin-import-jsx';
 
 // "@mapbox/rehype-prism": "^0.8.0",
 // "rehype-autolink-headings": "^6.1.1",
@@ -14,6 +15,7 @@ const config: Config = {
   workspace: new URL('./docs/', import.meta.url),
   prerender: true,
   plugins: [
+    greenwoodPluginImportJsx(),
     greenwoodPluginMarkdown({
       plugins: [],
     }),

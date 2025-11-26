@@ -38,7 +38,7 @@
   },
   "scripts": {
     "dev": "greenwood develop",
-    "build": "greenwood build",
+    "build": "NODE_OPTIONS='--import @greenwood/cli/register' greenwood build",
     "serve": "greenwood serve",
     "lint": "npm run lint:js && npm run lint:ls",
     "lint:js": "eslint",
@@ -62,8 +62,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@greenwood/cli": "^0.33.3",
-    "@greenwood/plugin-markdown": "^0.33.3",
+    "@greenwood/cli": "^0.34.0-alpha.1",
+    "@greenwood/plugin-import-jsx": "^0.34.0-alpha.1",
+    "@greenwood/plugin-markdown": "^0.34.0-alpha.1",
     "@ls-lint/ls-lint": "^2.3.1",
     "@mapbox/rehype-prism": "^0.8.0",
     "@types/mocha": "^10.0.10",

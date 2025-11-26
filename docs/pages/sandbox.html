@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" prefix="og:http://ogp.me/ns#">
+<html>
   <head>
     <title>WCC Sandbox</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -32,6 +32,17 @@
       }
     </style>
 
+    <script type="module" src="../components/sandbox/card.js"></script>
+    <script type="module" src="../components/sandbox/card.jsx"></script>
+
+    <script type="module" src="../components/sandbox/counter-dsd.jsx"></script>
+    <script type="module" src="../components/sandbox/counter-dsd.tsx"></script>
+    <script type="module" src="../components/sandbox/counter.jsx"></script>
+    <script type="module" src="../components/sandbox/counter.tsx"></script>
+
+    <script type="module" src="../components/sandbox/header.js"></script>
+    <script type="module" src="../components/sandbox/header.jsx"></script>
+    <script type="module" src="../components/sandbox/picture-frame.js"></script>
     <script>
       function randomReset() {
         return Math.floor(Math.random() * 100);
@@ -54,15 +65,6 @@
           document.querySelector('sb-counter-dsd-tsx').setAttribute('count', randomReset());
         });
       });
-    </script>
-
-    <script>
-      document.write(
-        '<script src="http://' +
-          (location.host || 'localhost').split(':')[0] +
-          ':35729/livereload.js?snipver=1"></' +
-          'script>',
-      );
     </script>
 
     <!-- interactive scripts can be configured in sandbox.js -->
