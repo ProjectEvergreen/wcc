@@ -15,14 +15,16 @@ function removeAttribute(element, attribute) {
 function handlePropertyAttribute(element, attribute, value, deps) {
   const propName = attribute.substring(1);
   removeAttribute(element, attribute);
-  if (!element.props) { element.props = {}; }
+  if (!element.props) {
+    element.props = {};
+  }
   element[propName] = deps[value] ?? value;
 }
 
 function buildStringFromTemplate(template) {
   const { strings, values } = template;
 
-  if (!strings || !values) { 
+  if (!strings || !values) {
     return { string: '', deps: {} };
   }
 
@@ -45,7 +47,9 @@ function buildStringFromTemplate(template) {
       const valueKey = isPrimitive ? null : generateUUID() + index;
       const lastPart = acc[acc.length - 1];
       const needsQuotes = isElement && !lastPart.endsWith('"');
-      acc.push(`${needsQuotes ? '"' : ''}${valueKey !== null ? valueKey : valueAtIndex}${needsQuotes ? '"' : ''}`);
+      acc.push(
+        `${needsQuotes ? '"' : ''}${valueKey !== null ? valueKey : valueAtIndex}${needsQuotes ? '"' : ''}`,
+      );
 
       if (valueKey) {
         deps[valueKey] = valueAtIndex;
@@ -58,15 +62,17 @@ function buildStringFromTemplate(template) {
 }
 
 function setAttributes(childNodes, deps) {
-  childNodes.forEach((element, index)=>{
+  childNodes.forEach((element, index) => {
     const { attrs, nodeName } = element;
-    if (nodeName === '#comment') { return; }
+    if (nodeName === '#comment') {
+      return;
+    }
     attrs?.forEach(({ name, value }) => {
       if (name.startsWith('.')) {
         handlePropertyAttribute(childNodes[index], name, value, deps);
       }
     });
-    if (element.childNodes) { 
+    if (element.childNodes) {
       setAttributes(element.childNodes, deps);
     }
   });
@@ -85,6 +91,6 @@ export function render(content, container) {
 export const html = (strings, ...values) => {
   return {
     strings,
-    values
+    values,
   };
 };

@@ -11,14 +11,9 @@
     "noEmit": true,
     "skipLibCheck": true,
     "noImplicitAny": true,
-    "types": [
-      "mocha",
-      "node",
-    ],
+    "types": ["mocha", "node"],
     "jsx": "preserve",
     "jsxImportSource": "wc-compiler"
   },
-  "exclude": [
-    "node_modules",
-  ],
+  "exclude": ["node_modules"]
 }

@@ -31,13 +31,17 @@ describe('Run WCC For ', function () {
   describe(LABEL, function () {
     it('should have exactly one open shadowrootmode template', function () {
       expect(
-        dom.window.document.querySelectorAll('open-shadow-component template[shadowrootmode="open"]').length
+        dom.window.document.querySelectorAll(
+          'open-shadow-component template[shadowrootmode="open"]',
+        ).length,
       ).to.equal(1);
     });
 
     it('should have exactly one closed shadowrootmode template', function () {
       expect(
-        dom.window.document.querySelectorAll('closed-shadow-component template[shadowrootmode="closed"]').length
+        dom.window.document.querySelectorAll(
+          'closed-shadow-component template[shadowrootmode="closed"]',
+        ).length,
       ).to.equal(1);
     });
   });

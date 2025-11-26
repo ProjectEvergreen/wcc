@@ -1,5 +1,4 @@
 export default class FullDocumentComponent extends HTMLElement {
-
   connectedCallback() {
     this.innerHTML = `
       <!DOCTYPE html>

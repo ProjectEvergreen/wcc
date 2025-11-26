@@ -2,7 +2,10 @@
 // https://github.com/nodejs/node/discussions/41711
 import fs from 'fs';
 import path from 'path';
-import { load as experimentalLoadJsx, resolve as experimentalResolveJsx } from './src/jsx-loader.js';
+import {
+  load as experimentalLoadJsx,
+  resolve as experimentalResolveJsx,
+} from './src/jsx-loader.js';
 
 export async function load(url, context, defaultLoad) {
   const ext = path.extname(url);
@@ -15,7 +18,7 @@ export async function load(url, context, defaultLoad) {
     return {
       format: 'module',
       shortCircuit: true,
-      source: `const css = \`${(await fs.promises.readFile(new URL(url), 'utf-8')).replace(/\r?\n|\r/g, ' ').replace(/\\/g, '\\\\')}\`;\nexport default css;`
+      source: `const css = \`${(await fs.promises.readFile(new URL(url), 'utf-8')).replace(/\r?\n|\r/g, ' ').replace(/\\/g, '\\\\')}\`;\nexport default css;`,
     };
   }
 
@@ -48,6 +51,6 @@ async function loadBin(url, context, defaultLoad) {
 
   return defaultLoad(url, {
     ...context,
-    format
+    format,
   });
 }

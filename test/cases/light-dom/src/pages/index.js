@@ -1,7 +1,6 @@
 import '../components/header.js';
 
 export default class HomePage extends HTMLElement {
-
   connectedCallback() {
     this.innerHTML = this.getTemplate();
   }

@@ -1,5 +1,4 @@
 export default class HeaderJsx extends HTMLElement {
-
   connectedCallback() {
     this.render();
   }

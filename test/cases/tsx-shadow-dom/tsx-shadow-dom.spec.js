@@ -15,24 +15,23 @@ import { renderToString } from '../../../src/wcc.js';
 
 const expect = chai.expect;
 
-describe('Run WCC For ', function() {
+describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element using TSX and Declarative Shadow DOM';
   let dom;
   let meta;
 
-  before(async function() {
+  before(async function () {
     const { html, metadata } = await renderToString(new URL('./src/heading.tsx', import.meta.url));
 
     meta = metadata;
     dom = new JSDOM(html);
   });
 
-  describe(LABEL, function() {
-
-    describe('<wcc-heading> component', function() {
+  describe(LABEL, function () {
+    describe('<wcc-heading> component', function () {
       let heading;
 
-      before(async function() {
+      before(async function () {
         heading = dom.window.document.querySelector('wcc-heading template[shadowrootmode="open"]');
       });
 

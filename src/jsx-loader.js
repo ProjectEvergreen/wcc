@@ -39,8 +39,8 @@ export function getParser(moduleURL) {
     config: {
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
       ...walk.base,
-      JSXElement: () => {}
-    }
+      JSXElement: () => {},
+    },
   };
 }
 
@@ -57,7 +57,9 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
           const { value } = attrs[attr];
 
           if (value.indexOf('__this__.') >= 0) {
-            const root = hasShadowRoot ? '.getRootNode().host' : `${'.parentElement'.repeat(currentDepth)}`;
+            const root = hasShadowRoot
+              ? '.getRootNode().host'
+              : `${'.parentElement'.repeat(currentDepth)}`;
 
             node.attrs[attr].value = value.replace(/__this__/g, `this${root}`);
           }
@@ -162,7 +164,7 @@ function parseJsxElement(element, moduleContents = '') {
       string += openingElement.selfClosing ? '/>' : '>';
 
       if (element.children.length > 0) {
-        element.children.forEach(child => parseJsxElement(child, moduleContents));
+        element.children.forEach((child) => parseJsxElement(child, moduleContents));
       }
 
       string += `</${tagName}>`;
@@ -207,16 +209,17 @@ function findThisReferences(context, statement) {
   const references = [];
   const isRenderFunctionContext = context === 'render';
   const { expression, type } = statement;
-  const isConstructorThisAssignment = context === 'constructor'
-    && type === 'ExpressionStatement'
-    && expression.type === 'AssignmentExpression'
-    && expression.left.object.type === 'ThisExpression';
+  const isConstructorThisAssignment =
+    context === 'constructor' &&
+    type === 'ExpressionStatement' &&
+    expression.type === 'AssignmentExpression' &&
+    expression.left.object.type === 'ThisExpression';
 
   if (isConstructorThisAssignment) {
     // this.name = 'something'; // constructor
     references.push(expression.left.property.name);
   } else if (isRenderFunctionContext && type === 'VariableDeclaration') {
-    statement.declarations.forEach(declaration => {
+    statement.declarations.forEach((declaration) => {
       const { init, id } = declaration;
 
       if (init.object && init.object.type === 'ThisExpression') {
@@ -238,7 +241,7 @@ export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
   const result = transform(moduleContents, {
     transforms: ['typescript', 'jsx'],
-    jsxRuntime: 'preserve'
+    jsxRuntime: 'preserve',
   });
   // would be nice if we could do this instead, so we could know ahead of time
   // const { inferredObservability } = await import(moduleURL);
@@ -248,45 +251,48 @@ export function parseJsx(moduleURL) {
   let observedAttributes = [];
   let tree = acorn.Parser.extend(jsx()).parse(result.code, {
     ecmaVersion: 'latest',
-    sourceType: 'module'
+    sourceType: 'module',
   });
   string = '';
 
-  walk.simple(tree, {
-    ClassDeclaration(node) {
-      // @ts-ignore
-      if (node.superClass.name === 'HTMLElement') {
-        const hasShadowRoot = moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
+  walk.simple(
+    tree,
+    {
+      ClassDeclaration(node) {
+        // @ts-ignore
+        if (node.superClass.name === 'HTMLElement') {
+          const hasShadowRoot =
+            moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
-        for (const n1 of node.body.body) {
-          if (n1.type === 'MethodDefinition') {
-            // @ts-ignore
-            const nodeName = n1.key.name;
-            if (nodeName === 'render') {
-              for (const n2 in n1.value.body.body) {
-                const n = n1.value.body.body[n2];
+          for (const n1 of node.body.body) {
+            if (n1.type === 'MethodDefinition') {
+              // @ts-ignore
+              const nodeName = n1.key.name;
+              if (nodeName === 'render') {
+                for (const n2 in n1.value.body.body) {
+                  const n = n1.value.body.body[n2];
 
-                if (n.type === 'VariableDeclaration') {
-                  observedAttributes = [
-                    ...observedAttributes,
-                    ...findThisReferences('render', n)
-                  ];
-                  // @ts-ignore
-                } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                  const html = parseJsxElement(n.argument, moduleContents);
-                  const elementTree = getParse(html)(html);
-                  const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
+                  if (n.type === 'VariableDeclaration') {
+                    observedAttributes = [
+                      ...observedAttributes,
+                      ...findThisReferences('render', n),
+                    ];
+                    // @ts-ignore
+                  } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
+                    const html = parseJsxElement(n.argument, moduleContents);
+                    const elementTree = getParse(html)(html);
+                    const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
-                  applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
+                    applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
-                  const serializedHtml = serialize(elementTree);
-                  // we have to Shadow DOM use cases here
-                  // 1. No shadowRoot, so we attachShadow and append the template
-                  // 2. If there is root from the attachShadow signal, so we just need to inject innerHTML, say in an htmx
-                  // could / should we do something else instead of .innerHTML
-                  // https://github.com/ProjectEvergreen/wcc/issues/138
-                  const renderHandler = hasShadowRoot
-                    ? `
+                    const serializedHtml = serialize(elementTree);
+                    // we have to Shadow DOM use cases here
+                    // 1. No shadowRoot, so we attachShadow and append the template
+                    // 2. If there is root from the attachShadow signal, so we just need to inject innerHTML, say in an htmx
+                    // could / should we do something else instead of .innerHTML
+                    // https://github.com/ProjectEvergreen/wcc/issues/138
+                    const renderHandler = hasShadowRoot
+                      ? `
                         const template = document.createElement('template');
                         template.innerHTML = \`${serializedHtml}\`;
 
@@ -297,38 +303,45 @@ export function parseJsx(moduleURL) {
                           this.shadowRoot.innerHTML = template.innerHTML;
                         }
                       `
-                    : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
-                  const transformed = acorn.parse(renderHandler, {
-                    ecmaVersion: 'latest',
-                    sourceType: 'module'
-                  });
+                      : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
+                    const transformed = acorn.parse(renderHandler, {
+                      ecmaVersion: 'latest',
+                      sourceType: 'module',
+                    });
 
-                  // @ts-ignore
-                  n1.value.body.body[n2] = transformed;
+                    // @ts-ignore
+                    n1.value.body.body[n2] = transformed;
+                  }
                 }
               }
             }
           }
         }
-      }
-    },
-    ExportNamedDeclaration(node) {
-      const { declaration } = node;
+      },
+      ExportNamedDeclaration(node) {
+        const { declaration } = node;
 
-      if (declaration && declaration.type === 'VariableDeclaration' && declaration.kind === 'const' && declaration.declarations.length === 1) {
-        // @ts-ignore
-        if (declaration.declarations[0].id.name === 'inferredObservability') {
+        if (
+          declaration &&
+          declaration.type === 'VariableDeclaration' &&
+          declaration.kind === 'const' &&
+          declaration.declarations.length === 1
+        ) {
           // @ts-ignore
-          inferredObservability = Boolean(node.declaration.declarations[0].init.raw);
+          if (declaration.declarations[0].id.name === 'inferredObservability') {
+            // @ts-ignore
+            inferredObservability = Boolean(node.declaration.declarations[0].init.raw);
+          }
         }
-      }
-    }
-  }, {
-    // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
-    ...walk.base,
-    // @ts-ignore
-    JSXElement: () => {}
-  });
+      },
+    },
+    {
+      // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
+      ...walk.base,
+      // @ts-ignore
+      JSXElement: () => {},
+    },
+  );
 
   // TODO - signals: use constructor, render, HTML attributes?  some, none, or all?
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
@@ -336,7 +349,10 @@ export function parseJsx(moduleURL) {
     for (const line of tree.body) {
       // test for class MyComponent vs export default class MyComponent
       // @ts-ignore
-      if (line.type === 'ClassDeclaration' || (line.declaration && line.declaration.type) === 'ClassDeclaration') {
+      if (
+        line.type === 'ClassDeclaration' ||
+        (line.declaration && line.declaration.type) === 'ClassDeclaration'
+      ) {
         // @ts-ignore
         insertPoint = line.declaration.body.start + 1;
       }
@@ -347,7 +363,7 @@ export function parseJsx(moduleURL) {
     // TODO better way to determine value type?
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
-        return [${[...observedAttributes].map(attr => `'${attr}'`).join(',')}]
+        return [${[...observedAttributes].map((attr) => `'${attr}'`).join(',')}]
       }
 
       attributeChangedCallback(name, oldValue, newValue) {
@@ -362,13 +378,15 @@ export function parseJsx(moduleURL) {
         }
         if (newValue !== oldValue) {
           switch(name) {
-            ${observedAttributes.map((attr) => {
-              return `
+            ${observedAttributes
+              .map((attr) => {
+                return `
                 case '${attr}':
                   this.${attr} = getValue(newValue);
                   break;
               `;
-            }).join('\n')}
+              })
+              .join('\n')}
           }
 
           this.render();
@@ -380,7 +398,7 @@ export function parseJsx(moduleURL) {
 
     tree = acorn.Parser.extend(jsx()).parse(newModuleContents, {
       ecmaVersion: 'latest',
-      sourceType: 'module'
+      sourceType: 'module',
     });
   }
 
@@ -395,7 +413,7 @@ export function resolve(specifier, context, defaultResolve) {
   if (jsxRegex.test(specifier) || tsxRegex.test(specifier)) {
     return {
       url: new URL(specifier, parentURL).href,
-      shortCircuit: true
+      shortCircuit: true,
     };
   }
 
@@ -409,7 +427,7 @@ export async function load(url, context, defaultLoad) {
     return {
       format: 'module',
       source: generate(jsFromJsx),
-      shortCircuit: true
+      shortCircuit: true,
     };
   }
 

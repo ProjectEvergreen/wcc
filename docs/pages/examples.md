@@ -6,7 +6,7 @@ Below are some example of how **WCC** is being used right now.
 
 ## Server Rendering (SSR)
 
-For the project [**Greenwood**](https://www.greenwoodjs.dev/), **WCC** is used to provide a _Next.js_ like experience by allowing users to author [server-side routes using native custom elements](https://www.greenwoodjs.dev/docs/pages/server-rendering/#web-server-components)!  ✨
+For the project [**Greenwood**](https://www.greenwoodjs.dev/), **WCC** is used to provide a _Next.js_ like experience by allowing users to author [server-side routes using native custom elements](https://www.greenwoodjs.dev/docs/pages/server-rendering/#web-server-components)! ✨
 
 ```js
 import '../components/card/card.js';
@@ -14,16 +14,17 @@ import '../components/card/card.js';
 export default class ArtistsPage extends HTMLElement {
   async connectedCallback() {
     if (!this.shadowRoot) {
-      const artists = await fetch('https://www.domain.com/api/artists')
-        .then(resp => resp.json());
-      const html = artists.map(artist => {
-        return `
+      const artists = await fetch('https://www.domain.com/api/artists').then((resp) => resp.json());
+      const html = artists
+        .map((artist) => {
+          return `
           <wc-card>
             <h2 slot="title">${artist.name}</h2>
             <img slot="image" src="${artist.imageUrl}" alt="${artist.name}"/>
           </wc-card>
         `;
-      }).join('');
+        })
+        .join('');
 
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.innerHTML = html;
@@ -34,7 +35,7 @@ export default class ArtistsPage extends HTMLElement {
 
 ## Serverless and Edge Functions
 
-In the talk [_"Web Components at the Edge"_](https://sched.co/11loQ) for OpenJS World 2022, **WCC** was leveraged for all the AWS Lambda serverless function and Netlify Edge function demos.  It also shows some clever ways to use **WCC** in more constrained runtime environments, like an edge runtime where something like `fs` might not be available.  See all the [code, slides and demos in GitHub](https://github.com/thescientist13/web-components-at-the-edge).  🚀
+In the talk [_"Web Components at the Edge"_](https://sched.co/11loQ) for OpenJS World 2022, **WCC** was leveraged for all the AWS Lambda serverless function and Netlify Edge function demos. It also shows some clever ways to use **WCC** in more constrained runtime environments, like an edge runtime where something like `fs` might not be available. See all the [code, slides and demos in GitHub](https://github.com/thescientist13/web-components-at-the-edge). 🚀
 
 ```js
 import '../../node_modules/wc-compiler/src/dom-shim.js';
@@ -72,7 +73,7 @@ export default async function (request, context) {
 
 ## Static Sites (SSG)
 
-Using `innerHTML`, custom elements can be authored to not use Shadow DOM, which can be useful for a `Layout` or `App` component where that top level content specifically should _not_ be rendered in a shadow root, e.g. `<template>` tag.  What's nice about **WCC** is that by using `innerHTML` or `attachShadow`, you can opt-in to either on a per component basis, like is being done for [the **WCC** website](https://github.com/ProjectEvergreen/wcc/tree/master/docs).  In this case, the content is authored in markdown, but the layout, header, navigation, and footer are all custom elements rendered to static HTML.  🗒️
+Using `innerHTML`, custom elements can be authored to not use Shadow DOM, which can be useful for a `Layout` or `App` component where that top level content specifically should _not_ be rendered in a shadow root, e.g. `<template>` tag. What's nice about **WCC** is that by using `innerHTML` or `attachShadow`, you can opt-in to either on a per component basis, like is being done for [the **WCC** website](https://github.com/ProjectEvergreen/wcc/tree/master/docs). In this case, the content is authored in markdown, but the layout, header, navigation, and footer are all custom elements rendered to static HTML. 🗒️
 
 ```js
 // layout.js
@@ -118,7 +119,7 @@ export default Layout;
 
 ## HTML (Light DOM) Web Components
 
-As detailed in this excellent [blog post](https://blog.jim-nielsen.com/2023/html-web-components/), HTML Web Components are a strategy for transcluding content into the Light DOM of a custom element instead of (or in addition to) setting attributes.  This can be useful for providing a set of styles to a block of content.
+As detailed in this excellent [blog post](https://blog.jim-nielsen.com/2023/html-web-components/), HTML Web Components are a strategy for transcluding content into the Light DOM of a custom element instead of (or in addition to) setting attributes. This can be useful for providing a set of styles to a block of content.
 
 So instead of setting attributes:
 
@@ -153,9 +154,9 @@ customElements.define('picture-frame', PictureFrame);
 
 ## Progressive Hydration
 
-Using the `metadata` information from a custom element with the `hydrate=true` attribute, you can use use the metadata with an [`IntersectionObserver`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to progressively load a custom element.  In this case, _handler.js_ builds `SliderComponent` from HTML and not only uses the `hydrate` attribute and metadata for lazy hydration, but also passes in the animated color via a CSS custom property set at build time!  🤯
+Using the `metadata` information from a custom element with the `hydrate=true` attribute, you can use use the metadata with an [`IntersectionObserver`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to progressively load a custom element. In this case, _handler.js_ builds `SliderComponent` from HTML and not only uses the `hydrate` attribute and metadata for lazy hydration, but also passes in the animated color via a CSS custom property set at build time! 🤯
 
-See it in [action here](https://wc-at-the-edge.thegreenhouse.io/demo3) by scrolling to the bottom of the page and seeing the animation happen!  View [the code here in GitHub](https://github.com/thescientist13/web-components-at-the-edge/blob/main/serverless/get-demo3/index.mjs).
+See it in [action here](https://wc-at-the-edge.thegreenhouse.io/demo3) by scrolling to the bottom of the page and seeing the animation happen! View [the code here in GitHub](https://github.com/thescientist13/web-components-at-the-edge/blob/main/serverless/get-demo3/index.mjs).
 
 ```js
 // slider.js
@@ -235,7 +236,7 @@ export async function handler() {
     status: 200,
     headers: {
       'cache-control': 'no-cache, no-store, must-revalidate, max-age=0, s-maxage=0',
-      'content-type': 'text/html; charset=utf8'
+      'content-type': 'text/html; charset=utf8',
     },
     body: `
       <!DOCTYPE html>
@@ -249,8 +250,8 @@ export async function handler() {
               --color-accent: rgb(250, 217, 28);
             }
           </style>
-          ${
-            lazyJs.map(script => {
+          ${lazyJs
+            .map((script) => {
               return `
                 <script type="module">
                   let initialized = false;
@@ -278,14 +279,14 @@ export async function handler() {
                   })
                 </script>
               `;
-            }).join('\n')
-          }
+            })
+            .join('\n')}
         </head>
         <body>
           ${html}
         </body>
       </html>
-    `
+    `,
   };
 }
 ```
@@ -294,8 +295,8 @@ export async function handler() {
 
 A couple examples of using WCC + JSX are available for reference and reproduction:
 
-* [Counter](https://github.com/thescientist13/greenwood-counter-jsx)
-* [Todo App](https://github.com/thescientist13/todo-app)
+- [Counter](https://github.com/thescientist13/greenwood-counter-jsx)
+- [Todo App](https://github.com/thescientist13/todo-app)
 
 Both of these examples can compile JSX for _**the client or the server**_ using [Greenwood](https://www.greenwoodjs.dev/), and can even be used with great testing tools like [**@web/test-runner**](https://modern-web.dev/docs/test-runner/overview/)! 💪
 

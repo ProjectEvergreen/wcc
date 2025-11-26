@@ -34,8 +34,6 @@ class Footer extends HTMLElement {
   }
 }
 
-export {
-  Footer
-};
+export { Footer };
 
 customElements.define('wcc-footer', Footer);

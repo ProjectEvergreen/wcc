@@ -13,6 +13,7 @@ To develop for the project, you'll want to follow these steps:
 1. Run `npm ci`
 
 ### NVM
+
 If you have **NVM (Node Version Manager)** installed, get the recommend node version:
 
 - Windows: [NVM for Windows](https://github.com/coreybutler/nvm-windows/releases)
@@ -37,3 +38,5 @@ There are the main tasks, but you can see them all listed in _package.json#scrip
 - `npm run sandbox` - Starts the sandbox app for live demos and testing
 - `npm test` - Run all the tests
 - `npm test:tdd` - Run all the tests in watch mode
+- `npm run lint` - Run all linters
+- `npm run format` - Auto-format all files

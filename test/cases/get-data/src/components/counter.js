@@ -37,7 +37,10 @@ class Counter extends HTMLElement {
 
   hydrate() {
     console.debug('COUNTER => hydrate');
-    this.count = parseInt(JSON.parse(this.shadowRoot.querySelector('script[type="application/json"]').text).count, 10);
+    this.count = parseInt(
+      JSON.parse(this.shadowRoot.querySelector('script[type="application/json"]').text).count,
+      10,
+    );
 
     const buttonDec = this.shadowRoot.querySelector('button#dec');
     const buttonInc = this.shadowRoot.querySelector('button#inc');
@@ -65,13 +68,11 @@ class Counter extends HTMLElement {
   }
 }
 
-export {
-  Counter
-};
+export { Counter };
 
 export async function getData() {
   return {
-    count: Math.floor(Math.random() * (100 - 0 + 1) + 0)
+    count: Math.floor(Math.random() * (100 - 0 + 1) + 0),
   };
 }
 

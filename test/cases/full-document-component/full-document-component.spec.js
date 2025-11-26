@@ -29,8 +29,8 @@ describe('Run WCC For ', function () {
       expect(renderedContent).to.equal(
         '<full-document-component><!DOCTYPE html><html><head><title>App Layout</title></head><body><h1>App Layout</h1></body></html></full-document-component>'.replace(
           /\s+/g,
-          ''
-        )
+          '',
+        ),
       );
     });
   });
