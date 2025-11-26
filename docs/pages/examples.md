@@ -1,3 +1,7 @@
+---
+tocHeading: 2
+---
+
 # Examples
 
 Below are some example of how **WCC** is being used right now.

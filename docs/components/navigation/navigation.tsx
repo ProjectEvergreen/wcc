@@ -1,6 +1,5 @@
 export default class Navigation extends HTMLElement {
-  constructor() {
-    super();
+  connectedCallback() {
     this.render();
   }
 
