@@ -1,4 +1,6 @@
 ---
+collection: 'nav'
+order: 2
 tocHeading: 2
 ---
 

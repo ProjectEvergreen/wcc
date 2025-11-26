@@ -17,4 +17,5 @@ ignore:
   - .git
   - coverage
   - node_modules
-  - dist
+  - public
+  - .greenwood

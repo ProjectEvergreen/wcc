@@ -62,7 +62,7 @@
     "sucrase": "^3.35.0"
   },
   "devDependencies": {
-        "@double-great/stylelint-a11y": "^3.0.2",
+    "@double-great/stylelint-a11y": "^3.0.2",
     "@eslint/js": "^9.39.1",
     "@greenwood/cli": "^0.34.0-alpha.4",
     "@greenwood/plugin-css-modules": "^0.34.0-alpha.4",
