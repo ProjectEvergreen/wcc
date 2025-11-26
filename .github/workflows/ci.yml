@@ -33,4 +33,4 @@ jobs:
           npm test
       - name: Build
         run: |
-          npm run docs:build
+          npm run build
