@@ -1,8 +1,7 @@
 import '../navigation/navigation.tsx';
 
 export default class Header extends HTMLElement {
-  constructor() {
-    super();
+  connectedCallback() {
     this.render();
   }
 
