@@ -1,11 +1,14 @@
 import type { Config } from '@greenwood/cli';
 import { greenwoodPluginMarkdown } from '@greenwood/plugin-markdown';
 import { greenwoodPluginImportJsx } from '@greenwood/plugin-import-jsx';
+import { greenwoodPluginCssModules } from '@greenwood/plugin-css-modules';
 
 const config: Config = {
+  activeContent: true,
   workspace: new URL('./docs/', import.meta.url),
   prerender: true,
   plugins: [
+    greenwoodPluginCssModules(),
     greenwoodPluginImportJsx(),
     greenwoodPluginMarkdown({
       plugins: [

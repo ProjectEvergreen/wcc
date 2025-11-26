@@ -64,6 +64,7 @@
     "@double-great/stylelint-a11y": "^3.0.2",
     "@eslint/js": "^9.39.1",
     "@greenwood/cli": "^0.34.0-alpha.1",
+    "@greenwood/plugin-css-modules": "^0.34.0-alpha.1",
     "@greenwood/plugin-import-jsx": "^0.34.0-alpha.1",
     "@greenwood/plugin-markdown": "^0.34.0-alpha.1",
     "@ls-lint/ls-lint": "^2.3.1",
