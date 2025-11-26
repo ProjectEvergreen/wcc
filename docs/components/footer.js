@@ -1,4 +1,4 @@
-class Footer extends HTMLElement {
+export default class Footer extends HTMLElement {
   connectedCallback() {
     this.innerHTML = this.render();
   }

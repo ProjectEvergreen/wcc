@@ -1,4 +1,4 @@
-class Navigation extends HTMLElement {
+export default class Navigation extends HTMLElement {
   connectedCallback() {
     this.innerHTML = this.render();
   }
@@ -30,8 +30,8 @@ class Navigation extends HTMLElement {
       <nav>
         <ul>
           <li><a href="/">Home</a></li>
-          <li><a href="/docs">Docs</a></li>
-          <li><a href="/examples">Examples</a></li>
+          <li><a href="/docs/">Docs</a></li>
+          <li><a href="/examples/">Examples</a></li>
         </ul>
       </nav>
     `;

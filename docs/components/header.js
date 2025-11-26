@@ -1,6 +1,6 @@
 import './navigation.js';
 
-class Header extends HTMLElement {
+export default class Header extends HTMLElement {
   connectedCallback() {
     this.innerHTML = this.render();
   }
