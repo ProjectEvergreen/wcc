@@ -2,7 +2,7 @@
 @import 'open-props/fonts';
 @import 'open-props/shadows';
 @import 'open-props/sizes';
-/* @import "prism-themes/themes/prism-nord.css"; */
+@import 'prism-themes/themes/prism-ghcolors.css';
 
 @font-face {
   font-family: 'Geist-Sans';
@@ -52,6 +52,31 @@ main {
   padding: 0 1rem;
 }
 
+/* tweaks for rehype-autolink-headings markdown plugin */
+h2 > a > span.icon,
+h3 > a > span.icon,
+h4 > a > span.icon {
+  display: inline-block;
+  width: var(--size-4);
+  height: var(--size-4);
+  padding: var(--size-2);
+  background-image: url('../assets/link.svg');
+  background-size: var(--size-3) var(--size-3);
+  background-repeat: no-repeat;
+  background-position-y: center;
+  vertical-align: text-bottom;
+  opacity: 0.5;
+}
+
+h2:hover > a > span.icon,
+h2:focus > a > span.icon,
+h3:hover > a > span.icon,
+h3:focus > a > span.icon,
+h4:hover > a > span.icon,
+h4:focus > a > span.icon {
+  opacity: 1;
+}
+
 /* tweaks for PrismJS */
 code[class*='language-'],
 pre[class*='language-'],
@@ -72,4 +97,21 @@ pre[class*='language-'] {
   .token {
     font-size: 0.9rem;
   }
+}
+
+/* external links styling */
+.no-show-screen-reader {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.external-link-icon::after {
+  content: url(/assets/external-link.svg);
+  margin: 0 0 0 var(--size-1);
+  vertical-align: middle;
 }

@@ -1,3 +1,7 @@
+---
+tocHeading: 2
+---
+
 # Documentation
 
 ## Table of contents
