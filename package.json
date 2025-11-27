@@ -4,15 +4,16 @@
   "description": "Experimental native Web Components compiler.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ProjectEvergreen/wcc.git"
+    "url": "git+https://github.com/ProjectEvergreen/wcc.git",
+    "directory": "packages/wcc"
   },
   "type": "module",
   "main": "src/wcc.js",
   "types": "./src/index.d.ts",
   "exports": {
     ".": {
-      "import": "./src/wcc.js",
-      "types": "./src/index.d.ts"
+      "types": "./src/index.d.ts",
+      "import": "./src/wcc.js"
     },
     "./register": "./src/register.js",
     "./src/jsx-loader.js": "./src/jsx-loader.js",
