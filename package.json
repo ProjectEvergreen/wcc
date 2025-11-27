@@ -66,6 +66,7 @@
     "@greenwood/cli": "^0.34.0-alpha.1",
     "@greenwood/plugin-css-modules": "^0.34.0-alpha.1",
     "@greenwood/plugin-import-jsx": "^0.34.0-alpha.1",
+    "@greenwood/plugin-import-raw": "^0.34.0-alpha.1",
     "@greenwood/plugin-markdown": "^0.34.0-alpha.1",
     "@ls-lint/ls-lint": "^2.3.1",
     "@mapbox/rehype-prism": "^0.8.0",
