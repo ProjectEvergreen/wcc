@@ -3,15 +3,31 @@
   justify-content: center;
   align-items: center;
   padding: 0 0 var(--size-2) 0;
-  margin: 0 var(--size-3) var(--size-2);
+  margin: var(--size-2) var(--size-3) var(--size-2);
   border-bottom: 2px dotted var(--color-gray);
   gap: var(--size-3);
 }
 
 .logoLink {
   display: flex;
+  flex: 1;
 }
 
+.badgeContainer {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: right;
+}
+
+.badge {
+  border: 1px solid var(--color-black);
+  padding: var(--size-1) var(--size-3);
+  border-radius: var(--radius-3);
+  background-color: var(--color-white);
+}
+
+/* 
 .logoLink svg.greenwood-logo-full {
   width: 100%;
 }
@@ -19,9 +35,12 @@
 .logoLink svg.greenwood-logo-full g.letters {
   fill: var(--color-logo-shade-dark);
 }
+*/
 
 .navBar {
   display: contents;
+  flex: 1;
+  justify-content: center;
 }
 
 .navBarMenu {
@@ -40,14 +59,19 @@
   padding: 0;
 }
 
+.navBarMenuItem a {
+  text-decoration: none;
+  color: var(--color-primary);
+  padding: var(--size-1) var(--size-3);
+}
+
+.mobileMenuContainer {
+  flex: 1;
+}
+
 .mobileMenuList {
   text-align: left;
   margin: var(--size-4) 0 0;
-}
-
-.navBarMenuItem a {
-  text-decoration: none;
-  color: var(--color-black);
 }
 
 .mobileMenuListItem a {
@@ -59,6 +83,13 @@
 .navBarMenuItem a:hover,
 .navBarMenuItem a:focus {
   text-decoration: underline;
+}
+
+.navBarMenuItem a.active {
+  font-weight: extra-bold;
+  background-color: var(--color-white);
+  border-radius: var(--radius-3);
+  padding: var(--size-1) var(--size-3);
 }
 
 .mobileMenuListItem {
@@ -99,9 +130,9 @@
   .container {
     justify-content: space-between;
   }
-  .logoLink svg.greenwood-logo-full {
+  /* .logoLink svg.greenwood-logo-full {
     width: 90%;
-  }
+  } */
 }
 
 @media (max-width: 600px) {
@@ -131,13 +162,13 @@
     align-self: center;
   }
 
-  .logoLink svg.greenwood-logo-full {
+  /* .logoLink svg.greenwood-logo-full {
     width: 70%;
-  }
+  } */
 }
 
 @media screen and (min-width: 1440px) {
-  .logoLink svg.greenwood-logo-full {
+  /* .logoLink svg.greenwood-logo-full {
     width: 80%;
-  }
+  } */
 }
