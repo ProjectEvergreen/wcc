@@ -1,0 +1,52 @@
+<html>
+  <head>
+    <title>WCC REPL</title>
+    <script type="module" defer>
+      const inputContent = document.getElementById('input').value;
+      console.log({ inputContent });
+      const worker = new Worker('/assets/repl.bundle.js', { type: 'module' });
+      console.log({ worker });
+
+      worker.onmessage = (result) => {
+        console.log({ result: result.data });
+        document.getElementById('output').value = result.data.html;
+      };
+      worker.postMessage([10, 10, inputContent]);
+    </script>
+  </head>
+  <body>
+    <h1>WCC REPL</h1>
+    <h2>Input</h2>
+    <textarea id="input" style="width: 100%; height: 50vh">
+      const template = document.createElement('template');
+
+      template.innerHTML = `
+        <style>
+          .footer {
+            color: white;
+            background-color: #192a27;
+          }
+        </style>
+
+        <footer class="footer">
+          <h4>My Blog &copy; ${new Date().getFullYear()}</h4>
+        </footer>
+      `;
+
+      class Footer extends HTMLElement {
+        connectedCallback() {
+          if (!this.shadowRoot) {
+            this.attachShadow({ mode: 'open' });
+            this.shadowRoot.appendChild(template.content.cloneNode(true));
+          }
+        }
+      }
+
+      export default Footer;
+
+      customElements.define('wcc-footer', Footer);
+    </textarea>
+    <h2>Output</h2>
+    <textarea id="output" style="width: 100%; height: 50vh"></textarea>
+  </body>
+</html>
