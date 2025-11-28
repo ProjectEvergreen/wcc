@@ -4,7 +4,7 @@
   "description": "Experimental native Web Components compiler.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ProjectEvergreen/wcc.git"
+    "url": "git+https://github.com/ProjectEvergreen/wcc.git"
   },
   "type": "module",
   "main": "src/wcc.js",
