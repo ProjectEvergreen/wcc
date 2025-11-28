@@ -103,11 +103,12 @@ app-sidenav {
   /* app-toc { */
   display: inline-block;
   margin: 0 auto var(--size-4);
-}
-
-app-sidenav {
   padding: 0 0 0 var(--size-4);
 }
+
+/* app-sidenav {
+  padding: 0 0 0 var(--size-4);
+} */
 
 /* @media (min-width: 1024px) {
   app-edit-on-github {
