@@ -25,6 +25,10 @@
   padding: var(--size-1) var(--size-3);
   border-radius: var(--radius-3);
   background-color: var(--color-white);
+
+  & img {
+    vertical-align: middle;
+  }
 }
 
 /* 
