@@ -1,12 +1,9 @@
 ---
-collection: 'nav'
+layout: docs
+collection: nav
 order: 2
 tocHeading: 2
 ---
-
-# Documentation
-
-## Table of contents
 
 ## API
 
@@ -496,5 +493,5 @@ And so now when the attribute is set on this component, the component will re-re
 
 Some notes / limitations:
 
-- This automatically reflects properties used in the `render` function to attributes, so [YMMV](https://dictionary.cambridge.org/us/dictionary/english/ymmv).
 - Please be aware of the above linked discussion and issue filter which is tracking any known bugs / feature requests / open items related to all things WCC + JSX.
+- This automatically reflects properties used in the `render` function to attributes, so [YMMV](https://dictionary.cambridge.org/us/dictionary/english/ymmv).

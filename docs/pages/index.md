@@ -1,5 +1,5 @@
 ---
-collection: 'nav'
+collection: nav
 order: 1
 ---
 

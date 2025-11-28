@@ -1,5 +1,6 @@
 ---
-collection: 'nav'
+layout: docs
+collection: nav
 order: 3
 tocHeading: 2
 ---
