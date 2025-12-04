@@ -4,6 +4,7 @@ import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { serialize } from 'parse5';
 
+// @ts-expect-error
 function isCustomElementDefinitionNode(node) {
   const { expression } = node;
 
@@ -17,6 +18,7 @@ function isCustomElementDefinitionNode(node) {
   );
 }
 
+// @ts-expect-error
 async function getTagName(moduleContents) {
   const result = transform(moduleContents, {
     transforms: ['typescript', 'jsx'],
@@ -33,6 +35,7 @@ async function getTagName(moduleContents) {
     {
       ExpressionStatement(node) {
         if (isCustomElementDefinitionNode(node)) {
+          // @ts-expect-error
           tagName = node.expression.arguments[0].value;
         }
       },
@@ -42,6 +45,7 @@ async function getTagName(moduleContents) {
   return tagName;
 }
 
+// @ts-expect-error
 async function renderComponentRoots(tree, definitions) {
   for (const node of tree.childNodes) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
@@ -73,6 +77,7 @@ async function renderComponentRoots(tree, definitions) {
         );
       }
 
+      // @ts-expect-error
       attrs.forEach((attr) => {
         if (attr.name === 'hydrate') {
           definitions[tagName].hydrate = attr.value;
@@ -98,10 +103,13 @@ async function renderComponentRoots(tree, definitions) {
 }
 
 async function initializeCustomElement(
+  // @ts-expect-error
   elementURL,
+  // @ts-expect-error
   tagName,
   node = {},
-  // definitions = {},
+  // definitions = {}
+  // @ts-expect-error,
   isEntry,
   props = {},
 ) {
@@ -142,6 +150,7 @@ onmessage = async (e) => {
 
     const tagName = await getTagName(input);
 
+    // @ts-expect-error
     definitions[tagName] = {
       moduleURL: blobURL,
     };
