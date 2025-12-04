@@ -1,18 +1,7 @@
 <html>
   <head>
     <title>WCC REPL</title>
-    <script type="module" defer>
-      const inputContent = document.getElementById('input').value;
-      console.log({ inputContent });
-      const worker = new Worker('/assets/repl.bundle.js', { type: 'module' });
-      console.log({ worker });
-
-      worker.onmessage = (result) => {
-        console.log({ result: result.data });
-        document.getElementById('output').value = result.data.html;
-      };
-      worker.postMessage([10, 10, inputContent]);
-    </script>
+    <script type="module" src="../scripts/repl-init.ts " defer></script>
   </head>
   <body>
     <h1>WCC REPL</h1>
