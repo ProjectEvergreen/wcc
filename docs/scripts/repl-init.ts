@@ -5,13 +5,10 @@ const inputContent = inputArea.value;
 const worker = new Worker('/assets/repl.bundle.js', { type: 'module' });
 
 worker.onmessage = (result) => {
-  console.log({ result: result.data });
   outputArea.value = result.data.html;
 };
-worker.postMessage([10, 10, inputContent]);
-
-console.log({ inputContent });
+worker.postMessage([inputContent]);
 
 inputArea.addEventListener('input', function () {
-  worker.postMessage([10, 10, inputArea.value]);
+  worker.postMessage([inputArea.value]);
 });

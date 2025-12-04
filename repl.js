@@ -127,14 +127,9 @@ async function initializeCustomElement(
 
 onmessage = async (e) => {
   console.log('Worker: Message received from main script', { e });
-
-  const result = e.data[0] + e.data[1];
-  const input = e.data[2];
-  const props = e.data[3] ?? null;
+  const input = e.data[0];
+  const props = e.data[1] ?? null;
   const wrappingEntryTag = true;
-
-  const x = new HTMLElement();
-  console.log({ input, x });
 
   let err;
   let html;
@@ -143,21 +138,15 @@ onmessage = async (e) => {
     const blobURL = URL.createObjectURL(new Blob([input], { type: 'application/javascript' }));
     const definitions = {};
 
-    console.log({ blobURL });
     await import(blobURL);
 
     const tagName = await getTagName(input);
-    console.log({ tagName });
-
-    console.log('????', customElements.get(tagName));
-    console.log(customElements.customElementsRegistry);
 
     definitions[tagName] = {
       moduleURL: blobURL,
     };
 
     const elementInstance = await initializeCustomElement(blobURL, tagName, {}, true, props);
-    console.log({ elementInstance });
 
     // in case the entry point isn't valid
     if (elementInstance) {
@@ -182,8 +171,6 @@ onmessage = async (e) => {
           </${tagName}>
         `
           : serialize(elementInstance);
-
-      console.log({ html });
     } else {
       console.warn('WARNING: No custom element class found for this entry point.');
     }
@@ -194,11 +181,8 @@ onmessage = async (e) => {
 
   if (err) {
     postMessage(err);
-  } else if (isNaN(result)) {
-    postMessage('Please write two numbers');
   } else {
-    const workerResult = 'Result: ' + result;
-    console.log('Worker: Posting message back to main script');
-    postMessage({ workerResult, html });
+    console.log('Worker: Posting message back to main script', { html });
+    postMessage({ html });
   }
 };
