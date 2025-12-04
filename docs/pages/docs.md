@@ -387,9 +387,7 @@ There are of couple things you will need to do to use WCC with JSX:
 
 TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You'll need to configure JSX in your _tsconfig.json_ by adding these two lines to your `compilerOptions` settings:
 
-<!-- prettier-ignore-start -->
-
-```json5
+```jsonc
 {
   "compilerOptions": {
     // required options
@@ -398,12 +396,10 @@ TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You
 
     // additional recommended options
     "allowImportingTsExtensions": true,
-    "erasableSyntaxOnly": true
-  }
+    "erasableSyntaxOnly": true,
+  },
 }
 ```
-
-<!-- prettier-ignore-end -->
 
 If you create your own custom elements and use them in your TSX components, you'll need to define your own `interface` for them:
 
