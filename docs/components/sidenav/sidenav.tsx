@@ -18,6 +18,8 @@ export default class SideNav extends HTMLElement {
     const route = this.getAttribute('route') ?? '';
     const page = ((await getContent()) as Graph).find((page) => page.route === route);
     console.log({ page });
+    // TODO:
+    // @ts-expect-error
     const { tableOfContents } = page?.data ?? { tableOfContents: {} };
 
     console.log({ tableOfContents });
