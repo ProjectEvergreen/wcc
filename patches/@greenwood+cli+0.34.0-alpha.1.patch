@@ -1,0 +1,13 @@
+diff --git a/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js b/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js
+index 0f54727..dbf1ea8 100644
+--- a/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js
++++ b/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js
+@@ -78,7 +78,7 @@ const greenwoodPluginStandardJavascript = [
+     type: "rollup",
+     name: "plugin-standard-javascript:rollup",
+     provider: (compilation) => {
+-      return compilation.config.optimization !== "none" ? [terser()] : [];
++      return compilation.config.optimization !== "none" ? [] : [];
+     },
+   },
+ ];

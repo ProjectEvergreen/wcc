@@ -1,4 +1,4 @@
-import { renderFromInput } from './src/wcc.js';
+import { renderFromInput } from '../../src/wcc.js';
 import { transform } from 'sucrase';
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
