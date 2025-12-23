@@ -1,3 +1,16 @@
+diff --git a/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js b/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
+index 024232f..53f60a2 100644
+--- a/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
++++ b/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
+@@ -5,7 +5,7 @@ const greenwoodPluginCopyFavicon = [
+     type: "copy",
+     name: "plugin-copy-favicon",
+     provider: async (compilation) => {
+-      const fileName = "favicon.ico";
++      const fileName = "favicon.svg";
+       const { outputDir, userWorkspace } = compilation.context;
+       const faviconPathUrl = new URL(`./${fileName}`, userWorkspace);
+       const assets = [];
 diff --git a/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js b/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js
 index 0f54727..dbf1ea8 100644
 --- a/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js

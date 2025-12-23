@@ -1,5 +1,6 @@
 import { getContentByCollection } from '@greenwood/cli/src/data/client.js';
 import type { Page } from '@greenwood/cli';
+import wccLogo from '../../assets/wcc-logo.svg?type=raw';
 import mobileMenuIcon from '../../assets/tile.svg?type=raw';
 import styles from './header.module.css';
 
@@ -51,7 +52,7 @@ export default class Header extends HTMLElement {
     return (
       <header class={styles.container}>
         <a href="/" title="WCC Home Page" class={styles.logoLink}>
-          WCC Logo (TODO)
+          {wccLogo}
         </a>
 
         <div class={styles.navBar}>
