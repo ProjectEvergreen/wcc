@@ -24,7 +24,6 @@ describe('Run WCC For ', function () {
   before(async function () {
     const { html, metadata } = await renderToString(new URL('./src/counter.jsx', import.meta.url));
 
-    console.log({ html });
     meta = metadata;
     dom = new JSDOM(html);
   });
