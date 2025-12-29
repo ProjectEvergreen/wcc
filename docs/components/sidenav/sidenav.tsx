@@ -3,14 +3,17 @@ import { getContent } from '@greenwood/cli/src/data/client.js';
 import styles from './sidenav.module.css';
 
 type DocsPage = Page & {
-  data: {
-    tableOfContents: any;
+  data?: {
+    tableOfContents?: {
+      content: string;
+      slug: string;
+    };
   };
 };
 
 export default class SideNav extends HTMLElement {
   route: string;
-  toc: {};
+  toc: [];
 
   // TODO: heading
   // TODO: current route
@@ -18,9 +21,7 @@ export default class SideNav extends HTMLElement {
     const route = this.getAttribute('route') ?? '';
     const page = ((await getContent()) as Graph).find((page) => page.route === route);
     console.log({ page });
-    // TODO:
-    // @ts-expect-error
-    const { tableOfContents } = page?.data ?? { tableOfContents: {} };
+    const { tableOfContents } = page?.data ?? { tableOfContents: [] };
 
     console.log({ tableOfContents });
 
@@ -29,7 +30,13 @@ export default class SideNav extends HTMLElement {
   }
 
   render() {
-    return <span>SideNav goes here</span>;
+    const tocList = this.toc
+      .map((item) => {
+        return `<li><a href="#${item.slug}">${item.content}</a></li>`;
+      })
+      .join('');
+
+    return <ul>{tocList}</ul>;
   }
 }
 
