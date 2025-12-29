@@ -76,7 +76,7 @@ describe('Run WCC For ', function () {
           );
 
           expect(element.getAttribute('onclick')).to.be.equal(
-            'this.parentElement.parentElement.count-=1; this.parentElement.parentElement.setAttribute(\'count\', this.parentElement.parentElement.count);'
+            'this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();',
           );
         });
       });

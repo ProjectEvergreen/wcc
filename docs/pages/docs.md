@@ -447,11 +447,14 @@ customElements.define('wcc-counter', Counter);
 
 ### (Inferred) Attribute Observability
 
-An optional feature supported by JSX based compilation is `inferredObservability`.  With this enabled, WCC will read any `this` member references in your component's `render` function and map each member instance to:
+An optional feature supported by JSX based compilation is `inferredObservability`. With this enabled, WCC will read any `this` member references in your component's `render` function and map each member instance to:
+
 1. an entry in the `observedAttributes` array
 1. automatically handle `attributeChangedCallback` updates
 
 So taking the above counter example, and opting in to this feature, we just need to enable the `inferredObservability` option in the component by exporting it as a `const`:
+
+<!-- prettier-ignore-start -->
 
 ```jsx
 export const inferredObservability = true;
@@ -475,6 +478,8 @@ export default class Counter extends HTMLElement {
   }
 }
 ```
+
+<!-- prettier-ignore-end -->
 
 And so now when the attribute is set on this component, the component will re-render automatically, no need to write out `observedAttributes` or `attributeChangedCallback`!
 

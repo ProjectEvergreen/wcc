@@ -1,7 +1,4 @@
 attributeChangedCallback(name, oldValue, newValue) {
-        console.debug('???attributeChangedCallback', { name });
-        console.debug('???attributeChangedCallback', { oldValue });
-        console.debug('???attributeChangedCallback', { newValue });
         function getValue(value) {
             return value.charAt(0) === '{' || value.charAt(0) === '[' ? JSON.parse(value) : !isNaN(value) ? parseInt(value, 10) : value === 'true' || value === 'false' ? value === 'true' ? true : false : value;
         }
@@ -27,7 +24,7 @@ attributeChangedCallback(name, oldValue, newValue) {
         const selector = `[${ attr }]`;
         console.debug({ attr });
         console.debug({ selector });
-        this.querySelectorAll(selector).forEach(el => {
+        (this?.shadowRoot || this).querySelectorAll(selector).forEach(el => {
             const needle = oldValue || el.getAttribute(attr);
             console.debug({ el });
             console.debug({ needle });

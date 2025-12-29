@@ -62,7 +62,7 @@ describe('Run WCC For ', function () {
           const wrapper = new JSDOM(heading.innerHTML);
           const header = wrapper.window.document.querySelector('h1');
 
-          expect(header.textContent).to.be.equal('Hello, World!');
+          expect(header.textContent.trim()).to.be.equal('Hello, World!');
         });
       });
     });

@@ -77,7 +77,7 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
   return tree;
 }
 
-function parseJsxElement(element, moduleContents = '') {
+function parseJsxElement(element, moduleContents = '', inferredObservability = false) {
   try {
     const { type } = element;
 
@@ -124,9 +124,14 @@ function parseJsxElement(element, moduleContents = '') {
 
               if (left.object.type === 'ThisExpression') {
                 if (left.property.type === 'Identifier') {
-                  // very naive (fine grained?) reactivity
-                  // string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.update(\\'${left.property.name}\\', null, __this__.${left.property.name});"`;
-                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.setAttribute(\\'${left.property.name}\\', __this__.${left.property.name});"`;
+                  if (inferredObservability) {
+                    // very naive (fine grained?) reactivity
+                    // string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.update(\\'${left.property.name}\\', null, __this__.${left.property.name});"`;
+                    string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.setAttribute(\\'${left.property.name}\\', __this__.${left.property.name});"`;
+                  } else {
+                    // implicit reactivity using this.render
+                    string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
+                  }
                 }
               }
             }
@@ -163,7 +168,9 @@ function parseJsxElement(element, moduleContents = '') {
               }
 
               // TODO make sure this only applies to `this` references!
-              string += ` data-wcc-${expression.name}="${name}" data-wcc-ins="attr"`;
+              if (inferredObservability) {
+                string += ` data-wcc-${expression.name}="${name}" data-wcc-ins="attr"`;
+              }
             }
           } else {
             // xxx >
@@ -175,7 +182,9 @@ function parseJsxElement(element, moduleContents = '') {
       string += openingElement.selfClosing ? ' />' : '>';
 
       if (element.children.length > 0) {
-        element.children.forEach((child) => parseJsxElement(child, moduleContents));
+        element.children.forEach((child) =>
+          parseJsxElement(child, moduleContents, inferredObservability),
+        );
       }
 
       string += `</${tagName}>`;
@@ -190,10 +199,12 @@ function parseJsxElement(element, moduleContents = '') {
 
       if (type === 'Identifier') {
         // You have {count} TODOs left to complete
-        const { name } = element.expression;
+        if (inferredObservability) {
+          const { name } = element.expression;
 
-        string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name}="\${this.${name}}" data-wcc-ins="text">`;
-        // TODO be able to remove this extra data attribute 
+          string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name}="\${this.${name}}" data-wcc-ins="text">`;
+        }
+        // TODO be able to remove this extra data attribute
         // string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name} data-wcc-ins="text">`;
         string += `$\{${element.expression.name}}`;
       } else if (type === 'MemberExpression') {
@@ -277,6 +288,35 @@ export function parseJsx(moduleURL) {
   });
   string = '';
 
+  // TODO: would be nice to do this one pass, but first we need to know if `inferredObservability` is set first
+  walk.simple(
+    tree,
+    {
+      ExportNamedDeclaration(node) {
+        const { declaration } = node;
+
+        if (
+          declaration &&
+          declaration.type === 'VariableDeclaration' &&
+          declaration.kind === 'const' &&
+          declaration.declarations.length === 1
+        ) {
+          // @ts-ignore
+          if (declaration.declarations[0].id.name === 'inferredObservability') {
+            // @ts-ignore
+            inferredObservability = Boolean(node.declaration.declarations[0].init.raw);
+          }
+        }
+      },
+    },
+    {
+      // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
+      ...walk.base,
+      // @ts-ignore
+      JSXElement: () => {},
+    },
+  );
+
   walk.simple(
     tree,
     {
@@ -301,7 +341,7 @@ export function parseJsx(moduleURL) {
                     ];
                     // @ts-ignore
                   } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                    const html = parseJsxElement(n.argument, moduleContents);
+                    const html = parseJsxElement(n.argument, moduleContents, inferredObservability);
                     const elementTree = getParse(html)(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
@@ -340,22 +380,6 @@ export function parseJsx(moduleURL) {
           }
         }
       },
-      ExportNamedDeclaration(node) {
-        const { declaration } = node;
-
-        if (
-          declaration &&
-          declaration.type === 'VariableDeclaration' &&
-          declaration.kind === 'const' &&
-          declaration.declarations.length === 1
-        ) {
-          // @ts-ignore
-          if (declaration.declarations[0].id.name === 'inferredObservability') {
-            // @ts-ignore
-            inferredObservability = Boolean(node.declaration.declarations[0].init.raw);
-          }
-        }
-      },
     },
     {
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
@@ -381,39 +405,41 @@ export function parseJsx(moduleURL) {
     }
 
     let newModuleContents = generate(tree);
-    const trackingAttrs = observedAttributes.filter(attr => typeof attr === 'string');
-    // TODO ideally derivedAttrs would explicitely reference trackingAttrs
+    const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
+    // TODO ideally derivedAttrs would explicitly reference trackingAttrs
     // and if there are no derivedAttrs, do not include the derivedGetters / derivedSetters code in the compiled output
-    const derivedAttrs = observedAttributes.filter(attr => typeof attr !== 'string');
-    const derivedGetters = derivedAttrs.map(attr => {
-      return `
+    const derivedAttrs = observedAttributes.filter((attr) => typeof attr !== 'string');
+    const derivedGetters = derivedAttrs
+      .map((attr) => {
+        return `
         get_${attr.id.name}(${trackingAttrs.join(',')}) {
           console.log('@@@@@@@@@@@@@@@@@@@@ updating derivative value for => ${attr.id.name}');
           console.log('@@@@@@@@@@@@@@@@@@@@ new derivative value is =>', ${moduleContents.slice(attr.init.start, attr.init.end)});
           return ${moduleContents.slice(attr.init.start, attr.init.end)}
         }
       `;
-    }).join('\n');
-    const derivedSetters = derivedAttrs.map(attr => {
-      const name = attr.id.name;
+      })
+      .join('\n');
+    const derivedSetters = derivedAttrs
+      .map((attr) => {
+        const name = attr.id.name;
 
-      return `
+        return `
         const old_${name} = this.get_${name}(oldValue);
         const new_${name} = this.get_${name}(newValue);
         this.update('${name}', old_${name}, new_${name});
       `;
-    }).join('\n');
+      })
+      .join('\n');
 
-    // TODO better way to determine value type?
+    // TODO: better way to determine value type, e,g. array, int, object, etc?
+    // TODO: better way to test for shadowRoot presence when running querySelectorAll
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
         return [${[...trackingAttrs].map((attr) => `'${attr}'`).join()}]
       }
 
       attributeChangedCallback(name, oldValue, newValue) {
-        console.debug('???attributeChangedCallback', { name });
-        console.debug('???attributeChangedCallback', { oldValue });
-        console.debug('???attributeChangedCallback', { newValue });
         function getValue(value) {
           return value.charAt(0) === '{' || value.charAt(0) === '['
             ? JSON.parse(value)
@@ -450,7 +476,7 @@ export function parseJsx(moduleURL) {
         console.debug({ attr });
         console.debug({ selector });
 
-        this.querySelectorAll(selector).forEach((el) => {
+        (this?.shadowRoot || this).querySelectorAll(selector).forEach((el) => {
           const needle = oldValue || el.getAttribute(attr);
           console.debug({ el })
           console.debug({ needle });
@@ -467,7 +493,7 @@ export function parseJsx(moduleURL) {
           }
         })
 
-        if ([${[...trackingAttrs].map(attr => `'${attr}'`).join()}].includes(name)) {
+        if ([${[...trackingAttrs].map((attr) => `'${attr}'`).join()}].includes(name)) {
           ${derivedSetters}
         }
         console.debug('****************************');
