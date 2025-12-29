@@ -167,7 +167,7 @@ function parseJsxElement(element, moduleContents = '', inferredObservability = f
                   break;
               }
 
-              // TODO make sure this only applies to `this` references!
+              // only apply this when dealing with `this` references
               if (inferredObservability) {
                 string += ` data-wcc-${expression.name}="${name}" data-wcc-ins="attr"`;
               }
@@ -389,11 +389,10 @@ export function parseJsx(moduleURL) {
     },
   );
 
-  // TODO - signals: use constructor, render, HTML attributes?  some, none, or all?
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
     let insertPoint;
     for (const line of tree.body) {
-      // test for class MyComponent vs export default class MyComponent
+      // TODO: test for class MyComponent vs export default class MyComponent
       // @ts-ignore
       if (
         line.type === 'ClassDeclaration' ||
