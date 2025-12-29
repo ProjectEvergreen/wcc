@@ -1,5 +1,5 @@
 ---
-layout: docs
+layout: examples
 collection: nav
 order: 3
 tocHeading: 2
@@ -8,8 +8,6 @@ tocHeading: 2
 # Examples
 
 Below are some example of how **WCC** is being used right now.
-
-## Table of contents
 
 ## Server Rendering (SSR)
 
