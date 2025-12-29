@@ -141,17 +141,24 @@ function parseJsxElement(element, moduleContents = '') {
               // xxx={allTodos.length} >
               const { value } = attribute;
               const { expression } = value;
+              const expressionType = expression.type;
 
-              if (expression.type === 'Identifier') {
-                string += ` ${name}=$\{${expression.name}}`;
-              }
-
-              if (expression.type === 'MemberExpression') {
-                if (expression.object.type === 'Identifier') {
-                  if (expression.property.type === 'Identifier') {
-                    string += ` ${name}=$\{${expression.object.name}.${expression.property.name}}`;
+              switch (expressionType) {
+                case 'Literal':
+                  string += ` ${name}=${expression.raw}`;
+                  break;
+                case 'Identifier':
+                  string += ` ${name}=$\{${expression.name}}`;
+                  break;
+                case 'MemberExpression':
+                  if (expression.object.type === 'Identifier') {
+                    if (expression.property.type === 'Identifier') {
+                      string += ` ${name}=$\{${expression.object.name}.${expression.property.name}}`;
+                    }
                   }
-                }
+                  break;
+                default:
+                  break;
               }
             }
           } else {
@@ -161,7 +168,7 @@ function parseJsxElement(element, moduleContents = '') {
         }
       }
 
-      string += openingElement.selfClosing ? '/>' : '>';
+      string += openingElement.selfClosing ? ' />' : '>';
 
       if (element.children.length > 0) {
         element.children.forEach((child) => parseJsxElement(child, moduleContents));

@@ -35,9 +35,12 @@ export default class BadgeComponent extends HTMLElement {
     const conditionalText = predicate ? ' 🥳' : '';
 
     return (
-      <span class={conditionalClass}>
-        {count}
-        {conditionalText}
+      <span>
+        <img src="badge-icon.png" alt="Badge Icon" width={16} height={16} />
+        <span class={conditionalClass}>
+          {count}
+          {conditionalText}
+        </span>
       </span>
     );
   }
