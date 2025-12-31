@@ -25,7 +25,7 @@ attributeChangedCallback(name, oldValue, newValue) {
         console.debug({ attr });
         console.debug({ selector });
         (this?.shadowRoot || this).querySelectorAll(selector).forEach(el => {
-            const needle = oldValue || el.getAttribute(attr);
+            const needle = oldValue === '' ? '' : oldValue ?? el.getAttribute(attr);
             console.debug({ el });
             console.debug({ needle });
             console.debug({ newValue });

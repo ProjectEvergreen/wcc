@@ -476,7 +476,8 @@ export function parseJsx(moduleURL) {
         console.debug({ selector });
 
         (this?.shadowRoot || this).querySelectorAll(selector).forEach((el) => {
-          const needle = oldValue || el.getAttribute(attr);
+          // handle empty strings as a value for the purposes of attribute change detection
+          const needle = oldValue === '' ? '' : oldValue ?? el.getAttribute(attr);
           console.debug({ el })
           console.debug({ needle });
           console.debug({ newValue });
