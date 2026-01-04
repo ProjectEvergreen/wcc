@@ -31,16 +31,6 @@
   }
 }
 
-/* 
-.logoLink svg.greenwood-logo-full {
-  width: 100%;
-}
-
-.logoLink svg.greenwood-logo-full g.letters {
-  fill: var(--color-logo-shade-dark);
-}
-*/
-
 .navBar {
   display: contents;
   flex: 1;
@@ -134,9 +124,6 @@
   .container {
     justify-content: space-between;
   }
-  /* .logoLink svg.greenwood-logo-full {
-    width: 90%;
-  } */
 }
 
 @media (max-width: 600px) {
@@ -165,14 +152,4 @@
   .navBar > nav {
     align-self: center;
   }
-
-  /* .logoLink svg.greenwood-logo-full {
-    width: 70%;
-  } */
-}
-
-@media screen and (min-width: 1440px) {
-  /* .logoLink svg.greenwood-logo-full {
-    width: 80%;
-  } */
 }
