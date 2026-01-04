@@ -50,10 +50,19 @@ body {
 }
 
 main {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 20px auto;
   width: 100%;
   padding: 0 1rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-primary);
 }
 
 /* tweaks for rehype-autolink-headings markdown plugin */
@@ -81,7 +90,7 @@ h4:focus > a > span.icon {
   opacity: 1;
 }
 
-/* a,
+a,
 a:visited {
   text-decoration: underline;
   color: var(--color-primary);
@@ -91,7 +100,7 @@ a:hover,
 a:focus {
   text-decoration: underline;
   background-color: transparent;
-} */
+}
 
 /* tweaks for PrismJS */
 code[class*='language-'],

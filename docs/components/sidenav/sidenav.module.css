@@ -2,23 +2,17 @@
   display: none;
 }
 
-.compactMenu,
-.fullMenu {
-  & a {
-    color: var(--color-black);
-    text-decoration: none;
-  }
+.compactMenu {
+  display: inline-block;
 }
 
-.compactMenuCloseButton {
-  background: transparent;
-  font-size: var(--font-size-5);
-  cursor: pointer;
-  border: none;
-  padding: 0 12px;
-  width: 100%;
-  text-align: right;
-  color: var(--color-black);
+.compactMenuPopover {
+  top: 200px;
+  width: auto;
+  padding: var(--size-4);
+  background-color: var(--color-gray);
+  height: auto;
+  max-height: max-content;
 }
 
 .compactMenuPopoverTrigger {
@@ -37,6 +31,17 @@
   }
 }
 
+.compactMenuCloseButton {
+  background: transparent;
+  font-size: var(--font-size-5);
+  cursor: pointer;
+  border: none;
+  padding: 0 12px;
+  width: 100%;
+  text-align: right;
+  color: var(--color-black);
+}
+
 .compactMenu:not(:has(#compact-menu:popover-open)) #indicator {
   transform: rotate(0deg);
 }
@@ -44,13 +49,13 @@
   transform: rotate(180deg);
 }
 
-.compactMenuPopover {
-  top: 150px;
-  width: 100%;
-  padding: var(--size-4);
-  background-color: var(--color-gray);
-  overflow-y: scroll;
-  height: auto;
+/*
+.compactMenu,
+.fullMenu {
+  & a {
+    color: var(--color-black);
+    text-decoration: none;
+  }
 }
 
 .compactMenuSectionListItemActive {
@@ -98,6 +103,7 @@
 .compactMenuSectionListItem {
   margin: var(--size-1);
 }
+*/
 
 @media (min-width: 1200px) {
   .fullMenu {

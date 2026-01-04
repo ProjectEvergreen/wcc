@@ -16,26 +16,58 @@ type DocsPage = Page & {
 export default class SideNav extends HTMLElement {
   route: string;
   toc: TableOfContents;
+  heading: string;
 
-  // TODO: heading
-  // TODO: current route
   async connectedCallback() {
     const route = this.getAttribute('route') ?? '';
+    const heading = this.getAttribute('heading') ?? '';
     const page: DocsPage = (await getContent()).find((page) => page.route === route);
-    const { tableOfContents } = page?.data ?? [];
 
-    this.toc = tableOfContents;
+    this.heading = heading;
+    this.toc = page?.data?.tableOfContents ?? [];
+
     this.render();
   }
 
   render() {
+    const { heading } = this;
     const tocList = this.toc
       .map((item) => {
         return `<li><a href="#${item.slug}">${item.content}</a></li>`;
       })
       .join('');
 
-    return <ul>{tocList}</ul>;
+    return (
+      <div>
+        <div class={styles.fullMenu}>
+          <p>Table of Contents</p>
+          <ul>{tocList}</ul>
+        </div>
+
+        <div class={styles.compactMenu}>
+          <button
+            popovertarget="compact-menu"
+            class={styles.compactMenuPopoverTrigger}
+            aria-label="Compact Menu Open Button"
+          >
+            {heading}
+            <span id="indicator">&#9660;</span>
+          </button>
+          <div id="compact-menu" class={styles.compactMenuPopover} popover="manual">
+            <button
+              class={styles.compactMenuCloseButton}
+              popovertarget="compact-menu"
+              popovertargetaction="hide"
+              aria-label="Compact Menu Close Button"
+            >
+              &times;
+            </button>
+            <p>Table of Contents</p>
+            <ul>{tocList}</ul>
+          </div>
+        </div>
+      </div>
+    );
   }
 }
 

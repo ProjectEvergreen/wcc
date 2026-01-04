@@ -1,18 +1,17 @@
+wcc-sidenav {
+  display: block;
+  margin: var(--size-4) auto;
+}
+
 body:has(#compact-menu:popover-open) {
   overflow-y: hidden;
 }
 
-.page-content {
-  margin: var(--size-4) auto;
-
-  & hr {
-    margin: 0 0 var(--size-4);
-  }
+ul {
+  list-style-type: none;
 }
 
-.page-content .content-outlet {
-  padding: 0 var(--size-4);
-
+.page-outlet .content-outlet {
   & h1 {
     font-size: var(--font-size-5);
   }
@@ -78,7 +77,35 @@ body:has(#compact-menu:popover-open) {
     vertical-align: text-top;
   }
 }
-/* 
+
+@media (min-width: 1200px) {
+  .content-outlet {
+    display: inline-block;
+    width: 70%;
+    font-size: var(--font-size-1);
+  }
+
+  wcc-sidenav {
+    display: inline-block;
+    width: 20%;
+    min-width: 25%;
+    vertical-align: top;
+    margin: var(--size-6) auto;
+  }
+}
+
+/* body:has(#compact-menu:popover-open) {
+  overflow-y: hidden;
+}
+
+.page-content {
+  margin: var(--size-4) auto;
+
+  & hr {
+    margin: 0 0 var(--size-4);
+  }
+}
+ 
 app-heading-box {
   & .spacer {
     display: block;
@@ -97,14 +124,13 @@ app-heading-box {
     margin-bottom: 20px;
     display: inline-block;
   }
-} */
-
+}
+ 
 app-sidenav {
-  /* app-toc { */
   display: inline-block;
   margin: 0 auto var(--size-4);
   padding: 0 0 0 var(--size-4);
-}
+} */
 
 /* app-sidenav {
   padding: 0 0 0 var(--size-4);
@@ -114,20 +140,13 @@ app-sidenav {
   app-edit-on-github {
     display: block;
   }
-} */
+}
 
 @media (min-width: 1200px) {
   .content-outlet {
     display: inline-block;
-    /* width: 90%; */
     font-size: var(--font-size-1);
   }
-
-  /* app-edit-on-github {
-    position: fixed;
-    bottom: var(--size-10);
-    right: var(--size-6);
-  } */
 
   app-sidenav {
     display: inline-block;
@@ -142,15 +161,6 @@ app-sidenav {
     border: 1px dotted var(--color-prism-bg);
     border-radius: 0 var(--radius-2) var(--radius-2) 0;
   }
-
-  /* app-toc {
-    float: right;
-    display: inline-block;
-    width: 20%;
-    position: sticky;
-    top: var(--size-4);
-    margin: 0 var(--size-1) 0 0;
-  } */
 }
 
 @media (min-width: 768px) {
@@ -173,3 +183,4 @@ app-sidenav {
     padding: var(--size-4) var(--size-1) 0 var(--size-fluid-6);
   }
 }
+*/
