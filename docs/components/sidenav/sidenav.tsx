@@ -24,9 +24,6 @@ export default class SideNav extends HTMLElement {
     const page: DocsPage = (await getContent()).find((page) => page.route === route);
     const { tableOfContents } = page?.data ?? [];
 
-    console.log({ page });
-    console.log({ tableOfContents });
-
     this.toc = tableOfContents;
     this.render();
   }
