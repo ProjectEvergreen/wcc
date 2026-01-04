@@ -7,10 +7,6 @@ body:has(#compact-menu:popover-open) {
   overflow-y: hidden;
 }
 
-ul {
-  list-style-type: none;
-}
-
 .page-outlet .content-outlet {
   & h1 {
     font-size: var(--font-size-5);
@@ -90,97 +86,6 @@ ul {
     width: 20%;
     min-width: 25%;
     vertical-align: top;
-    margin: var(--size-6) auto;
+    margin: var(--size-9) auto;
   }
 }
-
-/* body:has(#compact-menu:popover-open) {
-  overflow-y: hidden;
-}
-
-.page-content {
-  margin: var(--size-4) auto;
-
-  & hr {
-    margin: 0 0 var(--size-4);
-  }
-}
- 
-app-heading-box {
-  & .spacer {
-    display: block;
-    margin: var(--size-1);
-  }
-
-  & .question {
-    font-style: italic;
-    margin: 0 var(--size-2) 0 0;
-  }
-
-  & .answer {
-    font-family: var(--font-primary-bold);
-    font-weight: 100;
-    text-decoration: underline;
-    margin-bottom: 20px;
-    display: inline-block;
-  }
-}
- 
-app-sidenav {
-  display: inline-block;
-  margin: 0 auto var(--size-4);
-  padding: 0 0 0 var(--size-4);
-} */
-
-/* app-sidenav {
-  padding: 0 0 0 var(--size-4);
-} */
-
-/* @media (min-width: 1024px) {
-  app-edit-on-github {
-    display: block;
-  }
-}
-
-@media (min-width: 1200px) {
-  .content-outlet {
-    display: inline-block;
-    font-size: var(--font-size-1);
-  }
-
-  app-sidenav {
-    display: inline-block;
-    width: 20%;
-    min-width: 25%;
-    vertical-align: top;
-  }
-
-  app-sidenav:has(ul) {
-    padding: var(--size-4) 0 0 var(--size-fluid-5);
-    background-color: var(--color-gray);
-    border: 1px dotted var(--color-prism-bg);
-    border-radius: 0 var(--radius-2) var(--radius-2) 0;
-  }
-}
-
-@media (min-width: 768px) {
-  .page-content .content-outlet {
-    & iframe.stackblitz {
-      margin: 10px 0;
-      width: 100%;
-      height: 800px;
-      display: block;
-    }
-  }
-}
-
-@media (min-width: 1440px) {
-  .page-content .content-outlet {
-    width: 80%;
-  }
-
-  app-sidenav:has(ul) {
-    padding: var(--size-4) var(--size-1) 0 var(--size-fluid-6);
-  }
-}
-*/
