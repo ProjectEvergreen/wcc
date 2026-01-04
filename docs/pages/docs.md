@@ -5,6 +5,10 @@ order: 2
 tocHeading: 2
 ---
 
+# Docs
+
+Below are the various APIs and capabilities of WCC.
+
 ## API
 
 ### renderToString
