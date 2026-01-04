@@ -1,3 +1,35 @@
+diff --git a/node_modules/@greenwood/cli/src/lib/layout-utils.js b/node_modules/@greenwood/cli/src/lib/layout-utils.js
+index 8dd051d..ba3566c 100644
+--- a/node_modules/@greenwood/cli/src/lib/layout-utils.js
++++ b/node_modules/@greenwood/cli/src/lib/layout-utils.js
+@@ -81,6 +81,7 @@ async function mergeContentIntoLayout(
+   } else {
+     // only merge custom page imports if we are handling a page into a layout to not duplication entries in the final HTML
+     const customImports = outletType === "content" ? (matchingRoute?.imports ?? []) : [];
++    const isSupportedScript = ["js", "ts", "tsx"];
+ 
+     const parentTitle = parentRoot ? parentRoot.querySelector("head title") : null;
+     const parentBody =
+@@ -153,6 +154,10 @@ async function mergeContentIntoLayout(
+           const [href] = resource.split(" ");
+           const isCssFile = href.split(" ")[0].split(".").pop() === "css";
+ 
++          if(isSupportedScript.includes(href.split(" ")[0].split(".").pop())) {
++            return false;
++          }
++
+           if (isCssFile) {
+             return true;
+           }
+@@ -184,7 +189,7 @@ async function mergeContentIntoLayout(
+       ...(
+         await asyncFilter(customImports, async (resource) => {
+           const [src] = resource.split(" ");
+-          const isSupportedScript = ["js", "ts"].includes(src.split(" ")[0].split(".").pop());
++          isSupportedScript.includes(src.split(" ")[0].split(".").pop());
+ 
+           if (isSupportedScript) {
+             return true;
 diff --git a/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js b/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
 index 024232f..53f60a2 100644
 --- a/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
