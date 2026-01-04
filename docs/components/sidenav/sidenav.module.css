@@ -61,65 +61,10 @@
 .compactMenu:not(:has(#compact-menu:popover-open)) #indicator {
   transform: rotate(0deg);
 }
+
 .compactMenu:has(#compact-menu:popover-open) #indicator {
   transform: rotate(180deg);
 }
-
-/*
-.compactMenu,
-.fullMenu {
-  & a {
-    color: var(--color-black);
-    text-decoration: none;
-  }
-}
-
-.compactMenuSectionListItemActive {
-  & a {
-    border-left: var(--size-1) solid black;
-    border-radius: var(--radius-2);
-    background-color: white;
-    padding: 0 var(--size-2);
-    min-width: 200px;
-    display: inline-block;
-    box-shadow: var(--shadow-2);
-    margin-left: -16px;
-  }
-}
-
-.compactMenuSectionHeading {
-  margin: 0 0 var(--size-2) 0;
-
-  & a {
-    font-family: var(--font-primary-bold);
-  }
-
-  & a.active,
-  & a:hover,
-  & a:focus {
-    text-decoration: underline;
-    opacity: 0.7;
-  }
-
-  & a.active::before {
-    content: '\027A5';
-  }
-}
-
-.compactMenuSectionList {
-  list-style: none;
-  margin: 0 0 var(--size-6) 0;
-
-  & a:hover,
-  & a:focus {
-    opacity: 0.7;
-  }
-}
-
-.compactMenuSectionListItem {
-  margin: var(--size-1);
-}
-*/
 
 @media (min-width: 1200px) {
   .fullMenu {
