@@ -2,27 +2,29 @@ import type { Page, Graph } from '@greenwood/cli';
 import { getContent } from '@greenwood/cli/src/data/client.js';
 import styles from './sidenav.module.css';
 
+type TableOfContents = Array<{
+  content: string;
+  slug: string;
+}>;
+
 type DocsPage = Page & {
   data?: {
-    tableOfContents?: {
-      content: string;
-      slug: string;
-    };
+    tableOfContents?: TableOfContents;
   };
 };
 
 export default class SideNav extends HTMLElement {
   route: string;
-  toc: [];
+  toc: TableOfContents;
 
   // TODO: heading
   // TODO: current route
   async connectedCallback() {
     const route = this.getAttribute('route') ?? '';
-    const page = ((await getContent()) as Graph).find((page) => page.route === route);
-    console.log({ page });
-    const { tableOfContents } = page?.data ?? { tableOfContents: [] };
+    const page: DocsPage = (await getContent()).find((page) => page.route === route);
+    const { tableOfContents } = page?.data ?? [];
 
+    console.log({ page });
     console.log({ tableOfContents });
 
     this.toc = tableOfContents;
