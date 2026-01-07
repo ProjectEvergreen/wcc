@@ -7,8 +7,9 @@ export default class BannerSplash extends HTMLElement {
 
   render() {
     return (
-      <h1>
-        <span class={styles.splash}>SSR</span> for Web Components
+      <h1 class={styles.container}>
+        <span class={styles.splash}>SSR</span>
+        <span class={styles.text}> for Web Components</span>
       </h1>
     );
   }
