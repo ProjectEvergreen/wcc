@@ -48,11 +48,22 @@ describe('Run WCC For ', function () {
         // <wcc-badge count={completedTodos.length}></wcc-badge>
         it('should handle a member expression', () => {
           const badge = dom.window.document.querySelectorAll('wcc-badge')[0];
-          const span = badge.querySelectorAll('span')[0];
+          const span = badge.querySelectorAll('span span')[0];
 
           expect(badge.getAttribute('count')).to.be.equal('0');
           expect(span.getAttribute('class')).to.be.equal('unmet');
           expect(span.textContent.trim()).to.be.equal('0');
+        });
+
+        //  <img src="badge-icon.png" alt="Badge Icon" width={16} height={16} />
+        it('should preserve literal attribute expressions when using TS', () => {
+          const badge = dom.window.document.querySelectorAll('wcc-badge')[0];
+          const img = badge.querySelectorAll('span img')[0];
+
+          expect(img.getAttribute('src')).to.be.equal('badge-icon.png');
+          expect(img.getAttribute('alt')).to.be.equal('Badge Icon');
+          expect(img.getAttribute('width')).to.be.equal('16');
+          expect(img.getAttribute('height')).to.be.equal('16');
         });
       });
 
