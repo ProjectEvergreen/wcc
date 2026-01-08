@@ -1,0 +1,7 @@
+#icon {
+  padding: var(--size-2);
+  border: none;
+  cursor: copy;
+  border-radius: var(--radius-3);
+  background-color: var(--color-green-pale);
+}

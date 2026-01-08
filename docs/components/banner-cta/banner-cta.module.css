@@ -1,0 +1,23 @@
+.container {
+  margin: var(--size-4) 0;
+  padding: var(--size-4);
+  background-color: #e7e8ea;
+  border-radius: var(--radius-4);
+  color: var(--color-primary);
+  font-size: var(--font-size-1);
+}
+
+.snippetContainer {
+  width: 100%;
+}
+
+.snippet {
+  color: var(--color-primary);
+  border-radius: var(--radius-4);
+  border: var(--radius-1) solid #c1d3cd;
+  box-shadow: var(--shadow-2);
+  margin: var(--size-px-2) 0;
+  text-align: center;
+  padding: var(--size-1);
+  display: block;
+}
