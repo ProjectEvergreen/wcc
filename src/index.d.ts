@@ -3,6 +3,7 @@ export type Metadata = {
     instanceName: string;
     moduleURL: URL;
     isEntry: boolean;
+    source: string;
   };
 };
 
