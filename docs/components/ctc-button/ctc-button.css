@@ -3,5 +3,9 @@
   border: none;
   cursor: copy;
   border-radius: var(--radius-3);
-  background-color: var(--color-green-pale);
+  background-color: var(--color-accent);
+
+  & svg {
+    outline: var(--color-white);
+  }
 }
