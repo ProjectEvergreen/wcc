@@ -14,8 +14,6 @@ imports:
 
 ## How It Works
 
-<!-- TODO: -->
-
 ## Features
 
 <!-- TODO: -->

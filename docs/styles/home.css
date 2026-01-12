@@ -2,3 +2,22 @@
   margin: 0 auto;
   padding: 0;
 }
+
+h2,
+h3 {
+  & a > span.icon {
+    background-image: none;
+  }
+}
+
+h2 {
+  margin: 0 auto;
+  text-align: center;
+  font-size: var(--size-6);
+}
+
+@media (min-width: 900px) {
+  h2 {
+    font-size: var(--size-8);
+  }
+}
