@@ -1,7 +1,7 @@
 .container {
   width: 100%;
   margin: var(--size-1) 0;
-  padding: var(--size-2);
+  padding: var(--size-4);
   background-color: #e7e8ea;
   border-radius: var(--radius-4);
   color: var(--color-primary);
@@ -31,6 +31,19 @@
   }
 }
 
+@media (min-width: 430px) {
+  .snippet {
+    & pre {
+      display: inline;
+      vertical-align: text-top;
+    }
+
+    & wcc-ctc-button {
+      display: inline;
+    }
+  }
+}
+
 @media (min-width: 768px) {
   .container {
     width: 80%;
@@ -39,15 +52,10 @@
   }
 }
 
-@media (min-width: 430px) {
-  & pre {
-    display: inline;
-    vertical-align: text-top;
-  }
-
-  .snippet {
-    & wcc-ctc-button {
-      display: inline;
-    }
+@media (min-width: 1024px) {
+  .container {
+    width: 60%;
+    margin: 0 auto;
+    padding: var(--size-4);
   }
 }
