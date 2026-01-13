@@ -7,17 +7,60 @@ h2,
 h3 {
   & a > span.icon {
     background-image: none;
+    display: none;
   }
 }
 
 h2 {
-  margin: 0 auto;
+  margin: var(--size-4) 0;
   text-align: center;
   font-size: var(--size-6);
+  text-decoration: underline;
+}
+
+h3 {
+  background-color: var(--color-white);
+  border-radius: var(--radius-6);
+  width: fit-content;
+  margin: var(--size-4) auto;
+  padding: var(--size-1) var(--size-4);
+  border: 1px solid var(--color-primary);
+}
+
+h3 + p {
+  text-align: center;
+}
+
+pre[class*='language-'] {
+  border-radius: var(--size-4);
+  box-shadow: var(--shadow-2);
+}
+
+pre[class*='language-']:nth-of-type(1) {
+  border-top-width: thick;
+  border-top-color: red;
+}
+
+pre[class*='language-']:nth-of-type(2) {
+  border-top-width: thick;
+  border-top-color: orange;
+}
+
+pre[class*='language-']:nth-of-type(3) {
+  border-top-width: thick;
+  border-top-color: green;
 }
 
 @media (min-width: 900px) {
   h2 {
     font-size: var(--size-8);
+  }
+}
+
+@media (min-width: 1024px) {
+  code[class*='language-'],
+  pre[class*='language-'] {
+    max-width: 80%;
+    margin: var(--size-2) auto;
   }
 }
