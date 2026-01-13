@@ -1,3 +1,5 @@
+import './badge.jsx';
+
 export const inferredObservability = true;
 
 export default class Counter extends HTMLElement {
