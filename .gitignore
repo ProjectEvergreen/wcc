@@ -3,3 +3,6 @@
 coverage/
 dist/
 node_modules/
+.greenwood/
+public/
+docs/assets/repl.bundle.js

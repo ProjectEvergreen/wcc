@@ -1,0 +1,155 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 0 var(--size-2) 0;
+  margin: var(--size-2) var(--size-3) var(--size-2);
+  border-bottom: 2px dotted var(--color-gray);
+  gap: var(--size-3);
+}
+
+.logoLink {
+  display: flex;
+  flex: 1;
+}
+
+.badgeContainer {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: right;
+}
+
+.badge {
+  border: 1px solid var(--color-black);
+  padding: var(--size-1) var(--size-3);
+  border-radius: var(--radius-3);
+  background-color: var(--color-white);
+
+  & img {
+    vertical-align: middle;
+  }
+}
+
+.navBar {
+  display: contents;
+  flex: 1;
+  justify-content: center;
+}
+
+.navBarMenu {
+  display: flex;
+  gap: var(--size-5);
+  list-style-type: none;
+}
+
+.navBarMenuItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: var(--font-size-8);
+  padding: 0;
+}
+
+.navBarMenuItem a {
+  text-decoration: none;
+  color: var(--color-primary);
+  padding: var(--size-1) var(--size-3);
+}
+
+.mobileMenuContainer {
+  flex: 1;
+}
+
+.mobileMenuList {
+  text-align: left;
+  margin: var(--size-4) 0 0;
+}
+
+.mobileMenuListItem a {
+  color: var(--color-black);
+  text-decoration: none;
+}
+
+.navBarMenuItem a.active,
+.navBarMenuItem a:hover,
+.navBarMenuItem a:focus {
+  text-decoration: underline;
+}
+
+.navBarMenuItem a.active {
+  font-weight: extra-bold;
+  background-color: var(--color-white);
+  border-radius: var(--radius-3);
+  padding: var(--size-1) var(--size-3);
+}
+
+.mobileMenuListItem {
+  list-style-type: none;
+  margin: 10px 0;
+  font-size: var(--font-size-5);
+}
+
+.mobileMenuListItem a.active {
+  text-decoration: underline;
+}
+
+.mobileMenuIcon {
+  display: none;
+  border: none;
+  background-color: transparent;
+}
+
+.mobileMenuBackdrop {
+  height: 99vh;
+  width: 96vw;
+  margin: 0;
+  background-color: #f5f5f58e;
+  padding: var(--size-5) var(--size-6);
+  text-align: right;
+}
+
+.mobileMenuCloseButton {
+  background: transparent;
+  font-size: var(--font-size-5);
+  cursor: pointer;
+  border: none;
+  padding: 0 12px;
+  color: var(--color-black);
+}
+
+@media screen and (min-width: 480px) {
+  .container {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 600px) {
+  .navBar {
+    display: flex;
+    align-items: center;
+    gap: var(--size-2);
+  }
+
+  .navBarMenu {
+    display: none;
+  }
+
+  .mobileMenuIcon {
+    display: flex;
+    cursor: pointer;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .navBar {
+    display: flex;
+    gap: var(--size-3);
+  }
+
+  .navBar > nav {
+    align-self: center;
+  }
+}

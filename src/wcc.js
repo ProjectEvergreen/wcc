@@ -267,4 +267,8 @@ async function renderFromHTML(html, elements = []) {
   };
 }
 
-export { renderToString, renderFromHTML };
+async function renderFromInput(input, elements = []) {
+  console.log({ input, elements });
+}
+
+export { renderToString, renderFromHTML, renderFromInput };

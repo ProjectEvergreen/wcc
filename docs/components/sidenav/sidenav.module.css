@@ -1,0 +1,77 @@
+.fullMenu {
+  display: none;
+}
+
+.compactMenu {
+  display: inline-block;
+}
+
+.fullMenu,
+.compactMenu {
+  & ul {
+    list-style-type: none;
+  }
+
+  & li {
+    margin: var(--size-2);
+  }
+}
+
+.tableOfContentHeader {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.compactMenuPopover {
+  top: 200px;
+  width: auto;
+  padding: var(--size-4);
+  background-color: var(--color-gray);
+  height: auto;
+  max-height: max-content;
+}
+
+.compactMenuPopoverTrigger {
+  background-color: var(--color-white);
+  border: none;
+  padding: var(--size-2);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-1);
+  color: var(--color-black);
+
+  @media (prefers-reduced-motion: no-preference) {
+    & #indicator {
+      display: inline-block;
+      transition: transform 1s ease;
+    }
+  }
+}
+
+.compactMenuCloseButton {
+  background: transparent;
+  font-size: var(--font-size-5);
+  cursor: pointer;
+  border: none;
+  padding: 0 12px;
+  width: 100%;
+  text-align: right;
+  color: var(--color-black);
+}
+
+.compactMenu:not(:has(#compact-menu:popover-open)) #indicator {
+  transform: rotate(0deg);
+}
+
+.compactMenu:has(#compact-menu:popover-open) #indicator {
+  transform: rotate(180deg);
+}
+
+@media (min-width: 1200px) {
+  .fullMenu {
+    display: block;
+  }
+
+  .compactMenu {
+    display: none;
+  }
+}

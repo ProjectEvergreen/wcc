@@ -7,6 +7,9 @@ type ElementAttributes<E extends HTMLElement> = {
   [A in keyof E]?: E[A] extends (...args: any) => any ? any : IsCSSStyleDeclaration<E[A]>;
 } & {
   class?: string;
+  // TODO: figure out why these cause an error with `tsc`, or maybe they're needed?
+  popovertarget?: string;
+  popovertargetaction?: 'show' | 'hide' | 'toggle';
 };
 
 // map each HTML tag to a union of its attributes and the global attributes.

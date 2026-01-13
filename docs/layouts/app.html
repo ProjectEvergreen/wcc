@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
+    <script src="../components/header/header.tsx" type="module" data-gwd-opt="static"></script>
+
+    <link rel="stylesheet" href="../styles/theme.css" />
+  </head>
+
+  <body>
+    <wcc-header current-route="${globalThis.page.route}"></wcc-header>
+
+    <main class="page-outlet">
+      <page-outlet></page-outlet>
+    </main>
+  </body>
+</html>
