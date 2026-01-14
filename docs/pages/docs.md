@@ -481,7 +481,7 @@ export default class Counter extends HTMLElement {
 
 <!-- prettier-ignore-end -->
 
-And so now when the attribute is set on this component, the component will re-render automatically, no need to write out `observedAttributes` or `attributeChangedCallback`!
+And so now when the attribute is set on this component, the component will re-render automatically using fine-grained updates; no need to write out `observedAttributes` or `attributeChangedCallback`!
 
 ```html
 <wcc-counter count="100"></wcc-counter>
@@ -489,5 +489,5 @@ And so now when the attribute is set on this component, the component will re-re
 
 Some notes / limitations:
 
-- Please be aware of the above linked discussion and issue filter which is tracking any known bugs / feature requests / open items related to all things WCC + JSX.
 - This automatically reflects properties used in the `render` function to attributes, so [YMMV](https://dictionary.cambridge.org/us/dictionary/english/ymmv).
+- Please be aware of the above linked discussion and issue filter which is tracking any known bugs / feature requests / open items related to all things WCC + JSX.
