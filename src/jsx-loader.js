@@ -412,8 +412,6 @@ export function parseJsx(moduleURL) {
       .map((attr) => {
         return `
         get_${attr.id.name}(${trackingAttrs.join(',')}) {
-          console.log('@@@@@@@@@@@@@@@@@@@@ updating derivative value for => ${attr.id.name}');
-          console.log('@@@@@@@@@@@@@@@@@@@@ new derivative value is =>', ${moduleContents.slice(attr.init.start, attr.init.end)});
           return ${moduleContents.slice(attr.init.start, attr.init.end)}
         }
       `;
@@ -465,22 +463,13 @@ export function parseJsx(moduleURL) {
       }
 
       update(name, oldValue, newValue) {
-        console.debug('Update tracking against....', this.constructor.observedAttributes);
-        console.debug('Updating', name);
-        console.debug('Swap old', oldValue);
-        console.debug('For new', newValue);
-        console.debug('this[name]', this[name]);
         const attr = \`data-wcc-\${name}\`;
         const selector = \`[\${attr}]\`;
-        console.debug({ attr });
-        console.debug({ selector });
 
         (this?.shadowRoot || this).querySelectorAll(selector).forEach((el) => {
           // handle empty strings as a value for the purposes of attribute change detection
           const needle = oldValue === '' ? '' : oldValue ?? el.getAttribute(attr);
-          console.debug({ el })
-          console.debug({ needle });
-          console.debug({ newValue });
+
           switch(el.getAttribute('data-wcc-ins')) {
             case 'text':
               el.textContent = el.textContent.replace(needle, newValue);
@@ -496,7 +485,6 @@ export function parseJsx(moduleURL) {
         if ([${[...trackingAttrs].map((attr) => `'${attr}'`).join()}].includes(name)) {
           ${derivedSetters}
         }
-        console.debug('****************************');
       }
 
       ${derivedGetters}

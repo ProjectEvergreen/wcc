@@ -15,20 +15,12 @@ attributeChangedCallback(name, oldValue, newValue) {
         }
     }
     update(name, oldValue, newValue) {
-        console.debug('Update tracking against....', this.constructor.observedAttributes);
-        console.debug('Updating', name);
-        console.debug('Swap old', oldValue);
-        console.debug('For new', newValue);
-        console.debug('this[name]', this[name]);
         const attr = `data-wcc-${ name }`;
         const selector = `[${ attr }]`;
-        console.debug({ attr });
-        console.debug({ selector });
+
         (this?.shadowRoot || this).querySelectorAll(selector).forEach(el => {
             const needle = oldValue === '' ? '' : oldValue ?? el.getAttribute(attr);
-            console.debug({ el });
-            console.debug({ needle });
-            console.debug({ newValue });
+
             switch (el.getAttribute('data-wcc-ins')) {
             case 'text':
                 el.textContent = el.textContent.replace(needle, newValue);
@@ -45,5 +37,4 @@ attributeChangedCallback(name, oldValue, newValue) {
                 'highlight'
             ].includes(name)) {
         }
-        console.debug('****************************');
     }
