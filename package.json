@@ -1,6 +1,6 @@
 {
   "name": "wc-compiler",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "description": "Experimental native Web Components compiler.",
   "repository": {
     "type": "git",
