@@ -447,12 +447,14 @@ customElements.define('wcc-counter', Counter);
 
 ### (Inferred) Attribute Observability
 
-An optional feature supported by JSX based compilation is a feature called `inferredObservability`. With this enabled, WCC will read any `this` member references in your component's `render` function and map each member instance to:
+An optional feature supported by JSX based compilation is `inferredObservability`. With this enabled, WCC will read any `this` member references in your component's `render` function and map each member instance to:
 
-- an entry in the `observedAttributes` array
-- automatically handle `attributeChangedCallback` update (by calling `this.render()`)
+1. an entry in the `observedAttributes` array
+1. automatically handle `attributeChangedCallback` updates
 
 So taking the above counter example, and opting in to this feature, we just need to enable the `inferredObservability` option in the component by exporting it as a `const`:
+
+<!-- prettier-ignore-start -->
 
 ```jsx
 export const inferredObservability = true;
@@ -463,9 +465,10 @@ export default class Counter extends HTMLElement {
   render() {
     const { count } = this;
 
+    // note that {count} has to be wrapped in its own HTML tag
     return (
       <div>
-        <button onclick={(this.count -= 1)}> -</button>
+        <button onclick={this.count -= 1}> -</button>
         <span>
           You have clicked <span class="red">{count}</span> times
         </span>
@@ -476,7 +479,9 @@ export default class Counter extends HTMLElement {
 }
 ```
 
-And so now when the attribute is set on this component, the component will re-render automatically, no need to write out `observedAttributes` or `attributeChangedCallback`!
+<!-- prettier-ignore-end -->
+
+And so now when the attribute is set on this component, the component will re-render automatically using fine-grained updates; no need to write out `observedAttributes` or `attributeChangedCallback`!
 
 ```html
 <wcc-counter count="100"></wcc-counter>
@@ -484,6 +489,5 @@ And so now when the attribute is set on this component, the component will re-re
 
 Some notes / limitations:
 
-- Please be aware of the above linked discussion which is tracking known bugs / feature requests / open items related to all things WCC + JSX.
-- We consider the capability of this observability to be "coarse grained" at this time since WCC just re-runs the entire `render` function, replacing of the `innerHTML` for the host component. Thought it is still WIP, we are exploring a more ["fine grained" approach](https://github.com/ProjectEvergreen/wcc/issues/108) that will more efficient than blowing away all the HTML, a la in the style of [**lit-html**](https://lit.dev/docs/templates/overview/) or [**Solid**'s Signals](https://www.solidjs.com/tutorial/introduction_signals).
-- This automatically _reflects properties used in the `render` function to attributes_, so YMMV.
+- This automatically reflects properties used in the `render` function to attributes, so [YMMV](https://dictionary.cambridge.org/us/dictionary/english/ymmv).
+- Please be aware of the above linked discussion and issue filter which is tracking any known bugs / feature requests / open items related to all things WCC + JSX.

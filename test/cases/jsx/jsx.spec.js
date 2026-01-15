@@ -20,10 +20,12 @@ describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element using JSX';
   let dom;
   let meta;
+  let output;
 
   before(async function () {
     const { html, metadata } = await renderToString(new URL('./src/counter.jsx', import.meta.url));
 
+    output = html;
     meta = metadata;
     dom = new JSDOM(html);
   });
@@ -95,6 +97,7 @@ describe('Run WCC For ', function () {
 
           expect(actual).to.not.contain('staticgetobservedAttributes()');
           expect(actual).to.not.contain('attributeChangedCallback');
+          expect(output).to.not.contain('data-wcc');
         });
       });
     });

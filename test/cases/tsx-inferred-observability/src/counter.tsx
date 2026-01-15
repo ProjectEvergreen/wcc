@@ -27,7 +27,6 @@ export default class Counter extends HTMLElement {
 
     return (
       <div>
-        <wcc-badge count={count}></wcc-badge>
         <h3 data-test="hello123">Counter JSX</h3>
         <button id="evt-this" onclick={this.decrement}>
           {' '}
@@ -51,4 +50,4 @@ export default class Counter extends HTMLElement {
   }
 }
 
-customElements.define('wcc-counter-jsx', Counter);
+customElements.define('wcc-counter-tsx', Counter);

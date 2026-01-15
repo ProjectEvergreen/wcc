@@ -8,6 +8,6 @@ attributeChangedCallback(name, oldValue, newValue) {
           this.count = getValue(newValue);
           break;
       }
-      this.render();
+      this.update(name,oldValue,newValue);
   }
 }

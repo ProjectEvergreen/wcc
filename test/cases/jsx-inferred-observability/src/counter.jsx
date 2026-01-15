@@ -1,9 +1,12 @@
+import './badge.jsx';
+
 export const inferredObservability = true;
 
 export default class Counter extends HTMLElement {
   constructor() {
     super();
     this.count = 0;
+    this.highlight = 'red';
   }
 
   increment() {
@@ -21,7 +24,7 @@ export default class Counter extends HTMLElement {
   }
 
   render() {
-    const { count } = this;
+    const { count, highlight } = this;
 
     return (
       <div>
@@ -37,7 +40,7 @@ export default class Counter extends HTMLElement {
         </button>
         <span>
           You have clicked{' '}
-          <span class="red" id="expression">
+          <span class={highlight} id="expression">
             {count}
           </span>{' '}
           times
