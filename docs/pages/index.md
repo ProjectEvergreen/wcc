@@ -6,6 +6,7 @@ imports:
   - ../components/banner-splash/banner-splash.tsx type="module" data-gwd-opt="static"
   - ../components/banner-cta/banner-cta.tsx type="module" data-gwd-opt="static"
   - ../components/ctc-button/ctc-button.tsx type="module"
+  - ../components/feature-box/feature-box.tsx type="module" data-gwd-opt="static"
 ---
 
 <wcc-banner-splash></wcc-banner-splash>
@@ -13,6 +14,8 @@ imports:
 <wcc-banner-cta></wcc-banner-cta>
 
 ## How It Works
+
+WCC supports server-rendering of web standard Web Components; generating HTML directly from your custom element definitions.
 
 ### Step 1
 
@@ -66,7 +69,7 @@ const { html } = await renderToString(
 
 ### Step 3
 
-Get static HTML! 🎉
+Get static HTML 🎉
 
 ```html
 <wcc-footer>
@@ -87,7 +90,25 @@ Get static HTML! 🎉
 
 ## Features
 
-<!-- TODO: -->
+In addition to server rendering, WCC also features these developer ergonomics
+
+<wcc-feature-box heading="< / > JSX">
+
+  <p>Custom JSX transform with the option to enabled fine-grained reactivity for interactive components.</p>
+  
+</wcc-feature-box>
+
+<wcc-feature-box heading="[TS] TypeScript">
+
+  <p>Combined with JSX, leverage TypeScript to achieve type-safe HTML as you author, including intellisense.</p>
+
+</wcc-feature-box>
+
+<wcc-feature-box heading="{ ... } Pluggable">
+
+  <p>Use WCC on its own, or integrate with your favorite framework, like <a href="https://www.greenwoodjs.dev">Greenwood</a>, <a href="https://github.com/ProjectEvergreen/astro-wcc">Astro</a>, or <a href="https://github.com/ProjectEvergreen/eleventy-plugin-wcc/">11ty</a>.</p>
+
+</wcc-feature-box>
 
 ## Capabilities
 

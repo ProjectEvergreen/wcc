@@ -4,7 +4,8 @@
 }
 
 h2,
-h3 {
+h3,
+h4 {
   & a > span.icon {
     background-image: none;
     display: none;
@@ -16,6 +17,11 @@ h2 {
   text-align: center;
   font-size: var(--size-6);
   text-decoration: underline;
+}
+
+h2 + p {
+  margin: var(--size-2) auto;
+  max-width: 90%;
 }
 
 h3 {
@@ -51,6 +57,20 @@ pre[class*='language-']:nth-of-type(3) {
   border-top-color: green;
 }
 
+wcc-feature-box {
+  display: block;
+  margin: 0 var(--size-1);
+  vertical-align: top;
+}
+
+@media (min-width: 760px) {
+  h2 + p {
+    margin: var(--size-4) auto;
+    max-width: 70%;
+    text-align: center;
+  }
+}
+
 @media (min-width: 900px) {
   h2 {
     font-size: var(--size-8);
@@ -62,5 +82,18 @@ pre[class*='language-']:nth-of-type(3) {
   pre[class*='language-'] {
     max-width: 80%;
     margin: var(--size-2) auto;
+  }
+
+  wcc-feature-box {
+    width: 80%;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1200px) {
+  wcc-feature-box {
+    width: 32%;
+    display: inline-block;
+    margin: 0 var(--size-1);
   }
 }
