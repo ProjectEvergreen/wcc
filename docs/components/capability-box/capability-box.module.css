@@ -1,7 +1,8 @@
 .container {
-  background-color: #0c141d;
+  background-color: var(--color-primary);
   border-radius: var(--radius-3);
   padding: var(--size-4);
+  text-align: left;
   min-height: 150px;
 
   & p {
