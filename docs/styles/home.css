@@ -63,6 +63,11 @@ wcc-feature-box {
   vertical-align: top;
 }
 
+wcc-banner-splash {
+  display: block;
+  margin: var(--size-6) 0;
+}
+
 @media (min-width: 760px) {
   h2 + p {
     margin: var(--size-4) auto;
