@@ -2,7 +2,7 @@
 @import 'open-props/fonts';
 @import 'open-props/shadows';
 @import 'open-props/sizes';
-@import 'prism-themes/themes/prism-ghcolors.css';
+@import 'prism-themes/themes/prism-night-owl.css';
 
 @font-face {
   font-family: 'Geist-Sans';
@@ -108,20 +108,13 @@ pre[class*='language-'],
 code,
 pre,
 span.token {
+  font-size: var(--font-size-1);
   font-family: 'Geist-Mono', monospace;
 }
 
 code[class*='language-'],
 pre[class*='language-'] {
   width: 100%;
-}
-
-@media (max-width: 760px) {
-  code[class*='language-'],
-  pre[class*='language-'],
-  .token {
-    font-size: 0.9rem;
-  }
 }
 
 /* external links styling */
@@ -139,4 +132,15 @@ pre[class*='language-'] {
   content: url(/assets/external-link.svg);
   margin: 0 0 0 var(--size-1);
   vertical-align: middle;
+}
+
+@media (min-width: 1024px) {
+  /* tweaks for PrismJS */
+  code[class*='language-'],
+  pre[class*='language-'],
+  code,
+  pre,
+  span.token {
+    font-size: var(--font-size-3);
+  }
 }
