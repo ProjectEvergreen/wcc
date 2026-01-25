@@ -72,6 +72,14 @@ body:has(#compact-menu:popover-open) {
   & h4 > a > span.icon {
     vertical-align: text-top;
   }
+
+  & blockquote {
+    margin: var(--size-4) 0;
+    padding: var(--size-1) var(--size-2);
+    background-color: var(--color-accent) !important;
+    border-left: var(--size-2) solid var(--color-prism-bg);
+    font-style: italic;
+  }
 }
 
 @media (min-width: 1200px) {
