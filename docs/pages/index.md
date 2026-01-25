@@ -133,19 +133,19 @@ WCC aims covers a reasonable set of DOM APIs to help facilitate server-rendering
 
 In addition to server rendering, WCC also supports these features
 
-<wcc-feature-box heading="< / > JSX">
+<wcc-feature-box heading="JSX">
 
   <p>Custom JSX transform with the option to enable fine-grained reactivity compilation for interactive components.</p>
   
 </wcc-feature-box>
 
-<wcc-feature-box heading="[TS] TypeScript">
+<wcc-feature-box heading="TypeScript">
 
   <p>Combined with JSX, leverage TypeScript to achieve type-safe HTML as you author, including intellisense.</p>
 
 </wcc-feature-box>
 
-<wcc-feature-box heading="{ ... } Pluggable">
+<wcc-feature-box heading="Pluggable">
 
   <p>Use WCC on its own, or integrate with your favorite framework, like <a href="https://www.greenwoodjs.dev">Greenwood</a>, <a href="https://github.com/ProjectEvergreen/astro-wcc">Astro</a>, or <a href="https://github.com/ProjectEvergreen/eleventy-plugin-wcc/">11ty</a>.</p>
 

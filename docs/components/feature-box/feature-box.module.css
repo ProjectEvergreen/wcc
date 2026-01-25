@@ -11,7 +11,7 @@
     margin-top: var(--size-2);
     color: var(--color-black);
     background-color: var(--color-background);
-    padding: var(--size-2);
+    padding: var(--size-3);
     border-radius: var(--radius-3);
   }
 }
@@ -28,6 +28,15 @@
   width: fit-content;
   font-weight: bolder;
   text-align: center;
+  vertical-align: top;
+}
+
+.icon {
+  & svg {
+    vertical-align: top;
+    fill: var(--color-accent);
+    stroke: var(--color-white);
+  }
 }
 
 @media (min-width: 700px) {
