@@ -7,6 +7,7 @@ imports:
   - ../components/banner-cta/banner-cta.tsx type="module" data-gwd-opt="static"
   - ../components/ctc-button/ctc-button.tsx type="module"
   - ../components/feature-box/feature-box.tsx type="module" data-gwd-opt="static"
+  - ../components/capability-box/capability-box.tsx type="module" data-gwd-opt="static"
 ---
 
 <wcc-banner-splash></wcc-banner-splash>
@@ -88,13 +89,53 @@ Get static HTML 🎉
 </wcc-footer>
 ```
 
+## Capabilities
+
+WCC aims covers a reasonable set of DOM APIs to help facilitate server-rendering of your Web Components
+
+<div class="capabilities-container">
+
+  <wcc-capability-box heading="constructor">
+    <p>Standard HTMLElement constructor</p>
+  </wcc-capability-box>
+
+  <wcc-capability-box heading="connectedCallback">
+    <p>Also supports async rendering</p>
+  </wcc-capability-box>
+
+  <wcc-capability-box heading="attachShadow">
+    <p>Declarative Shadow DOM</p>
+  </wcc-capability-box>
+
+  <wcc-capability-box heading="< template >">
+    <p>Template element support (createElement)</p>
+  </wcc-capability-box>
+
+  <wcc-capability-box heading="CSSStyleSheet">
+    <p>Constructable Stylesheets shim</p>
+  </wcc-capability-box>
+
+  <wcc-capability-box heading="[get|set|has]Attribute">
+    <p>Attribute handling</p>
+  </wcc-capability-box>
+
+  <wcc-capability-box heading="innerHTML">
+    <p>Light DOM supported</p>
+  </wcc-capability-box>
+
+  <wcc-capability-box heading="addEventListener">
+    <p>Handled as a no-op</p>
+  </wcc-capability-box>
+
+</div>
+
 ## Features
 
-In addition to server rendering, WCC also features these developer ergonomics
+In addition to server rendering, WCC also supports these features
 
 <wcc-feature-box heading="< / > JSX">
 
-  <p>Custom JSX transform with the option to enabled fine-grained reactivity for interactive components.</p>
+  <p>Custom JSX transform with the option to enable fine-grained reactivity compilation for interactive components.</p>
   
 </wcc-feature-box>
 
@@ -109,7 +150,3 @@ In addition to server rendering, WCC also features these developer ergonomics
   <p>Use WCC on its own, or integrate with your favorite framework, like <a href="https://www.greenwoodjs.dev">Greenwood</a>, <a href="https://github.com/ProjectEvergreen/astro-wcc">Astro</a>, or <a href="https://github.com/ProjectEvergreen/eleventy-plugin-wcc/">11ty</a>.</p>
 
 </wcc-feature-box>
-
-## Capabilities
-
-<!-- TODO: -->

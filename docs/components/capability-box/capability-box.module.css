@@ -1,0 +1,32 @@
+.container {
+  background-color: #0c141d;
+  border-radius: var(--radius-3);
+  padding: var(--size-4);
+  min-height: 150px;
+
+  & p {
+    color: var(--color-white);
+    margin: var(--size-2) 0;
+    font-family: var(--font-secondary);
+  }
+}
+
+.heading {
+  font-family: var(--font-secondary);
+  background-color: #c1c7d3;
+  border-radius: var(--radius-2);
+  padding: var(--size-2);
+  font-size: var(--size-3);
+}
+
+@media (min-width: 1024px) {
+  .container {
+    min-height: 200px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    min-height: 160px;
+  }
+}
