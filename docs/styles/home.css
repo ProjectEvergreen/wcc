@@ -37,6 +37,12 @@ h3 + p {
   text-align: center;
 }
 
+code[class*='language-'],
+pre[class*='language-'] {
+  max-width: 94%;
+  margin: var(--size-2) auto;
+}
+
 pre[class*='language-'] {
   border-radius: var(--size-4);
   box-shadow: var(--shadow-2);
@@ -61,6 +67,8 @@ pre[class*='language-']:nth-of-type(3) {
   width: 100%;
   background-color: var(--color-primary);
   border-radius: var(--radius-3);
+  max-width: 94%;
+  margin: var(--size-2) auto;
 }
 
 wcc-feature-box {
@@ -71,7 +79,7 @@ wcc-feature-box {
 
 wcc-banner-splash {
   display: block;
-  margin: var(--size-6) 0;
+  margin: var(--size-4) 0;
 }
 
 wcc-capability-box {
@@ -135,6 +143,11 @@ wcc-capability-box {
 @media (min-width: 1200px) {
   .capabilities-container {
     padding: var(--size-2) 0 var(--size-2) var(--size-2);
+  }
+
+  wcc-banner-splash {
+    display: block;
+    margin: var(--size-6) 0;
   }
 
   wcc-feature-box {
