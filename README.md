@@ -81,7 +81,7 @@ $ npm install wc-compiler --save-dev
 
 ## Documentation
 
-See our [website](https://merry-caramel-524e61.netlify.app/) for API docs and examples.
+See our [website](https://www.wcc.dev) for API docs and examples.
 
 ## Motivation
 

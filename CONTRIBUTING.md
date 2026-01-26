@@ -8,8 +8,8 @@ We're excited for your interest in WCC, and maybe even your contribution!
 
 To develop for the project, you'll want to follow these steps:
 
-1. Have [NodeJS LTS](https://nodejs.org) and / or use `nvm` (see below)
 1. Clone the repository
+1. Have [NodeJS LTS](https://nodejs.org) installed and / or use `nvm` (see below)
 1. Run `npm ci`
 
 ### NVM
@@ -39,3 +39,23 @@ These are the main tasks, and you can see them all listed in _package.json#scrip
 - `npm run lint` - Run all linters
 - `npm run check:types` - Run `tsc` to validate TypeScript types
 - `npm run format` - Auto-format all file
+
+## Website
+
+The website is built with [**Greenwood**](https://www.greenwoodjs.dev). To run the website locally, use one of the following commands:
+
+- `npm run dev` - Start the dev server
+- `npm run build` - Generate a production build
+- `npm run serve` - Serve a production build
+
+### Sandbox
+
+To assist in local development of WCC, there is a "sandbox" app built into the website, that can be used to validate a number of examples in the browser. (think of it as a storybook for WCC).
+
+After starting the dev server, visit the `/sandbox/` route in your browser. All code for the examples are in _./docs/components/sandbox/_.
+
+### REPL
+
+The website also hosts a REPL for seeing WCC output in the browser in real time.
+
+After starting the dev server, visit the `/repl/` route in your browser. The relevant code for the REPL is in _./docs/scripts/_.
