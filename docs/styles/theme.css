@@ -7,17 +7,20 @@
 @font-face {
   font-family: 'Geist-Sans';
   src: url('../../node_modules/geist/dist/fonts/geist-sans/Geist-Regular.woff2') format('truetype');
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'Geist-Mono';
   src: url('../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Regular.woff2')
     format('truetype');
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'Geist-Sans Bold';
   src: url('../../node_modules/geist/dist/fonts/geist-sans/Geist-Bold.woff2') format('truetype');
+  font-display: swap;
 }
 
 :root,
