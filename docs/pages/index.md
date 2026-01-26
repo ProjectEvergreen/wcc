@@ -120,7 +120,7 @@ WCC aims covers a reasonable set of DOM APIs to help facilitate server-rendering
   </wcc-capability-box>
 
   <wcc-capability-box heading="innerHTML">
-    <p>Light DOM supported</p>
+    <p>Light DOM supported (aka. HTML Web Components)</p>
   </wcc-capability-box>
 
   <wcc-capability-box heading="addEventListener">
