@@ -13,54 +13,38 @@ index 5490610..119bcbc 100644
                }
  
                // check for app level assets, like say a shared theme.css
-diff --git a/node_modules/@greenwood/cli/src/lib/layout-utils.js b/node_modules/@greenwood/cli/src/lib/layout-utils.js
-index 8dd051d..784a1ee 100644
---- a/node_modules/@greenwood/cli/src/lib/layout-utils.js
-+++ b/node_modules/@greenwood/cli/src/lib/layout-utils.js
-@@ -81,6 +81,7 @@ async function mergeContentIntoLayout(
-   } else {
-     // only merge custom page imports if we are handling a page into a layout to not duplication entries in the final HTML
-     const customImports = outletType === "content" ? (matchingRoute?.imports ?? []) : [];
-+    const isSupportedScript = ["js", "ts", "tsx"];
- 
-     const parentTitle = parentRoot ? parentRoot.querySelector("head title") : null;
-     const parentBody =
-@@ -153,6 +154,10 @@ async function mergeContentIntoLayout(
-           const [href] = resource.split(" ");
-           const isCssFile = href.split(" ")[0].split(".").pop() === "css";
- 
-+          if(isSupportedScript.includes(href.split(" ")[0].split(".").pop())) {
-+            return false;
-+          }
-+
-           if (isCssFile) {
-             return true;
-           }
-@@ -184,9 +189,9 @@ async function mergeContentIntoLayout(
-       ...(
-         await asyncFilter(customImports, async (resource) => {
-           const [src] = resource.split(" ");
--          const isSupportedScript = ["js", "ts"].includes(src.split(" ")[0].split(".").pop());
-+          isSupportedScript.includes(src.split(" ")[0].split(".").pop());
- 
--          if (isSupportedScript) {
-+          if(isSupportedScript.includes(src.split(" ")[0].split(".").pop())) {
-             return true;
-           }
- 
 diff --git a/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js b/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
-index 024232f..53f60a2 100644
+index 024232f..4084ed0 100644
 --- a/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
 +++ b/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
-@@ -5,7 +5,7 @@ const greenwoodPluginCopyFavicon = [
+@@ -5,15 +5,22 @@ const greenwoodPluginCopyFavicon = [
      type: "copy",
      name: "plugin-copy-favicon",
      provider: async (compilation) => {
 -      const fileName = "favicon.ico";
-+      const fileName = "favicon.svg";
++      const fileNameIco = "favicon.ico";
++      const fileNameSvg = "favicon.svg";
        const { outputDir, userWorkspace } = compilation.context;
-       const faviconPathUrl = new URL(`./${fileName}`, userWorkspace);
+-      const faviconPathUrl = new URL(`./${fileName}`, userWorkspace);
++      const faviconPathIcoUrl = new URL(`./${fileNameIco}`, userWorkspace);
++      const faviconPathSvgUrl = new URL(`./${fileNameSvg}`, userWorkspace);
        const assets = [];
+ 
+-      if (await checkResourceExists(faviconPathUrl)) {
++      if (await checkResourceExists(faviconPathIcoUrl)) {
+         assets.push({
+-          from: faviconPathUrl,
+-          to: new URL(`./${fileName}`, outputDir),
++          from: faviconPathIcoUrl,
++          to: new URL(`./${fileNameIco}`, outputDir),
++        });
++      } else if (await checkResourceExists(faviconPathSvgUrl)) {
++        assets.push({
++          from: faviconPathSvgUrl,
++          to: new URL(`./${fileNameSvg}`, outputDir),
+         });
+       }
+ 
 diff --git a/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js b/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js
 index 0f54727..dbf1ea8 100644
 --- a/node_modules/@greenwood/cli/src/plugins/resource/plugin-standard-javascript.js
