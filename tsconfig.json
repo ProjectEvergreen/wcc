@@ -13,7 +13,8 @@
     "noImplicitAny": true,
     "types": ["mocha", "node"],
     "jsx": "preserve",
-    "jsxImportSource": "wc-compiler"
+    "jsxImportSource": "wc-compiler",
+    "lib": ["DOM"]
   },
   "exclude": ["node_modules"]
 }
