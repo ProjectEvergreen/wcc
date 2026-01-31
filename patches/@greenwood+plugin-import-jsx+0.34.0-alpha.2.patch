@@ -1,8 +1,8 @@
 diff --git a/node_modules/@greenwood/plugin-import-jsx/src/index.js b/node_modules/@greenwood/plugin-import-jsx/src/index.js
-index 5fe6e11..5e684c3 100644
+index 5fe6e11..f57e3a8 100644
 --- a/node_modules/@greenwood/plugin-import-jsx/src/index.js
 +++ b/node_modules/@greenwood/plugin-import-jsx/src/index.js
-@@ -14,11 +14,11 @@ class ImportJsxResource {
+@@ -14,14 +14,14 @@ class ImportJsxResource {
      this.servePage = options.servePages ? "dynamic" : null;
    }
  
@@ -10,9 +10,12 @@ index 5fe6e11..5e684c3 100644
 +  async shouldServe(url, request) {
      const { pathname, protocol } = url;
      const ext = pathname.split(".").pop();
- 
--    return protocol === "file:" && this.extensions.includes(ext);
-+    return protocol === "file:" && this.extensions.includes(ext) && request.headers?.get("Accept").indexOf(this.contentType) >= 0;
+     
+     return protocol === "file:" && this.extensions.includes(ext);
    }
  
-   async serve(url) {
+-  async serve(url) {
++  async serve(url, request) {
+     // refactor when WCC refactors
+     // https://github.com/ProjectEvergreen/wcc/issues/116
+     const tree = parseJsx(url);

@@ -13,8 +13,44 @@ index 5490610..119bcbc 100644
                }
  
                // check for app level assets, like say a shared theme.css
+diff --git a/node_modules/@greenwood/cli/src/lib/layout-utils.js b/node_modules/@greenwood/cli/src/lib/layout-utils.js
+index 94f4c34..05d94a8 100644
+--- a/node_modules/@greenwood/cli/src/lib/layout-utils.js
++++ b/node_modules/@greenwood/cli/src/lib/layout-utils.js
+@@ -157,12 +157,13 @@ async function mergeContentIntoLayout(
+             return true;
+           }
+ 
++          const contentType = "text/css";
+           const resourceUrl = new URL(`file://${href}`);
+-          const request = new Request(resourceUrl, { headers: { Accept: "text/css" } });
++          const request = new Request(resourceUrl, { headers: { Accept: contentType } });
+           let isSupportedCustomFormat = false;
+ 
+           for (const plugin of resourcePlugins) {
+-            if (plugin.shouldServe && (await plugin.shouldServe(resourceUrl, request))) {
++            if (plugin.contentType === contentType && plugin.shouldServe && (await plugin.shouldServe(resourceUrl, request))) {
+               isSupportedCustomFormat = true;
+               break;
+             }
+@@ -190,12 +191,13 @@ async function mergeContentIntoLayout(
+             return true;
+           }
+ 
++          const contentType = "text/javascript";
+           const resourceUrl = new URL(`file://${src}`);
+-          const request = new Request(resourceUrl, { headers: { Accept: "text/javascript" } });
++          const request = new Request(resourceUrl, { headers: { Accept: contentType } });
+           let isSupportedCustomFormat = false;
+ 
+           for (const plugin of resourcePlugins) {
+-            if (plugin.shouldServe && (await plugin.shouldServe(resourceUrl, request))) {
++            if (plugin.contentType === contentType && plugin.shouldServe && (await plugin.shouldServe(resourceUrl, request))) {
+               isSupportedCustomFormat = true;
+               break;
+             }
 diff --git a/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js b/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
-index 024232f..4084ed0 100644
+index 024232f..8c4ae84 100644
 --- a/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
 +++ b/node_modules/@greenwood/cli/src/plugins/copy/plugin-copy-favicon.js
 @@ -5,15 +5,22 @@ const greenwoodPluginCopyFavicon = [
