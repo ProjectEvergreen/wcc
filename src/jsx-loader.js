@@ -282,13 +282,16 @@ export function parseJsx(moduleURL) {
   const hasOwnObservedAttributes = undefined;
   let inferredObservability = false;
   let observedAttributes = [];
+  let componentName;
   let tree = acorn.Parser.extend(jsx()).parse(result.code, {
     ecmaVersion: 'latest',
     sourceType: 'module',
   });
   string = '';
 
-  // TODO: would be nice to do this one pass, but first we need to know if `inferredObservability` is set first
+  // TODO: would be nice to do everything in one pass, but first we need to know
+  // - if `inferredObservability` is set
+  // - get the name of the component for `static` references
   walk.simple(
     tree,
     {
@@ -306,6 +309,18 @@ export function parseJsx(moduleURL) {
             // @ts-ignore
             inferredObservability = Boolean(node.declaration.declarations[0].init.raw);
           }
+        }
+      },
+      ExportDefaultDeclaration(node) {
+        const { declaration } = node;
+
+        if (
+          declaration &&
+          declaration.type === 'ClassDeclaration' &&
+          declaration.id &&
+          declaration.id.name
+        ) {
+          componentName = declaration.id.name;
         }
       },
     },
@@ -435,24 +450,21 @@ export function parseJsx(moduleURL) {
       static get observedAttributes() {
         return [${[...trackingAttrs].map((attr) => `'${attr}'`).join()}]
       }
-
+      static parseAttribute = (value) => value.charAt(0) === '{' || value.charAt(0) === '['
+        ? JSON.parse(value)
+        : !isNaN(value)
+          ? parseInt(value, 10)
+          : value === 'true' || value === 'false'
+            ? value === 'true' ? true : false
+            : value;
       attributeChangedCallback(name, oldValue, newValue) {
-        function getValue(value) {
-          return value.charAt(0) === '{' || value.charAt(0) === '['
-            ? JSON.parse(value)
-            : !isNaN(value)
-              ? parseInt(value, 10)
-              : value === 'true' || value === 'false'
-                ? value === 'true' ? true : false
-                : value;
-        }
         if (newValue !== oldValue) {
           switch(name) {
             ${trackingAttrs
               .map((attr) => {
                 return `
                   case '${attr}':
-                    this.${attr} = getValue(newValue);
+                    this.${attr} = ${componentName}.parseAttribute(newValue);
                     break;
                 `;
               })
