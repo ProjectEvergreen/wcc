@@ -6,12 +6,5 @@ static parseAttribute = value => value.charAt(0) === '{' || value.charAt(0) === 
       ? value === 'true' ? true : false
       : value;
 attributeChangedCallback(name, oldValue, newValue) {
-  if (newValue !== oldValue) {
-      switch (name) {
-      case 'count':
-          this.count = Counter.parseAttribute(newValue);
-          break;
-      }
-      this.update(name,oldValue,newValue);
-  }
+  this[name].set(Counter.parseAttribute(newValue));
 }
