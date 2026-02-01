@@ -10,6 +10,9 @@ import fs from 'fs';
 import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
 import { transform } from 'sucrase';
+import { Signal } from 'signal-polyfill';
+
+globalThis.Signal = globalThis.Signal ?? Signal;
 
 const jsxRegex = /\.(jsx)$/;
 const tsxRegex = /\.(tsx)$/;
@@ -432,17 +435,6 @@ export function parseJsx(moduleURL) {
       `;
       })
       .join('\n');
-    const derivedSetters = derivedAttrs
-      .map((attr) => {
-        const name = attr.id.name;
-
-        return `
-        const old_${name} = this.get_${name}(oldValue);
-        const new_${name} = this.get_${name}(newValue);
-        this.update('${name}', old_${name}, new_${name});
-      `;
-      })
-      .join('\n');
 
     // TODO: better way to determine value type, e,g. array, int, object, etc?
     // TODO: better way to test for shadowRoot presence when running querySelectorAll
@@ -458,45 +450,7 @@ export function parseJsx(moduleURL) {
             ? value === 'true' ? true : false
             : value;
       attributeChangedCallback(name, oldValue, newValue) {
-        if (newValue !== oldValue) {
-          switch(name) {
-            ${trackingAttrs
-              .map((attr) => {
-                return `
-                  case '${attr}':
-                    this.${attr} = ${componentName}.parseAttribute(newValue);
-                    break;
-                `;
-              })
-              .join('\n')}
-          }
-          this.update(name, oldValue, newValue);
-        }
-      }
-
-      update(name, oldValue, newValue) {
-        const attr = \`data-wcc-\${name}\`;
-        const selector = \`[\${attr}]\`;
-
-        (this?.shadowRoot || this).querySelectorAll(selector).forEach((el) => {
-          // handle empty strings as a value for the purposes of attribute change detection
-          const needle = oldValue === '' ? '' : oldValue ?? el.getAttribute(attr);
-
-          switch(el.getAttribute('data-wcc-ins')) {
-            case 'text':
-              el.textContent = el.textContent.replace(needle, newValue);
-              break;
-            case 'attr':
-              if (el.hasAttribute(el.getAttribute(attr))) {
-                el.setAttribute(el.getAttribute(attr), newValue);
-              }
-              break;
-          }
-        })
-
-        if ([${[...trackingAttrs].map((attr) => `'${attr}'`).join()}].includes(name)) {
-          ${derivedSetters}
-        }
+        this[name].set(${componentName}.parseAttribute(newValue));
       }
 
       ${derivedGetters}
