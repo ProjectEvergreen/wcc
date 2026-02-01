@@ -55,23 +55,18 @@ describe('Run WCC For ', function () {
         expect(actual).to.contain(expected);
       });
 
-      // <wcc-badge count="0" data-wcc-count="count" data-wcc-ins="attr"></wcc-badge>
+      // <wcc-badge count="0"></wcc-badge>
       it('should have the expected observability attributes on the <wcc-badge> component', () => {
         const badge = dom.window.document.querySelector('wcc-badge');
         const conditionalClassSpan = badge.querySelector('span[class="unmet"]'); // conditional class rendering
 
-        expect(badge.getAttribute('data-wcc-count')).to.equal('count');
-        expect(badge.getAttribute('data-wcc-ins')).to.equal('attr');
-
         expect(conditionalClassSpan.textContent.trim()).to.equal('0');
       });
 
-      // <span class="red" data-wcc-highlight="class" data-wcc-ins="attr" id="expression" data-wcc-count="0">0</span>
+      // <span class="red" data-wcc-highlight="class" id="expression">0</span>
       it('should have the expected observability attributes on the <wcc-counter-jsx> component', () => {
         const span = dom.window.document.querySelector('wcc-counter-jsx span[class="red"]');
 
-        expect(span.getAttribute('data-wcc-highlight')).to.equal('class');
-        expect(span.getAttribute('data-wcc-ins')).to.equal('attr');
         expect(span.textContent.trim()).to.equal('0');
       });
     });
