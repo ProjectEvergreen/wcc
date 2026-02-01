@@ -6,39 +6,5 @@ static parseAttribute = value => value.charAt(0) === '{' || value.charAt(0) === 
       ? value === 'true' ? true : false
       : value;
 attributeChangedCallback(name, oldValue, newValue) {
-  if (newValue !== oldValue) {
-    switch (name) {
-    case 'count':
-        this.count = Counter.parseAttribute(newValue);
-        break;
-    case 'highlight':
-        this.highlight = Counter.parseAttribute(newValue);
-        break;
-    }
-    this.update(name, oldValue, newValue);
-  }
-}
-update(name, oldValue, newValue) {
-  const attr = `data-wcc-${ name }`;
-  const selector = `[${ attr }]`;
-
-  (this?.shadowRoot || this).querySelectorAll(selector).forEach(el => {
-    const needle = oldValue === '' ? '' : oldValue ?? el.getAttribute(attr);
-
-    switch (el.getAttribute('data-wcc-ins')) {
-    case 'text':
-      el.textContent = el.textContent.replace(needle, newValue);
-      break;
-    case 'attr':
-      if (el.hasAttribute(el.getAttribute(attr))) {
-          el.setAttribute(el.getAttribute(attr), newValue);
-      }
-      break;
-    }
-  });
-  if ([
-    'count',
-    'highlight'
-  ].includes(name)) {
-  }
+  this[name].set(Counter.parseAttribute(newValue));
 }
