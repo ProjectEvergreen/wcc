@@ -80,7 +80,7 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
   return tree;
 }
 
-function parseJsxElement(element, moduleContents = '', inferredObservability = false) {
+function parseJsxElement(element, moduleContents = '') {
   try {
     const { type } = element;
 
@@ -127,14 +127,8 @@ function parseJsxElement(element, moduleContents = '', inferredObservability = f
 
               if (left.object.type === 'ThisExpression') {
                 if (left.property.type === 'Identifier') {
-                  if (inferredObservability) {
-                    // very naive (fine grained?) reactivity
-                    // string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.update(\\'${left.property.name}\\', null, __this__.${left.property.name});"`;
-                    string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.setAttribute(\\'${left.property.name}\\', __this__.${left.property.name});"`;
-                  } else {
-                    // implicit reactivity using this.render
-                    string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
-                  }
+                  // implicit reactivity using this.render
+                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
                 }
               }
             }
@@ -169,11 +163,6 @@ function parseJsxElement(element, moduleContents = '', inferredObservability = f
                 default:
                   break;
               }
-
-              // only apply this when dealing with `this` references
-              if (inferredObservability) {
-                string += ` data-wcc-${expression.name}="${name}" data-wcc-ins="attr"`;
-              }
             }
           } else {
             // xxx >
@@ -185,9 +174,7 @@ function parseJsxElement(element, moduleContents = '', inferredObservability = f
       string += openingElement.selfClosing ? ' />' : '>';
 
       if (element.children.length > 0) {
-        element.children.forEach((child) =>
-          parseJsxElement(child, moduleContents, inferredObservability),
-        );
+        element.children.forEach((child) => parseJsxElement(child, moduleContents));
       }
 
       string += `</${tagName}>`;
@@ -202,11 +189,6 @@ function parseJsxElement(element, moduleContents = '', inferredObservability = f
 
       if (type === 'Identifier') {
         // You have {count} TODOs left to complete
-        if (inferredObservability) {
-          const { name } = element.expression;
-
-          string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name}="\${this.${name}}" data-wcc-ins="text">`;
-        }
         // TODO be able to remove this extra data attribute
         // string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name} data-wcc-ins="text">`;
         string += `$\{${element.expression.name}}`;
@@ -359,7 +341,7 @@ export function parseJsx(moduleURL) {
                     ];
                     // @ts-ignore
                   } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                    const html = parseJsxElement(n.argument, moduleContents, inferredObservability);
+                    const html = parseJsxElement(n.argument, moduleContents);
                     const elementTree = getParse(html)(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
