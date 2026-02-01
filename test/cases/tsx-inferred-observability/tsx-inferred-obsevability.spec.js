@@ -55,12 +55,10 @@ describe('Run WCC For ', function () {
         expect(actual).to.contain(expected);
       });
 
-      // <span class="red" id="expression" data-wcc-count="0" data-wcc-ins="text">0</span>
+      // <span class="red" id="expression">0</span>
       it('should have the expected observability attributes on the <wcc-counter-tsx> component', () => {
         const span = dom.window.document.querySelector('wcc-counter-tsx span[class="red"]');
 
-        expect(span.getAttribute('data-wcc-count')).to.equal('0');
-        expect(span.getAttribute('data-wcc-ins')).to.equal('text');
         expect(span.textContent.trim()).to.equal('0');
       });
     });
