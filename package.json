@@ -1,7 +1,7 @@
 {
   "name": "wc-compiler",
   "version": "0.19.0",
-  "description": "Experimental native Web Components compiler.",
+  "description": "Native Web Components compiler.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ProjectEvergreen/wcc.git"
