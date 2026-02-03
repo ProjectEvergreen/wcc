@@ -56,7 +56,7 @@ class Home extends HTMLElement {
 export default Home;
 ```
 
-You can also manually set `innerHTML` of Shadow Root if you don't want to use a template element
+You can also manually set the `innerHTML` of a Shadow Root if you don't want to use a template element
 
 ```js
 // index.js
@@ -89,7 +89,7 @@ class Home extends HTMLElement {
 export default Home;
 ```
 
-> _**Note**: **WCC** will wrap or not wrap your entry point's HTML in a custom element tag if you do or do not, respectively, include a `customElements.define` in your entry point. **WCC** will use the tag name you define as the custom element tag name in the generated HTML._
+> _**Note**: **WCC** will wrap, or not wrap, your entry point's HTML in a custom element tag if you do or do not, respectively, include a `customElements.define` in your entry point. **WCC** will use the tag name you define as the custom element tag name in the generated HTML._
 >
 > You can opt-out of this by passing `false` as the second parameter to `renderToString`.
 >
@@ -101,7 +101,7 @@ export default Home;
 
 ### renderFromHTML
 
-This function takes a string of HTML and an array of any top-level custom elements used in the HTML, and returns the static HTML output of the rendered content.
+This function takes a string of HTML and an array of any top-level custom elements used in the HTML, and returns the static HTML output of the rendered content. WCC will follow and recursively render any imports from those top-level custom elements, however.
 
 <!-- eslint-disable no-unused-vars -->
 
@@ -142,7 +142,7 @@ So for the given HTML:
 <wcc-footer></wcc-footer>
 ```
 
-And the following conditions:
+and the following conditions:
 
 1. _index.js_ does not define a tag of its own, e.g. using `customElements.define` (e.g. it is just a ["layout" component](/examples/#static-sites-ssg))
 1. `<wcc-header>` imports `<wcc-navigation>`
@@ -166,7 +166,7 @@ console.log({ metadata });
 
 ## Progressive Hydration
 
-To achieve an islands architecture implementation, if you add `hydration="true"` attribute to a custom element, e.g.
+To achieve an islands architecture-like implementation, if you add the `hydration="true"` attribute to a custom element, e.g.
 
 ```html
 <wcc-footer hydration="true"></wcc-footer>
@@ -234,7 +234,7 @@ export default class PostPage extends HTMLElement {
 }
 ```
 
-### Data Loader
+### Loader
 
 To support component-level data loading and hydration scenarios, a file with a custom element definition can also export a `getData` function to inject into the custom elements constructor at build time. This can be serialized right into the component's Shadow DOM!
 
@@ -278,12 +278,12 @@ export async function getData() {
 ## Conventions
 
 - Make sure to define your custom elements with `customElements.define`
-- Make sure to include a `export default` for your custom element base class
+- Make sure to include an `export default` for your custom element base class
 - Avoid [touching the DOM in `constructor` methods](https://twitter.com/techytacos/status/1514029967981494280)
 
 ## TypeScript
 
-TypeScript is supported through "type stripping", which is effectively just removing all the TypeScript and leaving only valid JavaScript, before handing off to WCC to do its compiling.
+TypeScript is supported through "type stripping", which is effectively just removing all the types and leaving only valid JavaScript, before handing off to WCC to do its compiling.
 
 ```ts
 interface User {
@@ -309,17 +309,15 @@ customElements.define('wcc-greeting', Greeting);
 
 There are of couple things you will need to do to use WCC with TypeScript parsing:
 
-1. NodeJS version needs to be >= `22.6.0`
+1. NodeJS version needs to be >= `22.18.0`
 1. You will need to use the _.ts_ extension
 1. You'll want to enable the [`erasableSyntaxOnly`](https://devblogs.microsoft.com/typescript/announcing-typescript-5-8/#the---erasablesyntaxonly-option) flag in your _tsconfig.json_
-
-> If you're feeling adventurous, you can use NodeJS **>=23.x** and omit the `--experimental-strip-types` flag. Keep an eye on this PR for when unflagged type-stripping support may come to Node LTS 22.x. 👀
 
 ## JSX
 
 > ⚠️ _Very Experimental!_
 
-Even more experimental than WCC is the option to author a rendering function for native `HTMLElements`, that can compile down to a zero run time, web ready custom element! It handles resolving event handling and `this` references and can manage some basic re-rendering lifecycles.
+WCC provides the option to author a `render` function for native `HTMLElements` that can compile down to a zero run time, web ready custom element! It handles resolving event handling and `this` references and can manage some basic re-rendering lifecycles.
 
 ### Example
 
@@ -460,7 +458,7 @@ An optional feature supported by JSX based compilation is `inferredObservability
 1. an entry in the `observedAttributes` array
 1. automatically handle `attributeChangedCallback` updates
 
-So taking the above counter example, and opting in to this feature, we just need to enable the `inferredObservability` option in the component by exporting it as a `const`:
+So taking the above counter example, and opting-in to this feature, we just need to enable the `inferredObservability` option in the component by exporting it as a `const`:
 
 <!-- prettier-ignore-start -->
 

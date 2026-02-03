@@ -27,18 +27,18 @@ const template = document.createElement('template');
 
 template.innerHTML = `
   <style>
-    .footer {
-      color: white;
+    footer {
+      color: #efefef;
       background-color: #192a27;
     }
   </style>
 
-  <footer class="footer">
+  <footer>
     <h4>My Blog &copy; ${new Date().getFullYear()}</h4>
   </footer>
 `;
 
-class Footer extends HTMLElement {
+export default class Footer extends HTMLElement {
   connectedCallback() {
     if (!this.shadowRoot) {
       this.attachShadow({ mode: 'open' });
@@ -46,8 +46,6 @@ class Footer extends HTMLElement {
     }
   }
 }
-
-export default Footer;
 
 customElements.define('wcc-footer', Footer);
 ```
@@ -76,13 +74,13 @@ Get static HTML 🎉
 <wcc-footer>
   <template shadowrootmode="open">
     <style>
-      .footer {
-        color: white;
+      footer {
+        color: #efefef;
         background-color: #192a27;
       }
     </style>
 
-    <footer class="footer">
+    <footer>
       <h4>My Blog &copy; 2026</h4>
     </footer>
   </template>
@@ -91,7 +89,7 @@ Get static HTML 🎉
 
 ## Capabilities
 
-WCC aims covers a reasonable set of DOM APIs to help facilitate server-rendering of your Web Components
+WCC aims to cover a reasonable set of DOM APIs to help facilitate server-rendering of your Web Components.
 
 <div class="capabilities-container">
 
@@ -131,7 +129,7 @@ WCC aims covers a reasonable set of DOM APIs to help facilitate server-rendering
 
 ## Features
 
-In addition to server rendering, WCC also supports these features
+In addition to server rendering, WCC also supports these additional features.
 
 <wcc-feature-box heading="JSX">
 

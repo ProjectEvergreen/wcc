@@ -12,9 +12,9 @@ export default class BannerCta extends HTMLElement {
     return (
       <div class={styles.container}>
         <p>
-          WCC is a NodeJS package for server-rendering native Web Components. It outputs static HTML
-          from your custom element definitions based on either Light DOM or Declarative Shadow DOM
-          usage, supports Constructable Stylesheets, includes a minimal DOM shim, and more!
+          WCC (WC Compiler) is a NodeJS package for server-rendering native Web Components. It
+          outputs static HTML based on either Light DOM or Declarative Shadow DOM usage, supports
+          Constructable Stylesheets, includes a minimal DOM shim, and more!
         </p>
         <div class={styles.snippetContainer}>
           <div class={styles.snippet}>

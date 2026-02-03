@@ -78,7 +78,7 @@ export default async function (request, context) {
 
 ## Static Sites (SSG)
 
-Using `innerHTML`, custom elements can be authored to not use Shadow DOM, which can be useful for a `Layout` or `App` component where that top level content specifically should _not_ be rendered in a shadow root, e.g. `<template>` tag. What's nice about **WCC** is that by using `innerHTML` or `attachShadow`, you can opt-in to either on a per component basis, like is being done for [the **WCC** website](https://github.com/ProjectEvergreen/wcc/tree/master/docs). In this case, the content is authored in markdown, but the layout, header, navigation, and footer are all custom elements rendered to static HTML. 🗒️
+Using `innerHTML`, custom elements can be authored to not use Shadow DOM, which can be useful for a `Layout` or `App` component where that top level content specifically should _not_ be rendered in a shadow root, e.g. a `<template>` tag. What's nice about **WCC** is that by using `innerHTML` or `attachShadow`, you can opt-in to either on a per component basis, like is being done for [the **WCC** website](https://github.com/ProjectEvergreen/wcc/tree/master/docs). In this case, the content is authored in markdown, but the layout, header, navigation, and footer are all custom elements rendered to static HTML. 🗒️
 
 ```js
 // layout.js
