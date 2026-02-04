@@ -1,4 +1,4 @@
-name: Continuous Integration Windows (Experimental)
+name: Continuous Integration Windows (JSX)
 
 on: [pull_request]
 
