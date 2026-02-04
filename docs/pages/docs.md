@@ -15,85 +15,95 @@ Below are the various APIs and capabilities of WCC.
 
 This function takes a `URL` "entry point" to a JavaScript file that defines a custom element, and returns the static HTML output of its rendered contents.
 
-<!-- eslint-disable no-unused-vars -->
+<!-- prettier-ignore-start -->
 
-```js
-const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
-```
+<wcc-ctc-block variant="snippet" heading="server.js">
 
-```js
-// index.js
-import './components/footer.js';
-import './components/header.js';
+  ```js
+  const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
+  ```
 
-const template = document.createElement('template');
+</wcc-ctc-block>
 
-template.innerHTML = `
-  <style>
-    :root {
-      --accent: #367588;
-    }
-  </style>
+<wcc-ctc-block variant="snippet" heading="index.js">
 
-  <wcc-header></wcc-header>
+  ```js
+  import './components/footer.js';
+  import './components/header.js';
 
-  <main>
-    <h1>My Blog Post</h1>
-  </main>
+  const template = document.createElement('template');
 
-  <wcc-footer></wcc-footer>
-`;
+  template.innerHTML = `
+    <style>
+      :root {
+        --accent: #367588;
+      }
+    </style>
 
-class Home extends HTMLElement {
-  connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.appendChild(template.content.cloneNode(true));
+    <wcc-header></wcc-header>
+
+    <main>
+      <h1>My Blog Post</h1>
+    </main>
+
+    <wcc-footer></wcc-footer>
+  `;
+
+  export default class Home extends HTMLElement {
+    connectedCallback() {
+      if (!this.shadowRoot) {
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
+      }
     }
   }
-}
+  ```
 
-export default Home;
-```
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 You can also manually set the `innerHTML` of a Shadow Root if you don't want to use a template element
 
-```js
-// index.js
-import './components/footer.js';
-import './components/header.js';
+<!-- prettier-ignore-start -->
 
-class Home extends HTMLElement {
-  connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.innerHTML = `
-        <style>
-          :root {
-            --accent: #367588;
-          }
-        </style>
+<wcc-ctc-block variant="snippet" heading="index.js">
 
-        <wcc-header></wcc-header>
+  ```js
+  import './components/footer.js';
+  import './components/header.js';
 
-        <main>
-          <h1>My Website</h1>
-        </main>
+  export default class Home extends HTMLElement {
+    connectedCallback() {
+      if (!this.shadowRoot) {
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.innerHTML = `
+          <style>
+            :root {
+              --accent: #367588;
+            }
+          </style>
 
-        <wcc-footer></wcc-footer>
-      `;
+          <wcc-header></wcc-header>
+
+          <main>
+            <h1>My Website</h1>
+          </main>
+
+          <wcc-footer></wcc-footer>
+        `;
+      }
     }
   }
-}
+  ```
 
-export default Home;
-```
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 > _**Note**: **WCC** will wrap, or not wrap, your entry point's HTML in a custom element tag if you do or do not, respectively, include a `customElements.define` in your entry point. **WCC** will use the tag name you define as the custom element tag name in the generated HTML._
 >
 > You can opt-out of this by passing `false` as the second parameter to `renderToString`.
->
-> <!-- eslint-disable no-unused-vars -->
 >
 > ```js
 > const { html } = await renderToString(new URL('...'), false);
@@ -103,28 +113,34 @@ export default Home;
 
 This function takes a string of HTML and an array of any top-level custom elements used in the HTML, and returns the static HTML output of the rendered content. WCC will follow and recursively render any imports from those top-level custom elements, however.
 
-<!-- eslint-disable no-unused-vars -->
+<!-- prettier-ignore-start -->
 
-```js
-const { html } = await renderFromHTML(
-  `
-  <html>
-    <head>
-      <title>WCC</title>
-    </head>
-    <body>
-      <wcc-header></wcc-header>
-      <h1>Home Page</h1>
-      <wcc-footer></wcc-footer>
-    </body>
-  </html>
-`,
-  [
-    new URL('./src/components/footer.js', import.meta.url),
-    new URL('./src/components/header.js', import.meta.url),
-  ],
-);
-```
+<wcc-ctc-block variant="snippet" heading="server.js">
+
+  ```js
+  const { html } = await renderFromHTML(
+    `
+    <html>
+      <head>
+        <title>WCC</title>
+      </head>
+      <body>
+        <wcc-header></wcc-header>
+        <h1>Home Page</h1>
+        <wcc-footer></wcc-footer>
+      </body>
+    </html>
+  `,
+    [
+      new URL('./src/components/footer.js', import.meta.url),
+      new URL('./src/components/header.js', import.meta.url),
+    ],
+  );
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 For example, even if `Header` or `Footer` use `import` to pull in additional custom elements, only the `Header` and `Footer custom elements used in the "entry" HTML are needed in the array.
 
@@ -134,13 +150,21 @@ For example, even if `Header` or `Footer` use `import` to pull in additional cus
 
 So for the given HTML:
 
-```html
-<wcc-header></wcc-header>
+<!-- prettier-ignore-start -->
 
-<h1>Hello World</h1>
+<wcc-ctc-block variant="snippet">
 
-<wcc-footer></wcc-footer>
-```
+  ```html
+  <wcc-header></wcc-header>
+
+  <h1>Hello World</h1>
+
+  <wcc-footer></wcc-footer>
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 and the following conditions:
 
@@ -168,9 +192,17 @@ console.log({ metadata });
 
 To achieve an islands architecture-like implementation, if you add the `hydration="true"` attribute to a custom element, e.g.
 
-```html
-<wcc-footer hydration="true"></wcc-footer>
-```
+<!-- prettier-ignore-start -->
+
+<wcc-ctc-block variant="snippet">
+
+  ```html
+  <wcc-footer hydration="true"></wcc-footer>
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 This will be reflected in the returned `metadata` object from `renderToString`.
 
@@ -199,40 +231,54 @@ WCC provide a couple mechanisms for data loading.
 
 Often for frameworks that might have their own needs for data loading and orchestration, a top level "constructor prop" can be provided to `renderToString` as the final param. The prop will then be passed to the custom element's `constructor` when loading the module URL.
 
-<!-- eslint-disable no-unused-vars -->
+<!-- prettier-ignore-start -->
 
-```js
-const request = new Request({
-  /* ... */
-});
-const { html } = await renderToString(new URL(moduleUrl), false, request);
-```
+<wcc-ctc-block variant="snippet">
+
+  ```js
+  const request = new Request({
+    /* ... */
+  });
+  const { html } = await renderToString(new URL(moduleUrl), false, request);
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 This pattern plays really nice with file-based routing and SSR!
 
-```js
-export default class PostPage extends HTMLElement {
-  constructor(request) {
-    super();
+<!-- prettier-ignore-start -->
 
-    const params = new URLSearchParams(request.url.slice(request.url.indexOf('?')));
-    this.postId = params.get('id');
+<wcc-ctc-block variant="snippet" heading="src/pages/post.js">
+
+  ```js
+  export default class PostPage extends HTMLElement {
+    constructor(request) {
+      super();
+
+      const params = new URLSearchParams(request.url.slice(request.url.indexOf('?')));
+      this.postId = params.get('id');
+    }
+
+    async connectedCallback() {
+      const { postId } = this;
+      const post = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`).then((resp) =>
+        resp.json(),
+      );
+      const { title, body } = post;
+
+      this.innerHTML = `
+        <h2>${title}</h2>
+        <p>${body}</p>
+      `;
+    }
   }
+  ```
 
-  async connectedCallback() {
-    const { postId } = this;
-    const post = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`).then((resp) =>
-      resp.json(),
-    );
-    const { title, body } = post;
+</wcc-ctc-block>
 
-    this.innerHTML = `
-      <h2>${title}</h2>
-      <p>${body}</p>
-    `;
-  }
-}
-```
+<!-- prettier-ignore-end -->
 
 ### Loader
 
@@ -240,40 +286,46 @@ To support component-level data loading and hydration scenarios, a file with a c
 
 For example, you could preload a counter component with an initial counter state, which would also come through the `constructor`.
 
-<!-- eslint-disable no-unused-vars -->
+<!-- prettier-ignore-start -->
 
-```js
-class Counter extends HTMLElement {
-  constructor(props = {}) {
-    super();
+<wcc-ctc-block variant="snippet" heading="src/components/counter.js">
 
-    this.count = props.count;
-    this.render();
+  ```js
+  class Counter extends HTMLElement {
+    constructor(props = {}) {
+      super();
+
+      this.count = props.count;
+      this.render();
+    }
+
+    // setup your shadow root ...
+
+    render() {
+      this.shadowRoot.innerHTML = `
+        <script type="application/json">
+          ${JSON.stringify({ count: this.count })}
+        </script>
+
+        <div>
+          <button id="inc">Increment</button>
+          <span>Current Count: <span id="count">${this.count}</span></span>
+          <button id="dec">Decrement</button>
+        </div>
+      `;
+    }
   }
 
-  // setup your shadow root ...
-
-  render() {
-    this.shadowRoot.innerHTML = `
-      <script type="application/json">
-        ${JSON.stringify({ count: this.count })}
-      </script>
-
-      <div>
-        <button id="inc">Increment</button>
-        <span>Current Count: <span id="count">${this.count}</span></span>
-        <button id="dec">Decrement</button>
-      </div>
-    `;
+  export async function getData() {
+    return {
+      count: Math.floor(Math.random() * (100 - 0 + 1) + 0),
+    };
   }
-}
+  ```
 
-export async function getData() {
-  return {
-    count: Math.floor(Math.random() * (100 - 0 + 1) + 0),
-  };
-}
-```
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 ## Conventions
 
@@ -285,25 +337,33 @@ export async function getData() {
 
 TypeScript is supported through "type stripping", which is effectively just removing all the types and leaving only valid JavaScript, before handing off to WCC to do its compiling.
 
-```ts
-interface User {
-  name: string;
-}
+<!-- prettier-ignore-start -->
 
-export default class Greeting extends HTMLElement {
-  connectedCallback() {
-    const user: User = {
-      name: this.getAttribute('name') || 'World',
-    };
+<wcc-ctc-block variant="snippet" heading="src/components/greeting.ts">
 
-    this.innerHTML = `
-      <h3>Hello ${user.name}! 👋</h3>
-    `;
+  ```ts
+  interface User {
+    name: string;
   }
-}
 
-customElements.define('wcc-greeting', Greeting);
-```
+  export default class Greeting extends HTMLElement {
+    connectedCallback() {
+      const user: User = {
+        name: this.getAttribute('name') || 'World',
+      };
+
+      this.innerHTML = `
+        <h3>Hello ${user.name}! 👋</h3>
+      `;
+    }
+  }
+
+  customElements.define('wcc-greeting', Greeting);
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 ### Prerequisites
 
@@ -323,53 +383,61 @@ WCC provides the option to author a `render` function for native `HTMLElements` 
 
 Below is an example of what is possible right now demonstrated through a [Counter component](https://github.com/thescientist13/greenwood-counter-jsx).
 
-```tsx
-export default class Counter extends HTMLElement {
-  count: number;
+<!-- prettier-ignore-start -->
 
-  constructor() {
-    super();
-    this.count = 0;
+<wcc-ctc-block variant="snippet" heading="src/components/counter.tsx">
+
+  ```tsx
+  export default class Counter extends HTMLElement {
+    count: number;
+
+    constructor() {
+      super();
+      this.count = 0;
+    }
+
+    connectedCallback() {
+      this.render(); // this is required
+    }
+
+    increment() {
+      this.count += 1;
+      this.render();
+    }
+
+    decrement() {
+      this.count -= 1;
+      this.render();
+    }
+
+    render() {
+      const { count } = this;
+
+      return (
+        <div style="color:red;">
+          <button onclick={(this.count -= 1)}> -</button>
+          <span>
+            You have clicked <span class="red">{count}</span> times
+          </span>
+          <button onclick={this.increment}> +</button>
+          <button onclick={this.decrement}> +</button>
+        </div>
+      );
+    }
   }
 
-  connectedCallback() {
-    this.render(); // this is required
-  }
+  customElements.define('wcc-counter', Counter);
+  ```
 
-  increment() {
-    this.count += 1;
-    this.render();
-  }
+</wcc-ctc-block>
 
-  decrement() {
-    this.count -= 1;
-    this.render();
-  }
-
-  render() {
-    const { count } = this;
-
-    return (
-      <div style="color:red;">
-        <button onclick={(this.count -= 1)}> -</button>
-        <span>
-          You have clicked <span class="red">{count}</span> times
-        </span>
-        <button onclick={this.increment}> +</button>
-        <button onclick={this.decrement}> +</button>
-      </div>
-    );
-  }
-}
-
-customElements.define('wcc-counter', Counter);
-```
+<!-- prettier-ignore-end -->
 
 A couple things to observe in the above example:
 
 - The `this` reference is correctly bound to the `<wcc-counter>` element's state. This works for both `this.count` and the event handler, `this.increment`.
 - No need for `className`! `class` just works ™️
-- The `style` attribute is just a string, no need to pass an object (e.g. `style={{ color: "red" }})`)
+- The `style` attribute is just a string, no need to pass an object (e.g. `style={{ color: "red" }}`)
 - `this.count` will know it is a member of the `<wcc-counter>`'s state, and so will re-run `this.render` automatically in the compiled output.
 - Event handlers need to manage their own render function updates.
 
@@ -382,9 +450,18 @@ There are of couple things you will need to do to use WCC with JSX:
 1. NodeJS version needs to be >= `20.10.0`
 1. You will need to use the _.jsx_ extension
 1. Requires the `--import` flag when invoking NodeJS
+
+   <!-- prettier-ignore-start -->
+
+   <wcc-ctc-block variant="shell" paste-contents="NODE_OPTIONS='--import wc-compiler/register' node your-script.js">
+
    ```shell
    $ NODE_OPTIONS="--import wc-compiler/register" node your-script.js
    ```
+
+   </wcc-ctc-block>
+
+   <!-- prettier-ignore-end -->
 
 > _See our [example's page](/examples#jsx) for some usages of WCC + JSX._ 👀
 
@@ -394,36 +471,49 @@ TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You
 
 <!-- prettier-ignore-start -->
 
-```json5
-{
-  "compilerOptions": {
-    // required options
-    "jsx": "preserve",
-    "jsxImportSource": "wc-compiler",
-    "lib": ["DOM"],
+<wcc-ctc-block variant="snippet" heading="tsconfig.json">
 
-    // additional recommended options
-    "allowImportingTsExtensions": true,
-    "erasableSyntaxOnly": true
+
+  ```json5
+  {
+    "compilerOptions": {
+      // required options
+      "jsx": "preserve",
+      "jsxImportSource": "wc-compiler",
+      "lib": ["DOM"],
+
+      // additional recommended options
+      "allowImportingTsExtensions": true,
+      "erasableSyntaxOnly": true
+    }
   }
-}
-```
+  ```
+
+</wcc-ctc-block>
 
 <!-- prettier-ignore-end -->
 
 If you create your own custom elements and use them in your TSX components, you'll need to define your own `interface` for them:
 
-```ts
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'my-counter': {
-        count?: number;
-      };
+<!-- prettier-ignore-start -->
+
+<wcc-ctc-block variant="snippet">
+
+  ```ts
+  declare global {
+    namespace JSX {
+      interface IntrinsicElements {
+        'my-counter': {
+          count?: number;
+        };
+      }
     }
   }
-}
-```
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 ### Declarative Shadow DOM
 
@@ -431,25 +521,33 @@ To opt-in to Declarative Shadow DOM with JSX, you will need to signal to the WCC
 
 Using, the Counter example from above, we would amend it like so:
 
-```js
-export default class Counter extends HTMLElement {
-  constructor() {
-    super();
-    this.count = 0;
-  }
+<!-- prettier-ignore-start -->
 
-  connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' }); // this is required for DSD support
-      this.render();
+<wcc-ctc-block variant="snippet" heading="src/components/counter.jsx">
+
+  ```js
+  export default class Counter extends HTMLElement {
+    constructor() {
+      super();
+      this.count = 0;
     }
+
+    connectedCallback() {
+      if (!this.shadowRoot) {
+        this.attachShadow({ mode: 'open' }); // this is required for DSD support
+        this.render();
+      }
+    }
+
+    // ...
   }
 
-  // ...
-}
+  customElements.define('wcc-counter', Counter);
+  ```
 
-customElements.define('wcc-counter', Counter);
-```
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 ### (Inferred) Attribute Observability
 
@@ -462,28 +560,32 @@ So taking the above counter example, and opting-in to this feature, we just need
 
 <!-- prettier-ignore-start -->
 
-```jsx
-export const inferredObservability = true;
+<wcc-ctc-block variant="snippet" heading="src/components/counter.jsx">
 
-export default class Counter extends HTMLElement {
-  // ...
+  ```jsx
+  export const inferredObservability = true;
 
-  render() {
-    const { count } = this;
+  export default class Counter extends HTMLElement {
+    // ...
 
-    // note that {count} has to be wrapped in its own HTML tag
-    return (
-      <div>
-        <button onclick={this.count -= 1}> -</button>
-        <span>
-          You have clicked <span class="red">{count}</span> times
-        </span>
-        <button onclick={this.increment}> +</button>
-      </div>
-    );
+    render() {
+      const { count } = this;
+
+      // note that {count} has to be wrapped in its own HTML tag
+      return (
+        <div>
+          <button onclick={this.count -= 1}> -</button>
+          <span>
+            You have clicked <span class="red">{count}</span> times
+          </span>
+          <button onclick={this.increment}> +</button>
+        </div>
+      );
+    }
   }
-}
-```
+  ```
+
+</wcc-ctc-block>
 
 <!-- prettier-ignore-end -->
 
