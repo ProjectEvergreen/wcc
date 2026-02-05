@@ -48,9 +48,8 @@ describe('Run WCC For ', function () {
 
       before(function () {
         counterContentsDom = new JSDOM(
-          dom.window.document.querySelectorAll(
-            'wcc-counter template[shadowrootmode="open"]',
-          )[0].innerHTML,
+          dom.window.document.querySelectorAll('wcc-counter template[shadowrootmode="open"]')[0]
+            .innerHTML,
         );
         count = JSON.parse(
           counterContentsDom.window.document.querySelector('script[type="application/json"]')
