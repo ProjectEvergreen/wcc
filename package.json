@@ -15,7 +15,8 @@
       "import": "./src/wcc.js"
     },
     "./register": "./src/register.js",
-    "./src/jsx-loader.js": "./src/jsx-loader.js",
+    "./dom-shim": "./src/dom-shim.js",
+    "./jsx-loader": "./src/jsx-loader.js",
     "./jsx-runtime": "./src/jsx-runtime.ts"
   },
   "author": "Owen Buckley <owen@thegreenhouse.io>",
