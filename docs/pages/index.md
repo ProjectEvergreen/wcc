@@ -16,7 +16,7 @@ imports:
 
 ## How It Works
 
-WCC supports server-rendering of standard Web Components, generating HTML directly from your custom element definitions.
+WCC let's you author standard custom elements and generate HTML from them using Light or Shadow DOM.
 
 ### Step 1
 
