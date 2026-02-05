@@ -3,7 +3,6 @@ import { greenwoodPluginMarkdown } from '@greenwood/plugin-markdown';
 import { greenwoodPluginImportJsx } from '@greenwood/plugin-import-jsx';
 import { greenwoodPluginCssModules } from '@greenwood/plugin-css-modules';
 import { greenwoodPluginImportRaw } from '@greenwood/plugin-import-raw';
-import { replBundlerResourcePlugin } from './repl-bundler-plugin.ts';
 
 // TODO: had to disable Greenwood's `terser` plugin due to encoding issues with the REPL bundle
 const config: Config = {
@@ -11,7 +10,6 @@ const config: Config = {
   workspace: new URL('./docs/', import.meta.url),
   prerender: true,
   plugins: [
-    replBundlerResourcePlugin(),
     greenwoodPluginImportRaw(),
     greenwoodPluginCssModules(),
     greenwoodPluginImportJsx(),
