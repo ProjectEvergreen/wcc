@@ -54,8 +54,6 @@ To assist in local development of WCC, there is a "sandbox" app built into the w
 
 After starting the dev server, visit the `/sandbox/` route in your browser. All code for the examples are in _./docs/components/sandbox/_.
 
-### REPL
+### Playground
 
-The website also hosts a REPL for seeing WCC output in the browser in real time.
-
-After starting the dev server, visit the `/repl/` route in your browser. The relevant code for the REPL is in _./docs/scripts/_.
+The website also hosts a Playground (REPL) for seeing WCC output in the browser in real time. Development happens in [this repo](https://github.com/ProjectEvergreen/playground.wcc.dev).

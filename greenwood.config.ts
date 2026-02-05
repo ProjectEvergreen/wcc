@@ -4,7 +4,6 @@ import { greenwoodPluginImportJsx } from '@greenwood/plugin-import-jsx';
 import { greenwoodPluginCssModules } from '@greenwood/plugin-css-modules';
 import { greenwoodPluginImportRaw } from '@greenwood/plugin-import-raw';
 
-// TODO: had to disable Greenwood's `terser` plugin due to encoding issues with the REPL bundle
 const config: Config = {
   activeContent: true,
   workspace: new URL('./docs/', import.meta.url),
