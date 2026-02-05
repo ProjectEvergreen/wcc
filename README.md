@@ -1,4 +1,4 @@
-<img src="https://merry-caramel-524e61.netlify.app/assets/wcc-logo.png" width="30%"/>
+<img src="https://wcc.dev/assets/wcc-logo.svg" width="30%"/>
 
 # Web Components Compiler (WCC)
 
