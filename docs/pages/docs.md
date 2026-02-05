@@ -385,7 +385,7 @@ There are of couple things you will need to do to use WCC with JSX:
 
 ### TSX
 
-TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You'll need to configure JSX in your _tsconfig.json_ by adding these two lines to your `compilerOptions` settings:
+TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You'll need to configure JSX in your _tsconfig.json_ by adding these required (and recommend) entries into to your `compilerOptions` settings:
 
 <!-- prettier-ignore-start -->
 
@@ -395,6 +395,7 @@ TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You
     // required options
     "jsx": "preserve",
     "jsxImportSource": "wc-compiler",
+    "lib": ["DOM"],
 
     // additional recommended options
     "allowImportingTsExtensions": true,
