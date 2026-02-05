@@ -16,7 +16,6 @@ h2 {
   margin: var(--size-4) 0;
   text-align: center;
   font-size: var(--size-6);
-  text-decoration: underline;
 }
 
 h2 + p {

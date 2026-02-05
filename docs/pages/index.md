@@ -16,7 +16,7 @@ imports:
 
 ## How It Works
 
-WCC supports server-rendering of web standard Web Components; generating HTML directly from your custom element definitions.
+WCC supports server-rendering of standard Web Components, generating HTML directly from your custom element definitions.
 
 ### Step 1
 
