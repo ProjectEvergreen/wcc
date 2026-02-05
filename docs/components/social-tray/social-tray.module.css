@@ -1,0 +1,23 @@
+.socialTray {
+  display: flex;
+  gap: var(--size-3);
+  list-style-type: none;
+  background-color: var(--color-gray);
+  width: fit-content;
+  border: var(--border-size-1) solid #4d4d4d45;
+  border-radius: var(--radius-6);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: var(--size-2);
+}
+
+.socialIcon {
+  display: flex;
+  align-items: center;
+  line-height: 100%;
+}
+
+.socialIcon svg {
+  fill: var(--color-secondary);
+}

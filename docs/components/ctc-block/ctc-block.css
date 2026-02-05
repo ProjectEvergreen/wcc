@@ -1,0 +1,89 @@
+.snippet-container {
+  & .copy-icon {
+    background-color: var(--color-white);
+    padding: 0;
+    border-radius: var(--radius-2);
+    position: relative;
+    top: 40px;
+    float: right;
+    right: 10px;
+    width: 40px;
+    vertical-align: middle;
+    cursor: copy;
+  }
+
+  & .copy-icon svg {
+    width: 40px;
+    vertical-align: middle;
+  }
+
+  & .heading {
+    display: inline-block;
+    background-color: var(--color-prism-bg);
+    color: var(--color-white);
+    padding: 10px;
+    font-size: var(--size-2);
+    border-radius: var(--radius-2) var(--radius-2) 0 0;
+    font-family: 'Geist-Mono', monospace;
+    font-style: italic;
+    text-decoration: underline;
+  }
+
+  & pre {
+    margin: 0;
+    border-radius: 0 var(--radius-2) var(--radius-2) var(--radius-2);
+  }
+}
+
+.shell-container {
+  background-color: var(--color-prism-bg);
+  padding: 0 var(--size-2);
+  border-radius: var(--radius-2);
+
+  & pre {
+    border: 2px solid var(--color-white);
+    margin: var(--size-3) 0 var(--size-2) 0;
+  }
+
+  & .copy-icon {
+    background-color: var(--color-white);
+    padding: 0;
+    border-radius: var(--radius-2);
+    position: relative;
+    top: 10px;
+    float: right;
+    right: 10px;
+    width: 40px;
+    vertical-align: middle;
+    cursor: copy;
+  }
+
+  & .copy-icon svg {
+    width: 40px;
+    vertical-align: middle;
+  }
+}
+
+.copy-icon svg path {
+  stroke: var(--color-prism-bg);
+}
+
+.snippet-container:has(.heading) {
+  & .copy-icon {
+    top: 50px;
+  }
+}
+
+@media (min-width: 768px) {
+  .snippet-container {
+    & .heading {
+      font-size: var(--size-4);
+    }
+  }
+
+  .snippet-container:has(.heading) {
+    & .copy-icon {
+      top: 60px;
+    }
+  }
+}

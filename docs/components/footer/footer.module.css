@@ -1,0 +1,21 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--size-4);
+  margin-top: var(--size-6);
+  gap: var(--size-3);
+  background-color: var(--color-black);
+}
+
+.logoLink {
+  display: flex;
+  flex: 1;
+}
+
+.socialTray {
+  display: flex;
+  flex: 2;
+  color: white;
+  justify-content: right;
+}

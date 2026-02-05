@@ -8,7 +8,7 @@
 [![NodeJS compatibility](https://img.shields.io/node/v/wc-compiler.svg)](https://nodejs.org/en/about/previous-releases")
 [![Discord Chat](https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord)](https://www.greenwoodjs.dev/discord/)
 
-> _Experimental Web Components compiler. It's Web Components all the way down!_ 🐢
+> _Native Web Components compiler. It's Web Components all the way down!_ 🐢
 
 ## How It Works
 
@@ -81,7 +81,7 @@ $ npm install wc-compiler --save-dev
 
 ## Documentation
 
-See our [website](https://merry-caramel-524e61.netlify.app/) for API docs and examples.
+See our [website](https://www.wcc.dev) for API docs and examples.
 
 ## Motivation
 

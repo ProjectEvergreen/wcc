@@ -1,0 +1,35 @@
+.container {
+  width: 80%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.splash {
+  display: inline-block;
+  background-image: url(/assets/wcc-splash.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  font-size: var(--size-6);
+  color: var(--color-white);
+  font-weight: bold;
+  width: 100px;
+}
+
+.text {
+  display: inline;
+  font-size: var(--size-6);
+  height: 136px;
+  font-weight: bold;
+}
+
+@media (min-width: 900px) {
+  .splash {
+    width: 297px;
+    height: 136px;
+  }
+
+  .splash,
+  .text {
+    font-size: var(--size-10);
+  }
+}

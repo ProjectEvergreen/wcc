@@ -1,0 +1,150 @@
+@import 'open-props/borders';
+@import 'open-props/fonts';
+@import 'open-props/shadows';
+@import 'open-props/sizes';
+@import 'prism-themes/themes/prism-night-owl.css';
+
+@font-face {
+  font-family: 'Geist-Sans';
+  src: url('../../node_modules/geist/dist/fonts/geist-sans/Geist-Regular.woff2') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist-Mono';
+  src: url('../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Regular.woff2')
+    format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist-Sans Bold';
+  src: url('../../node_modules/geist/dist/fonts/geist-sans/Geist-Bold.woff2') format('truetype');
+  font-display: swap;
+}
+
+:root,
+:host {
+  --color-black: #111111;
+  --color-white: #ffffff;
+  --color-gray: #f5f5f5;
+  --color-primary: #013553;
+  --color-accent: #3b8ebf;
+  --color-background: #edefec;
+  --color-prism-bg: #011627; /* matches Prism background color */
+  --font-primary:
+    'Geist-Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-primary-bold: 'Geist-Sans Bold';
+  --font-secondary: 'Geist-Mono', monospace;
+}
+
+* {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-3);
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+}
+
+main {
+  max-width: 1440px;
+  margin: 20px auto;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-primary);
+}
+
+/* tweaks for rehype-autolink-headings markdown plugin */
+h2 > a > span.icon,
+h3 > a > span.icon,
+h4 > a > span.icon {
+  display: inline-block;
+  width: var(--size-4);
+  height: var(--size-4);
+  padding: var(--size-2);
+  background-image: url('../assets/link.svg');
+  background-size: var(--size-3) var(--size-3);
+  background-repeat: no-repeat;
+  background-position-y: center;
+  vertical-align: text-bottom;
+  opacity: 0.5;
+}
+
+h2:hover > a > span.icon,
+h2:focus > a > span.icon,
+h3:hover > a > span.icon,
+h3:focus > a > span.icon,
+h4:hover > a > span.icon,
+h4:focus > a > span.icon {
+  opacity: 1;
+}
+
+a,
+a:visited {
+  text-decoration: underline;
+  color: var(--color-primary);
+}
+
+a:hover,
+a:focus {
+  text-decoration: underline;
+  background-color: transparent;
+}
+
+/* tweaks for PrismJS */
+code[class*='language-'],
+pre[class*='language-'],
+code,
+pre,
+span.token {
+  font-size: var(--font-size-1);
+  font-family: 'Geist-Mono', monospace;
+}
+
+code[class*='language-'],
+pre[class*='language-'] {
+  width: 100%;
+}
+
+/* external links styling */
+.no-show-screen-reader {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.external-link-icon::after {
+  content: url(/assets/external-link.svg);
+  margin: 0 0 0 var(--size-1);
+  vertical-align: middle;
+}
+
+@media (min-width: 1024px) {
+  /* tweaks for PrismJS */
+  code[class*='language-'],
+  pre[class*='language-'],
+  code,
+  pre,
+  span.token {
+    font-size: var(--font-size-3);
+  }
+}

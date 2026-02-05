@@ -53,9 +53,8 @@ describe('Run WCC For ', function () {
 
       before(async function () {
         footer = new JSDOM(
-          dom.window.document.querySelectorAll(
-            'wcc-footer template[shadowrootmode="open"]',
-          )[0].innerHTML,
+          dom.window.document.querySelectorAll('wcc-footer template[shadowrootmode="open"]')[0]
+            .innerHTML,
         );
       });
 

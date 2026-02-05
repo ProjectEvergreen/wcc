@@ -1,121 +1,149 @@
+---
+layout: examples
+collection: nav
+order: 3
+tocHeading: 2
+---
+
 # Examples
 
 Below are some example of how **WCC** is being used right now.
-
-## Table of contents
 
 ## Server Rendering (SSR)
 
 For the project [**Greenwood**](https://www.greenwoodjs.dev/), **WCC** is used to provide a _Next.js_ like experience by allowing users to author [server-side routes using native custom elements](https://www.greenwoodjs.dev/docs/pages/server-rendering/#web-server-components)! ✨
 
-```js
-import '../components/card/card.js';
+<!-- prettier-ignore-start -->
 
-export default class ArtistsPage extends HTMLElement {
-  async connectedCallback() {
-    if (!this.shadowRoot) {
-      const artists = await fetch('https://www.domain.com/api/artists').then((resp) => resp.json());
-      const html = artists
-        .map((artist) => {
-          return `
-          <wc-card>
-            <h2 slot="title">${artist.name}</h2>
-            <img slot="image" src="${artist.imageUrl}" alt="${artist.name}"/>
-          </wc-card>
-        `;
-        })
-        .join('');
+<wcc-ctc-block variant="snippet" heading="src/pages/artists.js">
 
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.innerHTML = html;
+  ```js
+  import '../components/card/card.js';
+
+  export default class ArtistsPage extends HTMLElement {
+    async connectedCallback() {
+      if (!this.shadowRoot) {
+        const artists = await fetch('https://www.domain.com/api/artists').then((resp) => resp.json());
+        const html = artists
+          .map((artist) => {
+            return `
+            <wc-card>
+              <h2 slot="title">${artist.name}</h2>
+              <img slot="image" src="${artist.imageUrl}" alt="${artist.name}"/>
+            </wc-card>
+          `;
+          })
+          .join('');
+
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.innerHTML = html;
+      }
     }
   }
-}
-```
+  ```
+
+<!-- prettier-ignore-end -->
+
+</wcc-ctc-block>
 
 ## Serverless and Edge Functions
 
 In the talk [_"Web Components at the Edge"_](https://sched.co/11loQ) for OpenJS World 2022, **WCC** was leveraged for all the AWS Lambda serverless function and Netlify Edge function demos. It also shows some clever ways to use **WCC** in more constrained runtime environments, like an edge runtime where something like `fs` might not be available. See all the [code, slides and demos in GitHub](https://github.com/thescientist13/web-components-at-the-edge). 🚀
 
-```js
-import '../../node_modules/wc-compiler/src/dom-shim.js';
+<!-- prettier-ignore-start -->
 
-import Greeting from './components/greeting.js';
+<wcc-ctc-block variant="snippet" heading=".function/greeting.js">
 
-export default async function (request, context) {
-  const countryCode = context.geo.country.code || 'UNKNOWN';
-  const countryName = context.geo.country.name || 'UNKNOWN';
-  const greeting = new Greeting(countryCode, countryName);
+  ```js
+  import '../../node_modules/wc-compiler/src/dom-shim.js';
 
-  greeting.connectedCallback();
+  import Greeting from './components/greeting.js';
 
-  const response = new Response(`
-    <!DOCTYPE html>
-    <html lang="en">
-      <body>
-        <wc-greeting>
-          ${greeting.getHTML({ serializableShadowRoots: true })}
-          <details slot="details">
-            <pre>
-              ${JSON.stringify(context.geo)}
-            </pre>
-          </details>
-        </wc-greeting>
-      </body>
-    </html>
-  `);
+  export default async function (request, context) {
+    const countryCode = context.geo.country.code || 'UNKNOWN';
+    const countryName = context.geo.country.name || 'UNKNOWN';
+    const greeting = new Greeting(countryCode, countryName);
 
-  response.headers.set('content-type', 'text/html');
+    greeting.connectedCallback();
 
-  return response;
-}
-```
+    const response = new Response(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <body>
+          <wc-greeting>
+            ${greeting.getHTML({ serializableShadowRoots: true })}
+            <details slot="details">
+              <pre>
+                ${JSON.stringify(context.geo)}
+              </pre>
+            </details>
+          </wc-greeting>
+        </body>
+      </html>
+    `);
+
+    response.headers.set('content-type', 'text/html');
+
+    return response;
+  }
+  ```
+
+<!-- prettier-ignore-end -->
+
+</wcc-ctc-block>
 
 ## Static Sites (SSG)
 
-Using `innerHTML`, custom elements can be authored to not use Shadow DOM, which can be useful for a `Layout` or `App` component where that top level content specifically should _not_ be rendered in a shadow root, e.g. `<template>` tag. What's nice about **WCC** is that by using `innerHTML` or `attachShadow`, you can opt-in to either on a per component basis, like is being done for [the **WCC** website](https://github.com/ProjectEvergreen/wcc/tree/master/docs). In this case, the content is authored in markdown, but the layout, header, navigation, and footer are all custom elements rendered to static HTML. 🗒️
+Using `innerHTML`, custom elements can be authored to not use Shadow DOM, which can be useful for a `Layout` or `App` component where that top level content specifically should _not_ be rendered in a shadow root, e.g. a `<template>` tag. What's nice about **WCC** is that by using `innerHTML` or `attachShadow`, you can opt-in to either on a per component basis, like is being done for [the **WCC** website](https://github.com/ProjectEvergreen/wcc/tree/master/docs). In this case, the content is authored in markdown, but the layout, header, navigation, and footer are all custom elements rendered to static HTML. 🗒️
 
-```js
-// layout.js
-import './components/footer.js';
-import './components/header.js';
+<!-- prettier-ignore-start -->
 
-class Layout extends HTMLElement {
-  connectedCallback() {
-    this.innerHTML = `
-      <style>
-        :root {
-          --accent: #367588;
-        }
+<wcc-ctc-block variant="snippet" heading="layout.js">
 
-        body {
-          display: flex;
-          flex-direction: column;
-        }
+  ```js
+  import './components/footer.js';
+  import './components/header.js';
 
-        main {
-          max-width: 1200px;
-          margin: 20px auto;
-        }
+  class Layout extends HTMLElement {
+    connectedCallback() {
+      this.innerHTML = `
+        <style>
+          :root {
+            --accent: #367588;
+          }
 
-        a:visited {
-          color: var(--accent);
-        }
-      </style>
+          body {
+            display: flex;
+            flex-direction: column;
+          }
 
-      <wcc-header></wcc-header>
+          main {
+            max-width: 1200px;
+            margin: 20px auto;
+          }
 
-      <main>
-        <slot name="content"></slot>
-      </main>
+          a:visited {
+            color: var(--accent);
+          }
+        </style>
 
-      <wcc-footer></wcc-footer>
-    `;
+        <wcc-header></wcc-header>
+
+        <main>
+          <slot name="content"></slot>
+        </main>
+
+        <wcc-footer></wcc-footer>
+      `;
+    }
   }
-}
 
-export default Layout;
-```
+  export default Layout;
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 ## HTML (Light DOM) Web Components
 
@@ -129,28 +157,44 @@ So instead of setting attributes:
 
 Pass HTML as children:
 
-```html
-<picture-frame>
-  <h3>My Image<h3>
-  <img src="/path/to/image.png" alt="My Image">
-</picture-frame>
-```
+<!-- prettier-ignore-start -->
+
+<wcc-ctc-block variant="snippet">
+
+  ```html
+  <picture-frame>
+    <h3>My Image<h3>
+    <img src="/path/to/image.png" alt="My Image">
+  </picture-frame>
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 With a custom element definition like so:
 
-```js
-export default class PictureFrame extends HTMLElement {
-  connectedCallback() {
-    this.innerHTML = `
-      <div class="picture-frame">
-        ${this.innerHTML}
-      </div>
-    `;
-  }
-}
+<!-- prettier-ignore-start -->
 
-customElements.define('picture-frame', PictureFrame);
-```
+<wcc-ctc-block variant="snippet" heading="picture-frame.js">
+
+  ```js
+  export default class PictureFrame extends HTMLElement {
+    connectedCallback() {
+      this.innerHTML = `
+        <div class="picture-frame">
+          ${this.innerHTML}
+        </div>
+      `;
+    }
+  }
+
+  customElements.define('picture-frame', PictureFrame);
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 ## Progressive Hydration
 
@@ -158,138 +202,147 @@ Using the `metadata` information from a custom element with the `hydrate=true` a
 
 See it in [action here](https://wc-at-the-edge.thegreenhouse.io/demo3) by scrolling to the bottom of the page and seeing the animation happen! View [the code here in GitHub](https://github.com/thescientist13/web-components-at-the-edge/blob/main/serverless/get-demo3/index.mjs).
 
-```js
-// slider.js
-const template = document.createElement('template');
+<!-- prettier-ignore-start -->
 
-template.innerHTML = `
-  <style>
-    h6 {
-      color: var(--color-secondary);
-      font-size: 25px;
-    }
+<wcc-ctc-block variant="snippet" heading="slider.js">
 
-    h6.hydrated {
-      animation-duration: 3s;
-      animation-name: slidein;
-    }
+  ```js
+  const template = document.createElement('template');
 
-    @keyframes slidein {
-      from {
-        margin-left: 100%;
-        width: 300%;
-      }
-
-      to {
+  template.innerHTML = `
+    <style>
+      h6 {
+        color: var(--color-secondary);
         font-size: 25px;
       }
-    }
-  </style>
 
-  <h6>This is a slider component.</h6>
-`;
+      h6.hydrated {
+        animation-duration: 3s;
+        animation-name: slidein;
+      }
 
-class SliderComponent extends HTMLElement {
-  connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.appendChild(template.content.cloneNode(true));
-    } else {
-      const header = this.shadowRoot.querySelector('h6');
+      @keyframes slidein {
+        from {
+          margin-left: 100%;
+          width: 300%;
+        }
 
-      header.style.color = this.getAttribute('color');
-      header.classList.add('hydrated');
-    }
-  }
-}
+        to {
+          font-size: 25px;
+        }
+      }
+    </style>
 
-export { SliderComponent };
-export default SliderComponent;
+    <h6>This is a slider component.</h6>
+  `;
 
-customElements.define('wc-slider', SliderComponent);
-```
+  export default class SliderComponent extends HTMLElement {
+    connectedCallback() {
+      if (!this.shadowRoot) {
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
+      } else {
+        const header = this.shadowRoot.querySelector('h6');
 
-```js
-// handler.js
-import { renderFromHTML } from 'wc-compiler';
-
-export async function handler() {
-  const { html, metadata } = await renderFromHTML(`
-    <wc-slider color="var(--color-accent)">
-    </wc-slider>
-  `);
-  const lazyJs = [];
-
-  for (const asset in metadata) {
-    const a = metadata[asset];
-
-    a.tagName = asset;
-
-    if (a.moduleURL.href.endsWith('.js')) {
-      if (a.hydrate === 'lazy') {
-        lazyJs.push(a);
+        header.style.color = this.getAttribute('color');
+        header.classList.add('hydrated');
       }
     }
   }
 
-  return {
-    status: 200,
-    headers: {
-      'cache-control': 'no-cache, no-store, must-revalidate, max-age=0, s-maxage=0',
-      'content-type': 'text/html; charset=utf8',
-    },
-    body: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            :root, :host {
-              --color-primary: rgb(12, 36, 42);
-              --color-secondary: rgb(110, 176, 6);
-              --color-tertiary: rgb(110, 176, 6);
-              --color-accent: rgb(250, 217, 28);
-            }
-          </style>
-          ${lazyJs
-            .map((script) => {
-              return `
-                <script type="module">
-                  let initialized = false;
+  export { SliderComponent };
 
-                  window.addEventListener('load', () => {
-                    const options = {
-                      root: null,
-                      rootMargin: '20px',
-                      threshold: 1.0
-                    }
+  customElements.define('wc-slider', SliderComponent);
+  ```
 
-                    const callback = (entries, observer) => {
-                      entries.forEach(entry => {
-                        if(!initialized && entry.isIntersecting) {
-                          initialized = true;
-                          import('${script.moduleURL.pathname.replace(process.cwd(), '')}')
-                        }
-                      });
-                    }
+</wcc-ctc-block>
 
-                    const observer = new IntersectionObserver(callback, options);
-                    const target = document.querySelector('${script.tagName}');
+<wcc-ctc-block variant="snippet" heading="handler.js">
 
-                    observer.observe(target);
-                  })
-                </script>
-              `;
-            })
-            .join('\n')}
-        </head>
-        <body>
-          ${html}
-        </body>
-      </html>
-    `,
-  };
-}
-```
+  ```js
+  import { renderFromHTML } from 'wc-compiler';
+
+  export async function handler() {
+    const { html, metadata } = await renderFromHTML(`
+      <wc-slider color="var(--color-accent)">
+      </wc-slider>
+    `);
+    const lazyJs = [];
+
+    for (const asset in metadata) {
+      const a = metadata[asset];
+
+      a.tagName = asset;
+
+      if (a.moduleURL.href.endsWith('.js')) {
+        if (a.hydrate === 'lazy') {
+          lazyJs.push(a);
+        }
+      }
+    }
+
+    return {
+      status: 200,
+      headers: {
+        'cache-control': 'no-cache, no-store, must-revalidate, max-age=0, s-maxage=0',
+        'content-type': 'text/html; charset=utf8',
+      },
+      body: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              :root, :host {
+                --color-primary: rgb(12, 36, 42);
+                --color-secondary: rgb(110, 176, 6);
+                --color-tertiary: rgb(110, 176, 6);
+                --color-accent: rgb(250, 217, 28);
+              }
+            </style>
+            ${lazyJs
+              .map((script) => {
+                return `
+                  <script type="module">
+                    let initialized = false;
+
+                    window.addEventListener('load', () => {
+                      const options = {
+                        root: null,
+                        rootMargin: '20px',
+                        threshold: 1.0
+                      }
+
+                      const callback = (entries, observer) => {
+                        entries.forEach(entry => {
+                          if(!initialized && entry.isIntersecting) {
+                            initialized = true;
+                            import('${script.moduleURL.pathname.replace(process.cwd(), '')}')
+                          }
+                        });
+                      }
+
+                      const observer = new IntersectionObserver(callback, options);
+                      const target = document.querySelector('${script.tagName}');
+
+                      observer.observe(target);
+                    })
+                  </script>
+                `;
+              })
+              .join('\n')}
+          </head>
+          <body>
+            ${html}
+          </body>
+        </html>
+      `,
+    };
+  }
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 ## JSX
 

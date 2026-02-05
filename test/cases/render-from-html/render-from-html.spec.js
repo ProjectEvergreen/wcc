@@ -74,9 +74,8 @@ describe('Run WCC ', function () {
 
       before(function () {
         headerContentsDom = new JSDOM(
-          dom.window.document.querySelectorAll(
-            'wcc-html-header template[shadowrootmode="open"]',
-          )[0].innerHTML,
+          dom.window.document.querySelectorAll('wcc-html-header template[shadowrootmode="open"]')[0]
+            .innerHTML,
         );
       });
 

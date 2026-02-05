@@ -1,0 +1,99 @@
+wcc-sidenav {
+  display: block;
+  margin: var(--size-4) auto;
+}
+
+body:has(#compact-menu:popover-open) {
+  overflow-y: hidden;
+}
+
+.page-outlet .content-outlet {
+  & h1 {
+    font-size: var(--font-size-5);
+  }
+
+  & h2 {
+    font-size: var(--font-size-4);
+    font-family: var(--font-primary-bold);
+    font-weight: 100;
+    margin: var(--size-8) 0 0 !important;
+  }
+
+  & h2,
+  & p {
+    margin: var(--size-4) 0;
+  }
+
+  & h3,
+  & h4,
+  & h5,
+  & h6 {
+    font-size: var(--font-size-3);
+    margin: var(--size-4) 0 var(--size-1);
+  }
+
+  & table a,
+  & table code,
+  & table strong,
+  & table th,
+  & table td {
+    font-size: 24px;
+    vertical-align: top;
+  }
+
+  & table tr {
+    height: 20px;
+  }
+
+  & table th {
+    text-decoration: underline;
+    background-color: var(--color-accent);
+  }
+
+  & table {
+    border: 1px solid var(--color-prism-bg);
+  }
+
+  & table td {
+    padding: 6px 12px;
+  }
+
+  & ol,
+  & ul {
+    padding-left: var(--size-4);
+  }
+
+  & img {
+    width: 100%;
+  }
+
+  & h2 > a > span.icon,
+  & h3 > a > span.icon,
+  & h4 > a > span.icon {
+    vertical-align: text-top;
+  }
+
+  & blockquote {
+    margin: var(--size-4) 0;
+    padding: var(--size-1) var(--size-2);
+    background-color: var(--color-accent) !important;
+    border-left: var(--size-2) solid var(--color-prism-bg);
+    font-style: italic;
+  }
+}
+
+@media (min-width: 1200px) {
+  .content-outlet {
+    display: inline-block;
+    width: 70%;
+    font-size: var(--font-size-1);
+  }
+
+  wcc-sidenav {
+    display: inline-block;
+    width: 20%;
+    min-width: 25%;
+    vertical-align: top;
+    margin: var(--size-9) auto;
+  }
+}
