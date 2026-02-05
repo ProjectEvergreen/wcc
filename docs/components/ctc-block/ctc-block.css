@@ -64,6 +64,10 @@
   }
 }
 
+.copy-icon svg path {
+  stroke: var(--color-prism-bg);
+}
+
 .snippet-container:has(.heading) {
   & .copy-icon {
     top: 50px;

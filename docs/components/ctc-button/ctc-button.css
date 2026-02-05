@@ -9,3 +9,7 @@
     outline: var(--color-white);
   }
 }
+
+#icon svg path {
+  stroke: var(--color-white);
+}
