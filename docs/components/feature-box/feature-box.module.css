@@ -3,7 +3,7 @@
   border-radius: var(--radius-3);
   color: var(--color-primary);
   min-height: 300px;
-  padding: var(--size-2) var(--size-4);
+  padding: var(--size-4);
   margin: var(--size-1);
 
   & p {

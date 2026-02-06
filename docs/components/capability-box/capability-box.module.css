@@ -18,6 +18,8 @@
   border-radius: var(--radius-2);
   padding: var(--size-2);
   font-size: var(--size-3);
+  margin: 0 0 var(--size-1) 0;
+  display: inline-block;
 }
 
 @media (min-width: 1024px) {
