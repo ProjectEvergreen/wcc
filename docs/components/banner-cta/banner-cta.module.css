@@ -19,7 +19,7 @@
 .snippet {
   color: var(--color-primary);
   border-radius: var(--radius-4);
-  border: var(--radius-1) solid #c1d3cd;
+  border: var(--radius-1) solid var(--color-accent);
   box-shadow: var(--shadow-2);
   margin: var(--size-px-2) 0;
   text-align: center;
