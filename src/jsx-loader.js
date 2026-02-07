@@ -17,11 +17,11 @@ globalThis.Signal = globalThis.Signal ?? Signal;
 const jsxRegex = /\.(jsx)$/;
 const tsxRegex = /\.(tsx)$/;
 
-// TODO same hack as definitions
+// TODO: same hack as definitions
 // https://github.com/ProjectEvergreen/wcc/discussions/74
 let string;
 
-// TODO move to a util
+// TODO: move to a util
 // https://github.com/ProjectEvergreen/wcc/discussions/74
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
@@ -134,8 +134,7 @@ function parseJsxElement(element, moduleContents = '') {
             }
           }
         } else if (attribute.name.type === 'JSXIdentifier') {
-          // TODO is there any difference between an attribute for an event handler vs a normal attribute?
-          // Can all these be parsed using one function>
+          // TODO: is there any difference between an attribute for an event handler vs a normal attribute?
           if (attribute.value) {
             if (attribute.value.type === 'Literal') {
               // xxx="yyy" >
@@ -189,8 +188,6 @@ function parseJsxElement(element, moduleContents = '') {
 
       if (type === 'Identifier') {
         // You have {count} TODOs left to complete
-        // TODO be able to remove this extra data attribute
-        // string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name} data-wcc-ins="text">`;
         string += `$\{${element.expression.name}}`;
       } else if (type === 'MemberExpression') {
         const { object } = element.expression.object;
@@ -243,7 +240,7 @@ function findThisReferences(context, statement) {
           references.push(property.key.name);
         });
       } else {
-        // TODO we are just blindly tracking anything here.
+        // TODO: we are just blindly tracking anything here.
         // everything should ideally be mapped to actual this references, to create a strong chain of direct reactivity
         // instead of tracking any declaration as a derived tracking attr
         // for convenience here, we push the entire declaration here, instead of the name like for direct this references (see above)
@@ -274,7 +271,7 @@ export function parseJsx(moduleURL) {
   });
   string = '';
 
-  // TODO: would be nice to do everything in one pass, but first we need to know
+  // initial pass to get certain information before running JSX transformations (could we do this in one pass?)
   // 1. if `inferredObservability` is set
   // 2. get the name of the component class for `static` references
   // 3, track observed attributes from `this` references in the template
@@ -412,6 +409,7 @@ export function parseJsx(moduleURL) {
     let insertPoint;
     for (const line of tree.body) {
       // TODO: test for class MyComponent vs export default class MyComponent
+      // https://github.com/ProjectEvergreen/wcc/issues/117
       // @ts-ignore
       if (
         line.type === 'ClassDeclaration' ||
@@ -425,8 +423,7 @@ export function parseJsx(moduleURL) {
     let newModuleContents = generate(tree);
     const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
 
-    // TODO: better way to determine value type, e,g. array, int, object, etc?
-    // TODO: better way to test for shadowRoot presence when running querySelectorAll
+    // TODO: better way to determine value type, e,g. array, number, object, etc within `parseAttribute`?
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
         return [${[...trackingAttrs].map((attr) => `'${attr}'`).join()}]
