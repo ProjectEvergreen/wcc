@@ -51,7 +51,7 @@
     "test:jsx": "c8 node --import ./test-register.js --experimental-strip-types ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
     "test:tdd": "npm run test -- --watch",
     "test:tdd:jsx": "npm run test:jsx -- --watch",
-    "test:docs": "vitest run",
+    "test:docs": "vitest run --coverage",
     "test:docs:tdd": "vitest",
     "prepare": "husky"
   },
@@ -76,6 +76,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.13.4",
     "@vitest/browser-playwright": "^4.0.18",
+    "@vitest/coverage-v8": "^4.0.18",
     "c8": "^7.11.2",
     "chai": "^4.3.6",
     "eslint": "^9.39.1",
