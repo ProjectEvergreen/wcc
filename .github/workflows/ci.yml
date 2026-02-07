@@ -30,4 +30,4 @@ jobs:
           npm run check:types
       - name: Test
         run: |
-          npm test
+          npm test && npm run test:docs
