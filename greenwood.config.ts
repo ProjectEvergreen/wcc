@@ -8,6 +8,9 @@ const config: Config = {
   activeContent: true,
   workspace: new URL('./docs/', import.meta.url),
   prerender: true,
+  polyfills: {
+    importAttributes: ['css'],
+  },
   plugins: [
     greenwoodPluginImportRaw(),
     greenwoodPluginCssModules(),
