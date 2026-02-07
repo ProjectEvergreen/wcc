@@ -275,8 +275,9 @@ export function parseJsx(moduleURL) {
   string = '';
 
   // TODO: would be nice to do everything in one pass, but first we need to know
-  // - if `inferredObservability` is set
-  // - get the name of the component for `static` references
+  // 1. if `inferredObservability` is set
+  // 2. get the name of the component class for `static` references
+  // 3, track observed attributes from `this` references in the template
   walk.simple(
     tree,
     {
@@ -308,6 +309,29 @@ export function parseJsx(moduleURL) {
           componentName = declaration.id.name;
         }
       },
+      ClassDeclaration(node) {
+        // @ts-ignore
+        if (node.superClass.name === 'HTMLElement') {
+          for (const n1 of node.body.body) {
+            if (n1.type === 'MethodDefinition') {
+              // @ts-ignore
+              const nodeName = n1.key.name;
+              if (nodeName === 'render') {
+                for (const n2 in n1.value.body.body) {
+                  const n = n1.value.body.body[n2];
+
+                  if (n.type === 'VariableDeclaration') {
+                    observedAttributes = [
+                      ...observedAttributes,
+                      ...findThisReferences('render', n),
+                    ];
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
     },
     {
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
@@ -317,6 +341,7 @@ export function parseJsx(moduleURL) {
     },
   );
 
+  // apply all JSX transformations
   walk.simple(
     tree,
     {
@@ -334,13 +359,7 @@ export function parseJsx(moduleURL) {
                 for (const n2 in n1.value.body.body) {
                   const n = n1.value.body.body[n2];
 
-                  if (n.type === 'VariableDeclaration') {
-                    observedAttributes = [
-                      ...observedAttributes,
-                      ...findThisReferences('render', n),
-                    ];
-                    // @ts-ignore
-                  } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
+                  if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
                     const html = parseJsxElement(n.argument, moduleContents);
                     const elementTree = getParse(html)(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
@@ -405,18 +424,6 @@ export function parseJsx(moduleURL) {
 
     let newModuleContents = generate(tree);
     const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
-    // TODO ideally derivedAttrs would explicitly reference trackingAttrs
-    // and if there are no derivedAttrs, do not include the derivedGetters / derivedSetters code in the compiled output
-    const derivedAttrs = observedAttributes.filter((attr) => typeof attr !== 'string');
-    const derivedGetters = derivedAttrs
-      .map((attr) => {
-        return `
-        get_${attr.id.name}(${trackingAttrs.join(',')}) {
-          return ${moduleContents.slice(attr.init.start, attr.init.end)}
-        }
-      `;
-      })
-      .join('\n');
 
     // TODO: better way to determine value type, e,g. array, int, object, etc?
     // TODO: better way to test for shadowRoot presence when running querySelectorAll
@@ -434,8 +441,6 @@ export function parseJsx(moduleURL) {
       attributeChangedCallback(name, oldValue, newValue) {
         this[name].set(${componentName}.parseAttribute(newValue));
       }
-
-      ${derivedGetters}
 
       ${newModuleContents.slice(insertPoint)}
     `;
