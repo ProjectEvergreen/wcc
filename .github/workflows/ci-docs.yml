@@ -1,0 +1,27 @@
+name: Continuous Integration (Docs)
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: [22]
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Installing project dependencies
+        run: |
+          npm ci
+      - name: Setup Playwright
+        run: |
+          npx playwright install
+      - name: Test Docs
+        run: |
+          npm run test:docs
