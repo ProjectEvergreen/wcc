@@ -13,6 +13,7 @@ export default class Footer extends HTMLElement {
         <a href="/" title="WCC Home Page" class={styles.logoLink}>
           {wccLogo}
         </a>
+
         <div class={styles.socialTray}>
           <wcc-social-tray></wcc-social-tray>
         </div>
