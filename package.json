@@ -51,6 +51,8 @@
     "test:jsx": "c8 node --import ./test-register.js --experimental-strip-types ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
     "test:tdd": "npm run test -- --watch",
     "test:tdd:jsx": "npm run test:jsx -- --watch",
+    "test:docs": "vitest run",
+    "test:docs:tdd": "vitest",
     "prepare": "husky"
   },
   "dependencies": {
@@ -96,6 +98,7 @@
     "stylelint": "^16.10.0",
     "stylelint-config-recommended": "^14.0.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2"
+    "typescript-eslint": "^8.46.2",
+    "vitest": "^4.0.18"
   }
 }
