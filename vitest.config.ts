@@ -65,6 +65,17 @@ export default defineConfig({
       instances: [{ browser: 'chromium' }],
       screenshotFailures: false,
     },
+    coverage: {
+      provider: 'v8',
+      include: ['./docs/components/**'],
+      exclude: ['./docs/components/sandbox/**'],
+      // thresholds: {
+      //   lines: 80,
+      //   functions: 80,
+      //   branches: 80,
+      //   statements: 80,
+      // }
+    },
   },
   plugins: [transformJsx(), transformRawImports()],
 });
