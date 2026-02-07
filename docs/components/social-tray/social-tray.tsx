@@ -20,7 +20,7 @@ export default class SocialTray extends HTMLElement {
         </li>
 
         <li class={styles.socialIcon}>
-          <a href="/discord/" title="Discord" target="_blank">
+          <a href="https://www.greenwoodjs.dev/discord/" title="Discord" target="_blank">
             {discordIcon}
             <span class="no-show-screen-reader"> (opens in a new window)</span>
           </a>
