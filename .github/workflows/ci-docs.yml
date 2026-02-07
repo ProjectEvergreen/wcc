@@ -19,6 +19,9 @@ jobs:
       - name: Installing project dependencies
         run: |
           npm ci
+      - name: Setup Playwright
+        run: |
+          npx playwright install
       - name: Test Docs
         run: |
           npm run test:docs
