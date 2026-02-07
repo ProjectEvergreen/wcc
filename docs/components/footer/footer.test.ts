@@ -35,19 +35,6 @@ describe('Components/Footer', () => {
       expect(socialTray.length).equal(1);
     });
   });
-  //   const name = 'WCC';
-
-  //   beforeEach(async () => {
-  //     greeting = document.createElement('wcc-greeting');
-  //     greeting.setAttribute('name', name);
-
-  //     document.body.appendChild(greeting);
-  //   });
-
-  //   it('should render the default greeting text', () => {
-  //     expect(greeting.querySelector('span').textContent).equal(`Hello ${name}!`);
-  //   });
-  // });
 
   afterEach(() => {
     footer.remove();
