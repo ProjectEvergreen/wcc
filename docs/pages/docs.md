@@ -25,6 +25,8 @@ This function takes a `URL` "entry point" to a JavaScript file that defines a cu
 
 </wcc-ctc-block>
 
+</br>
+
 <wcc-ctc-block variant="snippet" heading="index.js">
 
   ```js
