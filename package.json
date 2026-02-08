@@ -51,7 +51,8 @@
     "test:jsx": "c8 node --import ./test-register.js --experimental-strip-types ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
     "test:tdd": "npm run test -- --watch",
     "test:tdd:jsx": "npm run test:jsx -- --watch",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@projectevergreen/acorn-jsx-esm": "~0.1.0",
@@ -59,6 +60,7 @@
     "acorn-walk": "^8.3.4",
     "astring": "^1.9.0",
     "parse5": "^7.2.1",
+    "signal-polyfill": "^0.2.2",
     "sucrase": "^3.35.0"
   },
   "devDependencies": {
@@ -85,6 +87,7 @@
     "lint-staged": "^16.2.6",
     "mocha": "^9.2.2",
     "open-props": "^1.7.4",
+    "patch-package": "^8.0.1",
     "prettier": "^3.6.2",
     "prism-themes": "^1.9.0",
     "prismjs": "^1.28.0",

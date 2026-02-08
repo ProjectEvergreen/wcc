@@ -10,15 +10,18 @@ import fs from 'fs';
 import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
 import { transform } from 'sucrase';
+import { Signal } from 'signal-polyfill';
+
+globalThis.Signal = globalThis.Signal ?? Signal;
 
 const jsxRegex = /\.(jsx)$/;
 const tsxRegex = /\.(tsx)$/;
 
-// TODO same hack as definitions
+// TODO: same hack as definitions
 // https://github.com/ProjectEvergreen/wcc/discussions/74
 let string;
 
-// TODO move to a util
+// TODO: move to a util
 // https://github.com/ProjectEvergreen/wcc/discussions/74
 function getParse(html) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
@@ -77,7 +80,7 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
   return tree;
 }
 
-function parseJsxElement(element, moduleContents = '', inferredObservability = false) {
+function parseJsxElement(element, moduleContents = '', inferredObservability) {
   try {
     const { type } = element;
 
@@ -124,25 +127,39 @@ function parseJsxElement(element, moduleContents = '', inferredObservability = f
 
               if (left.object.type === 'ThisExpression') {
                 if (left.property.type === 'Identifier') {
-                  if (inferredObservability) {
-                    // very naive (fine grained?) reactivity
-                    // string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.update(\\'${left.property.name}\\', null, __this__.${left.property.name});"`;
-                    string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.setAttribute(\\'${left.property.name}\\', __this__.${left.property.name});"`;
-                  } else {
-                    // implicit reactivity using this.render
-                    string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
-                  }
+                  // implicit reactivity using this.render
+                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
                 }
               }
             }
           }
         } else if (attribute.name.type === 'JSXIdentifier') {
-          // TODO is there any difference between an attribute for an event handler vs a normal attribute?
-          // Can all these be parsed using one function>
+          // TODO: is there any difference between an attribute for an event handler vs a normal attribute?
           if (attribute.value) {
+            const expression = attribute?.value?.expression;
             if (attribute.value.type === 'Literal') {
               // xxx="yyy" >
               string += ` ${name}="${attribute.value.value}"`;
+            } else if (
+              expression &&
+              inferredObservability &&
+              attribute.value.type === 'JSXExpressionContainer' &&
+              expression?.type === 'CallExpression' &&
+              expression?.callee.type === 'MemberExpression' &&
+              expression?.arguments &&
+              expression?.callee?.property?.name === 'get'
+            ) {
+              // xxx={products.get().length} >
+              // TODO: do we need to handle for set()?
+              const { object, property } = expression.callee;
+
+              if (object.type === 'MemberExpression' && object?.object.type === 'ThisExpression') {
+                // The count is counter={this.count.get()}
+                string += ` ${name}=$\{${object.property.name}.${property.name}()}`;
+              } else if (object.type === 'Identifier') {
+                // xxx={products.get().length} >
+                string += ` ${name}=$\{${object.name}.${property.name}()}`;
+              }
             } else if (attribute.value.type === 'JSXExpressionContainer') {
               // xxx={allTodos.length} >
               const { value } = attribute;
@@ -165,11 +182,6 @@ function parseJsxElement(element, moduleContents = '', inferredObservability = f
                   break;
                 default:
                   break;
-              }
-
-              // only apply this when dealing with `this` references
-              if (inferredObservability) {
-                string += ` data-wcc-${expression.name}="${name}" data-wcc-ins="attr"`;
               }
             }
           } else {
@@ -197,15 +209,19 @@ function parseJsxElement(element, moduleContents = '', inferredObservability = f
     if (type === 'JSXExpressionContainer') {
       const { type } = element.expression;
 
-      if (type === 'Identifier') {
+      if (
+        inferredObservability &&
+        type === 'CallExpression' &&
+        element.expression.arguments &&
+        element.expression?.callee?.type === 'MemberExpression' &&
+        element.expression?.callee?.property?.name === 'get'
+      ) {
+        // The count is {count.get()}
+        // TODO: do we need to handle for set()?
+        const { object, property } = element.expression.callee;
+        string += `$\{${object.name}.${property.name}()}`;
+      } else if (type === 'Identifier') {
         // You have {count} TODOs left to complete
-        if (inferredObservability) {
-          const { name } = element.expression;
-
-          string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name}="\${this.${name}}" data-wcc-ins="text">`;
-        }
-        // TODO be able to remove this extra data attribute
-        // string = `${string.slice(0, string.lastIndexOf('>'))} data-wcc-${name} data-wcc-ins="text">`;
         string += `$\{${element.expression.name}}`;
       } else if (type === 'MemberExpression') {
         const { object } = element.expression.object;
@@ -258,7 +274,7 @@ function findThisReferences(context, statement) {
           references.push(property.key.name);
         });
       } else {
-        // TODO we are just blindly tracking anything here.
+        // TODO: we are just blindly tracking anything here.
         // everything should ideally be mapped to actual this references, to create a strong chain of direct reactivity
         // instead of tracking any declaration as a derived tracking attr
         // for convenience here, we push the entire declaration here, instead of the name like for direct this references (see above)
@@ -281,14 +297,20 @@ export function parseJsx(moduleURL) {
   // however, this requires making parseJsx async, but WCC acorn walking is done sync
   const hasOwnObservedAttributes = undefined;
   let inferredObservability = false;
+  // TODO: "merge" observedAtttibutes tracking with constructor tracking
   let observedAttributes = [];
+  let constructorMembersSignals = new Map();
+  let componentName;
   let tree = acorn.Parser.extend(jsx()).parse(result.code, {
     ecmaVersion: 'latest',
     sourceType: 'module',
   });
   string = '';
 
-  // TODO: would be nice to do this one pass, but first we need to know if `inferredObservability` is set first
+  // initial pass to get certain information before running JSX transformations (could we do this in one pass?)
+  // 1. if `inferredObservability` is set
+  // 2. get the name of the component class for `static` references
+  // 3, track observed attributes from `this` references in the template
   walk.simple(
     tree,
     {
@@ -308,6 +330,75 @@ export function parseJsx(moduleURL) {
           }
         }
       },
+      ExportDefaultDeclaration(node) {
+        const { declaration } = node;
+
+        if (
+          declaration &&
+          declaration.type === 'ClassDeclaration' &&
+          declaration.id &&
+          declaration.id.name
+        ) {
+          componentName = declaration.id.name;
+        }
+      },
+      ClassDeclaration(node) {
+        // @ts-ignore
+        if (node.superClass.name === 'HTMLElement') {
+          for (const n1 of node.body.body) {
+            if (n1.type === 'MethodDefinition') {
+              // @ts-ignore
+              const nodeName = n1.key.name;
+              if (nodeName === 'render') {
+                for (const n2 in n1.value.body.body) {
+                  const n = n1.value.body.body[n2];
+
+                  if (n.type === 'VariableDeclaration') {
+                    observedAttributes = [
+                      ...observedAttributes,
+                      ...findThisReferences('render', n),
+                    ];
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      MethodDefinition(node) {
+        // @ts-ignore
+        if (
+          node.kind === 'constructor' &&
+          node?.value.type === 'FunctionExpression' &&
+          node.value.body?.type === 'BlockStatement'
+        ) {
+          const root = node.value.body?.body;
+          for (const n of root) {
+            if (
+              n.type === 'ExpressionStatement' &&
+              n.expression?.type === 'AssignmentExpression' &&
+              n.expression?.operator === '=' &&
+              n.expression.left.object.type === 'ThisExpression'
+            ) {
+              const { left, right } = n.expression;
+              if (
+                right.type === 'NewExpression' &&
+                right.callee?.object?.type === 'Identifier' &&
+                right.callee?.object?.name === 'Signal'
+              ) {
+                const name = left.property.name;
+                const isState = right.callee?.property?.name === 'State';
+                const isComputed = right.callee?.property?.name === 'Computed';
+
+                constructorMembersSignals.set(name, {
+                  isState,
+                  isComputed,
+                });
+              }
+            }
+          }
+        }
+      },
     },
     {
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
@@ -317,6 +408,7 @@ export function parseJsx(moduleURL) {
     },
   );
 
+  // apply all JSX transformations
   walk.simple(
     tree,
     {
@@ -334,13 +426,7 @@ export function parseJsx(moduleURL) {
                 for (const n2 in n1.value.body.body) {
                   const n = n1.value.body.body[n2];
 
-                  if (n.type === 'VariableDeclaration') {
-                    observedAttributes = [
-                      ...observedAttributes,
-                      ...findThisReferences('render', n),
-                    ];
-                    // @ts-ignore
-                  } else if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
+                  if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
                     const html = parseJsxElement(n.argument, moduleContents, inferredObservability);
                     const elementTree = getParse(html)(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
@@ -393,6 +479,7 @@ export function parseJsx(moduleURL) {
     let insertPoint;
     for (const line of tree.body) {
       // TODO: test for class MyComponent vs export default class MyComponent
+      // https://github.com/ProjectEvergreen/wcc/issues/117
       // @ts-ignore
       if (
         line.type === 'ClassDeclaration' ||
@@ -405,89 +492,25 @@ export function parseJsx(moduleURL) {
 
     let newModuleContents = generate(tree);
     const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
-    // TODO ideally derivedAttrs would explicitly reference trackingAttrs
-    // and if there are no derivedAttrs, do not include the derivedGetters / derivedSetters code in the compiled output
-    const derivedAttrs = observedAttributes.filter((attr) => typeof attr !== 'string');
-    const derivedGetters = derivedAttrs
-      .map((attr) => {
-        return `
-        get_${attr.id.name}(${trackingAttrs.join(',')}) {
-          return ${moduleContents.slice(attr.init.start, attr.init.end)}
-        }
-      `;
-      })
-      .join('\n');
-    const derivedSetters = derivedAttrs
-      .map((attr) => {
-        const name = attr.id.name;
 
-        return `
-        const old_${name} = this.get_${name}(oldValue);
-        const new_${name} = this.get_${name}(newValue);
-        this.update('${name}', old_${name}, new_${name});
-      `;
-      })
-      .join('\n');
-
-    // TODO: better way to determine value type, e,g. array, int, object, etc?
-    // TODO: better way to test for shadowRoot presence when running querySelectorAll
+    // TODO: better way to determine value type, e,g. array, number, object, etc within `parseAttribute`?
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
-        return [${[...trackingAttrs].map((attr) => `'${attr}'`).join()}]
+        return [${[...trackingAttrs]
+          .filter((attr) => constructorMembersSignals.get(attr)?.isState)
+          .map((attr) => `'${attr}'`)
+          .join()}]
       }
-
+      static parseAttribute = (value) => value.charAt(0) === '{' || value.charAt(0) === '['
+        ? JSON.parse(value)
+        : !isNaN(value)
+          ? parseInt(value, 10)
+          : value === 'true' || value === 'false'
+            ? value === 'true' ? true : false
+            : value;
       attributeChangedCallback(name, oldValue, newValue) {
-        function getValue(value) {
-          return value.charAt(0) === '{' || value.charAt(0) === '['
-            ? JSON.parse(value)
-            : !isNaN(value)
-              ? parseInt(value, 10)
-              : value === 'true' || value === 'false'
-                ? value === 'true' ? true : false
-                : value;
-        }
-        if (newValue !== oldValue) {
-          switch(name) {
-            ${trackingAttrs
-              .map((attr) => {
-                return `
-                  case '${attr}':
-                    this.${attr} = getValue(newValue);
-                    break;
-                `;
-              })
-              .join('\n')}
-          }
-          this.update(name, oldValue, newValue);
-        }
+        this[name].set(${componentName}.parseAttribute(newValue));
       }
-
-      update(name, oldValue, newValue) {
-        const attr = \`data-wcc-\${name}\`;
-        const selector = \`[\${attr}]\`;
-
-        (this?.shadowRoot || this).querySelectorAll(selector).forEach((el) => {
-          // handle empty strings as a value for the purposes of attribute change detection
-          const needle = oldValue === '' ? '' : oldValue ?? el.getAttribute(attr);
-
-          switch(el.getAttribute('data-wcc-ins')) {
-            case 'text':
-              el.textContent = el.textContent.replace(needle, newValue);
-              break;
-            case 'attr':
-              if (el.hasAttribute(el.getAttribute(attr))) {
-                el.setAttribute(el.getAttribute(attr), newValue);
-              }
-              break;
-          }
-        })
-
-        if ([${[...trackingAttrs].map((attr) => `'${attr}'`).join()}].includes(name)) {
-          ${derivedSetters}
-        }
-      }
-
-      ${derivedGetters}
 
       ${newModuleContents.slice(insertPoint)}
     `;
