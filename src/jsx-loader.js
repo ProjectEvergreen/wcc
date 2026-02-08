@@ -80,7 +80,7 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
   return tree;
 }
 
-function parseJsxElement(element, moduleContents = '') {
+function parseJsxElement(element, moduleContents = '', inferredObservability) {
   try {
     const { type } = element;
 
@@ -136,9 +136,30 @@ function parseJsxElement(element, moduleContents = '') {
         } else if (attribute.name.type === 'JSXIdentifier') {
           // TODO: is there any difference between an attribute for an event handler vs a normal attribute?
           if (attribute.value) {
+            const expression = attribute?.value?.expression;
             if (attribute.value.type === 'Literal') {
               // xxx="yyy" >
               string += ` ${name}="${attribute.value.value}"`;
+            } else if (
+              expression &&
+              inferredObservability &&
+              attribute.value.type === 'JSXExpressionContainer' &&
+              expression?.type === 'CallExpression' &&
+              expression?.callee.type === 'MemberExpression' &&
+              expression?.arguments &&
+              expression?.callee?.property?.name === 'get'
+            ) {
+              // xxx={products.get().length} >
+              // TODO: do we need to handle for set()?
+              const { object, property } = expression.callee;
+
+              if (object.type === 'MemberExpression' && object?.object.type === 'ThisExpression') {
+                // The count is counter={this.count.get()}
+                string += ` ${name}=$\{${object.property.name}.${property.name}()}`;
+              } else if (object.type === 'Identifier') {
+                // xxx={products.get().length} >
+                string += ` ${name}=$\{${object.name}.${property.name}()}`;
+              }
             } else if (attribute.value.type === 'JSXExpressionContainer') {
               // xxx={allTodos.length} >
               const { value } = attribute;
@@ -173,7 +194,9 @@ function parseJsxElement(element, moduleContents = '') {
       string += openingElement.selfClosing ? ' />' : '>';
 
       if (element.children.length > 0) {
-        element.children.forEach((child) => parseJsxElement(child, moduleContents));
+        element.children.forEach((child) =>
+          parseJsxElement(child, moduleContents, inferredObservability),
+        );
       }
 
       string += `</${tagName}>`;
@@ -186,7 +209,18 @@ function parseJsxElement(element, moduleContents = '') {
     if (type === 'JSXExpressionContainer') {
       const { type } = element.expression;
 
-      if (type === 'Identifier') {
+      if (
+        inferredObservability &&
+        type === 'CallExpression' &&
+        element.expression.arguments &&
+        element.expression?.callee?.type === 'MemberExpression' &&
+        element.expression?.callee?.property?.name === 'get'
+      ) {
+        // The count is {count.get()}
+        // TODO: do we need to handle for set()?
+        const { object, property } = element.expression.callee;
+        string += `$\{${object.name}.${property.name}()}`;
+      } else if (type === 'Identifier') {
         // You have {count} TODOs left to complete
         string += `$\{${element.expression.name}}`;
       } else if (type === 'MemberExpression') {
@@ -263,7 +297,9 @@ export function parseJsx(moduleURL) {
   // however, this requires making parseJsx async, but WCC acorn walking is done sync
   const hasOwnObservedAttributes = undefined;
   let inferredObservability = false;
+  // TODO: "merge" observedAtttibutes tracking with constructor tracking
   let observedAttributes = [];
+  let constructorMembersSignals = new Map();
   let componentName;
   let tree = acorn.Parser.extend(jsx()).parse(result.code, {
     ecmaVersion: 'latest',
@@ -329,6 +365,40 @@ export function parseJsx(moduleURL) {
           }
         }
       },
+      MethodDefinition(node) {
+        // @ts-ignore
+        if (
+          node.kind === 'constructor' &&
+          node?.value.type === 'FunctionExpression' &&
+          node.value.body?.type === 'BlockStatement'
+        ) {
+          const root = node.value.body?.body;
+          for (const n of root) {
+            if (
+              n.type === 'ExpressionStatement' &&
+              n.expression?.type === 'AssignmentExpression' &&
+              n.expression?.operator === '=' &&
+              n.expression.left.object.type === 'ThisExpression'
+            ) {
+              const { left, right } = n.expression;
+              if (
+                right.type === 'NewExpression' &&
+                right.callee?.object?.type === 'Identifier' &&
+                right.callee?.object?.name === 'Signal'
+              ) {
+                const name = left.property.name;
+                const isState = right.callee?.property?.name === 'State';
+                const isComputed = right.callee?.property?.name === 'Computed';
+
+                constructorMembersSignals.set(name, {
+                  isState,
+                  isComputed,
+                });
+              }
+            }
+          }
+        }
+      },
     },
     {
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
@@ -357,7 +427,7 @@ export function parseJsx(moduleURL) {
                   const n = n1.value.body.body[n2];
 
                   if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                    const html = parseJsxElement(n.argument, moduleContents);
+                    const html = parseJsxElement(n.argument, moduleContents, inferredObservability);
                     const elementTree = getParse(html)(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
@@ -426,7 +496,10 @@ export function parseJsx(moduleURL) {
     // TODO: better way to determine value type, e,g. array, number, object, etc within `parseAttribute`?
     newModuleContents = `${newModuleContents.slice(0, insertPoint)}
       static get observedAttributes() {
-        return [${[...trackingAttrs].map((attr) => `'${attr}'`).join()}]
+        return [${[...trackingAttrs]
+          .filter((attr) => constructorMembersSignals.get(attr)?.isState)
+          .map((attr) => `'${attr}'`)
+          .join()}]
       }
       static parseAttribute = (value) => value.charAt(0) === '{' || value.charAt(0) === '['
         ? JSON.parse(value)

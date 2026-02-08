@@ -5,18 +5,17 @@ export const inferredObservability = true;
 export default class Counter extends HTMLElement {
   constructor() {
     super();
-    this.count = 0;
-    this.highlight = 'red';
+    this.count = new Signal.State(0);
+    this.highlight = new Signal.State('red');
+    this.parity = new Signal.Computed(() => (this.count.get() % 2 === 0 ? 'even' : 'odd'));
   }
 
   increment() {
-    this.count += 1;
-    this.render();
+    this.count.set(this.count.get() + 1);
   }
 
   decrement() {
-    this.count -= 1;
-    this.render();
+    this.count.set(this.count.get() - 1);
   }
 
   connectedCallback() {
@@ -28,24 +27,27 @@ export default class Counter extends HTMLElement {
 
     return (
       <div>
-        <wcc-badge count={count}></wcc-badge>
+        <wcc-badge count={this.count.get()}></wcc-badge>
         <h3 data-test="hello123">Counter JSX</h3>
         <button id="evt-this" onclick={this.decrement}>
           {' '}
           - (function reference)
         </button>
-        <button id="evt-assignment" onclick={(this.count -= 1)}>
+        <button id="evt-assignment" onclick={() => this.count.set(this.count.get() - 1)}>
           {' '}
           - (inline state update)
         </button>
         <span>
           You have clicked{' '}
-          <span class={highlight} id="expression">
-            {count}
+          <span class={highlight.get()} id="expression">
+            {count.get()}
           </span>{' '}
           times
         </span>
-        <button onclick={(this.count += 1)}> + (inline state update)</button>
+        <button onclick={() => this.count.set(this.count.get() + 1)}>
+          {' '}
+          + (inline state update)
+        </button>
         <button onclick={this.increment}> + (function reference)</button>
       </div>
     );
