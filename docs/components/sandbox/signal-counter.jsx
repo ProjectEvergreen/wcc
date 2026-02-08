@@ -35,7 +35,7 @@ export default class SignalCounter extends HTMLElement {
         <button onclick={this.decrement}>Decrement (-)</button>
         <button onclick={() => this.count.set(this.count.get() * 2)}>Double (++)</button>
         <span>
-          The count is ${count.get()} (${parity.get()})
+          The count is {count.get()} ({parity.get()})
         </span>
       </div>
     );

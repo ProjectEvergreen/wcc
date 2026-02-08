@@ -1,20 +1,21 @@
 export const inferredObservability = true;
 
 export default class Counter extends HTMLElement {
-  count: number;
+  // TODO: get Signal types for this
+  count: any;
 
   constructor() {
     super();
-    this.count = 0;
+    this.count = new Signal.State(0);
   }
 
   increment() {
-    this.count += 1;
+    this.count.set(this.count.get() + 1);
     this.render();
   }
 
   decrement() {
-    this.count -= 1;
+    this.count.set(this.count.get() - 1);
     this.render();
   }
 
@@ -39,11 +40,11 @@ export default class Counter extends HTMLElement {
         <span>
           You have clicked{' '}
           <span class="red" id="expression">
-            {count}
+            {count.get()}
           </span>{' '}
           times
         </span>
-        <button onclick={(this.count += 1)}> + (inline state update)</button>
+        <button onclick={() => count.set(count.get() + 1)}> + (inline state update)</button>
         <button onclick={this.increment}> + (function reference)</button>
       </div>
     );
