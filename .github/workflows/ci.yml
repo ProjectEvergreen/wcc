@@ -25,6 +25,9 @@ jobs:
       - name: Lint
         run: |
           npm run lint
+      - name: Build
+        run: |
+          npm run build
       - name: Check Types
         run: |
           npm run check:types
