@@ -11,6 +11,7 @@ To develop for the project, you'll want to follow these steps:
 1. Clone the repository
 1. Have [NodeJS LTS](https://nodejs.org) installed and / or use `nvm` (see below)
 1. Run `npm ci`
+1. Run `npx playwright install`
 
 ### NVM
 
@@ -47,6 +48,11 @@ The website is built with [**Greenwood**](https://www.greenwoodjs.dev). To run t
 - `npm run dev` - Start the dev server
 - `npm run build` - Generate a production build
 - `npm run serve` - Serve a production build
+
+To run tests for the website, first make sure you have at least run `npm run build`, then:
+
+- `npm run test:docs` - Run a single suite of tests with Vitest
+- `npm run test:docs:tdd` - Run the test suite with Vitest in watch mode
 
 ### Sandbox
 

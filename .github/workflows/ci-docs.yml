@@ -24,4 +24,4 @@ jobs:
           npx playwright install
       - name: Test Docs
         run: |
-          npm run test:docs
+          npm run build && npm run test:docs
