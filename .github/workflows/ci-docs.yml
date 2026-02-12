@@ -21,8 +21,7 @@ jobs:
           npm ci
       - name: Setup Playwright
         run: |
-          npx playwright install
-            - name: Build
+          npx playwright install --with-deps
       - name: Build the website
         run: |
           npm run build
