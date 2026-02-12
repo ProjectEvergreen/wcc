@@ -4,10 +4,13 @@ import { parseJsx } from './src/jsx-loader.js';
 import { generate } from 'astring'; // comes from @greenwood/plugin-import-jsx
 import { greenwoodPluginImportRaw } from '@greenwood/plugin-import-raw';
 // @ts-expect-error
+import { greenwoodPluginStandardCss } from '@greenwood/cli/src/plugins/resource/plugin-standard-css.js';
+// @ts-expect-error
 import { readAndMergeConfig } from '@greenwood/cli/src/lifecycles/config.js';
 // @ts-expect-error
 import { initContext } from '@greenwood/cli/src/lifecycles/context.js';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { Plugin } from 'vite';
 
 // initialize Greenwood context and plugins
@@ -16,6 +19,7 @@ const context = await initContext({ config });
 const compilation = { context, config };
 // @ts-expect-error
 const rawResource = greenwoodPluginImportRaw()[0].provider(compilation);
+const standardCssResource = greenwoodPluginStandardCss.provider(compilation);
 
 function transformJsx(): Plugin {
   return {
@@ -30,6 +34,41 @@ function transformJsx(): Plugin {
           code: contents,
           map: null,
         };
+      }
+    },
+  };
+}
+
+function transformConstructableStylesheetsPlugin(): Plugin {
+  return {
+    name: 'transform-constructable-stylesheets',
+    enforce: 'pre',
+    resolveId: (id, importer) => {
+      if (
+        // you'll need to configure this `importer` line to the location of your own components
+        importer?.indexOf('/docs/components/') >= 0 &&
+        id.endsWith('.css') &&
+        !id.endsWith('.module.css')
+      ) {
+        // append .type to the end of Constructable Stylesheet file paths so that they are not automatically precessed by Vite's default pipeline
+        return path.join(path.dirname(importer), `${id}.type`);
+      }
+    },
+    load: async (id) => {
+      if (id.endsWith('.css.type')) {
+        const filename = id.slice(0, -5);
+        const contents = await fs.readFile(filename, 'utf-8');
+        const url = new URL(`file://${id.replace('.type', '')}`);
+        // "coerce" native constructable stylesheets into inline JS so Vite / Rollup do not complain
+        const request = new Request(url, {
+          headers: {
+            Accept: 'text/javascript',
+          },
+        });
+        const response = await standardCssResource.intercept(url, request, new Response(contents));
+        const body = await response.text();
+
+        return body;
       }
     },
   };
@@ -69,13 +108,7 @@ export default defineConfig({
       provider: 'v8',
       include: ['./docs/components/**'],
       exclude: ['./docs/components/sandbox/**'],
-      // thresholds: {
-      //   lines: 80,
-      //   functions: 80,
-      //   branches: 80,
-      //   statements: 80,
-      // }
     },
   },
-  plugins: [transformJsx(), transformRawImports()],
+  plugins: [transformJsx(), transformRawImports(), transformConstructableStylesheetsPlugin()],
 });
