@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import pages from '../../../.greenwood/graph.json' with { type: 'json' };
-import './header.tsx';
 import type { Page } from '@greenwood/cli';
+import './header.tsx';
 
 const CURRENT_ROUTE = '/docs/';
 

@@ -14,7 +14,8 @@
     "types": ["mocha", "node"],
     "jsx": "preserve",
     "jsxImportSource": "wc-compiler",
-    "lib": ["DOM"]
+    "lib": ["DOM"],
+    "resolveJsonModule": true
   },
   "exclude": ["node_modules"]
 }
