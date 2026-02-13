@@ -1,18 +1,22 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, beforeAll, afterAll } from 'vitest';
 import pages from '../../../.greenwood/graph.json' with { type: 'json' };
 import type { Page } from '@greenwood/cli';
 import './header.tsx';
 
 const CURRENT_ROUTE = '/docs/';
 
-window.fetch = function () {
-  return new Promise((resolve) => {
-    resolve(new Response(JSON.stringify(pages.filter((page) => page.data.collection === 'nav'))));
-  });
-};
-
 describe('Components/Header', () => {
   let header: HTMLElement;
+
+  beforeAll(() => {
+    window.fetch = vi.fn((): Promise<Response> => {
+      return new Promise((resolve) => {
+        resolve(
+          new Response(JSON.stringify(pages.filter((page) => page.data.collection === 'nav'))),
+        );
+      });
+    });
+  });
 
   beforeEach(async () => {
     header = document.createElement('wcc-header');
@@ -130,5 +134,10 @@ describe('Components/Header', () => {
   afterEach(() => {
     header.remove();
     header = undefined;
+  });
+
+  afterAll(() => {
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 });
