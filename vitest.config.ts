@@ -108,6 +108,12 @@ export default defineConfig({
       provider: 'v8',
       include: ['./docs/components/**'],
       exclude: ['./docs/components/sandbox/**'],
+      thresholds: {
+        lines: 65,
+        functions: 75,
+        branches: 50,
+        statements: 65,
+      },
     },
   },
   plugins: [transformJsx(), transformRawImports(), transformConstructableStylesheetsPlugin()],

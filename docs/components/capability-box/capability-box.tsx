@@ -6,12 +6,12 @@ export default class CapabilityBox extends HTMLElement {
   }
 
   render() {
-    const heading = this.getAttribute('heading');
+    const heading = this.getAttribute('heading') ?? '';
     const { innerHTML } = this;
 
     return (
       <div class={styles.container}>
-        <span class={styles.heading}>{heading}</span>
+        <h4 class={styles.heading}>{heading}</h4>
         {innerHTML}
       </div>
     );

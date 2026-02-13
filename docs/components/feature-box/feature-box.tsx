@@ -15,16 +15,16 @@ export default class FeatureBox extends HTMLElement {
   }
 
   render() {
-    const heading = this.getAttribute('heading');
+    const heading = this.getAttribute('heading') ?? '';
     const { innerHTML } = this;
-    const icon = FeatureBox.ICON_MAPPER[heading];
+    const icon = FeatureBox.ICON_MAPPER[heading] ?? '';
 
     return (
       <div class={styles.container}>
-        <span class={styles.heading}>
+        <h4 class={styles.heading}>
           <span class={styles.icon}>{icon}</span>
           <span>{heading}</span>
-        </span>
+        </h4>
         {innerHTML}
       </div>
     );
