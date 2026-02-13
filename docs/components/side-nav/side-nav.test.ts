@@ -72,16 +72,17 @@ const GRAPH = [
   },
 ];
 
-// https://stackoverflow.com/questions/45425169/intercept-fetch-api-requests-and-responses-in-javascript
-window.fetch = function () {
-  return new Promise((resolve) => {
-    resolve(new Response(JSON.stringify(GRAPH)));
-  });
-};
-
 describe('Components/Side Nav', () => {
   let nav: HTMLElement;
   let expectedDocsContent: DocsPage;
+
+  beforeAll(() => {
+    window.fetch = vi.fn((): Promise<Response> => {
+      return new Promise((resolve) => {
+        resolve(new Response(JSON.stringify(GRAPH)));
+      });
+    });
+  });
 
   beforeEach(async () => {
     nav = document.createElement('wcc-side-nav');
@@ -197,5 +198,10 @@ describe('Components/Side Nav', () => {
   afterEach(() => {
     nav.remove();
     nav = undefined;
+  });
+
+  afterAll(() => {
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 });
