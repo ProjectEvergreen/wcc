@@ -1,0 +1,24 @@
+name: 📚 Website and Documentation
+description: Website and documentation related content.
+title: 'document feature x of WCC...'
+labels: ['documentation']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping out to improve the WCC website!
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Please provide a summary of the documentation changes needed.
+      placeholder: Update the website to include a new section...
+    validations:
+      required: true
+  - type: textarea
+    id: additional-details
+    attributes:
+      label: Additional Details
+      description: Please provide any additional details, links, code snippets, or resources that may provide useful context.
+    validations:
+      required: false
