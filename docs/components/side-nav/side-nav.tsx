@@ -1,13 +1,13 @@
 import type { Page, Graph } from '@greenwood/cli';
 import { getContent } from '@greenwood/cli/src/data/client.js';
-import styles from './sidenav.module.css';
+import styles from './side-nav.module.css';
 
-type TableOfContents = Array<{
+export type TableOfContents = Array<{
   content: string;
   slug: string;
 }>;
 
-type DocsPage = Page & {
+export type DocsPage = Page & {
   data?: {
     tableOfContents?: TableOfContents;
   };
@@ -38,13 +38,13 @@ export default class SideNav extends HTMLElement {
       .join('');
 
     return (
-      <div>
-        <div class={styles.fullMenu}>
+      <nav>
+        <div id="main-menu" class={styles.fullMenu}>
           <p class={styles.tableOfContentHeader}>Table of Contents</p>
           <ul>{tocList}</ul>
         </div>
 
-        <div class={styles.compactMenu}>
+        <div id="mobile-menu" class={styles.compactMenu}>
           <button
             popovertarget="compact-menu"
             class={styles.compactMenuPopoverTrigger}
@@ -66,9 +66,9 @@ export default class SideNav extends HTMLElement {
             <ul>{tocList}</ul>
           </div>
         </div>
-      </div>
+      </nav>
     );
   }
 }
 
-customElements.define('wcc-sidenav', SideNav);
+customElements.define('wcc-side-nav', SideNav);
