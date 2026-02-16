@@ -88,6 +88,46 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
   return tree;
 }
 
+// TODO handle if / else statements
+// https://github.com/ProjectEvergreen/wcc/issues/88
+function findThisReferences(context, statement) {
+  const references = [];
+  const isRenderFunctionContext = context === 'render';
+  const { expression, type } = statement;
+  const isConstructorThisAssignment =
+    context === 'constructor' &&
+    type === 'ExpressionStatement' &&
+    expression.type === 'AssignmentExpression' &&
+    expression.left.object.type === 'ThisExpression';
+
+  if (isConstructorThisAssignment) {
+    // this.name = 'something'; // constructor
+    references.push(expression.left.property.name);
+  } else if (isRenderFunctionContext && type === 'VariableDeclaration') {
+    statement.declarations.forEach((declaration) => {
+      const { init, id } = declaration;
+
+      if (init.object && init.object.type === 'ThisExpression') {
+        // const { description } = this.todo;
+        references.push(init.property.name);
+      } else if (init.type === 'ThisExpression' && id && id.properties) {
+        // const { id, description } = this;
+        id.properties.forEach((property) => {
+          references.push(property.key.name);
+        });
+      } else {
+        // TODO: we are just blindly tracking anything here.
+        // everything should ideally be mapped to actual this references, to create a strong chain of direct reactivity
+        // instead of tracking any declaration as a derived tracking attr
+        // for convenience here, we push the entire declaration here, instead of the name like for direct this references (see above)
+        references.push(declaration);
+      }
+    });
+  }
+
+  return references;
+}
+
 function parseJsxElement(element, moduleContents = '', inferredObservability) {
   try {
     const { type } = element;
@@ -253,46 +293,6 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
   }
 
   return string;
-}
-
-// TODO handle if / else statements
-// https://github.com/ProjectEvergreen/wcc/issues/88
-function findThisReferences(context, statement) {
-  const references = [];
-  const isRenderFunctionContext = context === 'render';
-  const { expression, type } = statement;
-  const isConstructorThisAssignment =
-    context === 'constructor' &&
-    type === 'ExpressionStatement' &&
-    expression.type === 'AssignmentExpression' &&
-    expression.left.object.type === 'ThisExpression';
-
-  if (isConstructorThisAssignment) {
-    // this.name = 'something'; // constructor
-    references.push(expression.left.property.name);
-  } else if (isRenderFunctionContext && type === 'VariableDeclaration') {
-    statement.declarations.forEach((declaration) => {
-      const { init, id } = declaration;
-
-      if (init.object && init.object.type === 'ThisExpression') {
-        // const { description } = this.todo;
-        references.push(init.property.name);
-      } else if (init.type === 'ThisExpression' && id && id.properties) {
-        // const { id, description } = this;
-        id.properties.forEach((property) => {
-          references.push(property.key.name);
-        });
-      } else {
-        // TODO: we are just blindly tracking anything here.
-        // everything should ideally be mapped to actual this references, to create a strong chain of direct reactivity
-        // instead of tracking any declaration as a derived tracking attr
-        // for convenience here, we push the entire declaration here, instead of the name like for direct this references (see above)
-        references.push(declaration);
-      }
-    });
-  }
-
-  return references;
 }
 
 export function parseJsx(moduleURL) {
@@ -481,14 +481,14 @@ export function parseJsx(moduleURL) {
                 if (template !== '' && signals.length > 0) {
                   const $$templ = `$$tmpl${effects.length}`;
                   // TODO: need to handle runtime assumption here with `_wcc`
-                  // TODO: handle when there is only one signal (e.g. no danging comma))
                   const staticTemplate = `static ${$$templ} = (${signals.join(',')}) => _wcc\`${template}\`;`;
-                  // TODO: handle when there is only one signal (e.g. no danging comma))
-                  const effect = `${componentName}.${$$templ}(${signals.map((s) => `${s}.get()`).join(', ')});`;
+                  // TODO: handle this references?
+                  // https://www.github.com/ProjectEvergreen/wcc/issues/88
+                  const expression = `${componentName}.${$$templ}(${signals.map((s) => `this.${s}.get()`).join(', ')});`;
 
                   effects.push({
                     template: staticTemplate,
-                    effect,
+                    expression,
                     selector,
                   });
                 }
@@ -528,23 +528,8 @@ export function parseJsx(moduleURL) {
                     const html = parseJsxElement(n.argument, moduleContents, inferredObservability);
                     const elementTree = getParse(html)(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
-                    let allEffects = '';
-                    applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
-                    console.log('EFFECT', { effects });
-                    // TODO: is this best place to do this?  or maybe connectedCallback or constructor?
-                    // TODO: can we move this down to the inferredObservability block where we set attributeChangedCallback
-                    // TODO: detect for shadowRoot vs innerHTML here
-                    // TODO: we should cache these element queries instead querying on every effect trigger
-                    if (inferredObservability && effects.length > 0) {
-                      effects.map((effect) => {
-                        allEffects += `
-                          effect(() => {
-                            this.shadowRoot.querySelector('${effect.selector}').textContent = ${effect.effect}
-                          });\n
-                        `;
-                      });
-                    }
+                    applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
                     const serializedHtml = serialize(elementTree);
                     // we have to Shadow DOM use cases here
@@ -563,10 +548,8 @@ export function parseJsx(moduleURL) {
                         } else {
                           this.shadowRoot.innerHTML = template.innerHTML;
                         }
-
-                        ${allEffects}
                       `
-                      : `${elementRoot}.innerHTML = \`${serializedHtml}\`; ${allEffects}`;
+                      : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
                     const transformed = acorn.parse(renderHandler, {
                       ecmaVersion: 'latest',
                       sourceType: 'module',
@@ -590,14 +573,16 @@ export function parseJsx(moduleURL) {
     },
   );
 
-  // TODO: why does this compilation happen twice?  logging here will output the message twice
+  // TODO: why does this compilation run twice?  logging here will output the message twice
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
     console.log(
       'Adding static observedAttributes and attributeChangedCallback for inferredObservability',
       { effects },
     );
 
-    // here we wire up all effects, templates, and observed attributes that we've tracked so far to inject into the top of the class body
+    // here we do the following with all the work we've done so far tracking attributes, signals, effects, etc
+    // 1. setup static template functions and observed attributes that we've tracked so far to inject into the top of the class body
+    // 1. append all effects to the end of the connectedCallback function
     walk.simple(
       tree,
       {
@@ -613,7 +598,8 @@ export function parseJsx(moduleURL) {
             console.log('statics', `${effects.map((effect) => effect.template).join('\n')}`);
             console.log('observedAttributes', trackingAttrs);
             console.log('effects', effects.map((effect) => effect.template).join('\n'));
-            // TODO: better way to determine value type, e,g. array, number, object, etc within `parseAttribute`?
+
+            // TODO: better way to determine value type, e,g. array, number, object, etc for `parseAttribute`?
             // have to wrap these `static` calls in a class here, otherwise we can't parse them standalone w/ acorn
             const staticContents = `
               class Stub {
@@ -643,6 +629,28 @@ export function parseJsx(moduleURL) {
             });
 
             node.body.body.unshift(...staticContentsTree.body[0].body.body);
+          }
+        },
+        MethodDefinition(node) {
+          // TODO: detect for shadowRoot vs innerHTML here
+          // TODO: we should cache these element queries instead querying on every effect trigger
+          if (node.key.name === 'connectedCallback') {
+            const effectContents = effects
+              .map(
+                (effect) => `
+                  effect(() => {
+                    this.shadowRoot.querySelector('${effect.selector}').textContent = ${effect.expression}
+                  });\n
+                `,
+              )
+              .join('\n');
+
+            const effectContentsTree = acorn.parse(effectContents, {
+              ecmaVersion: 'latest',
+              sourceType: 'module',
+            });
+
+            node.value.body.body = [...node.value.body.body, ...effectContentsTree.body];
           }
         },
       },
