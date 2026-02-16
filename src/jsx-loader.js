@@ -311,6 +311,7 @@ export function parseJsx(moduleURL) {
   let constructorMembersSignals = new Map();
   let effects = [];
   let componentName;
+  let hasShadowRoot;
   let tree = acorn.Parser.extend(jsx()).parse(result.code, {
     ecmaVersion: 'latest',
     sourceType: 'module',
@@ -513,7 +514,7 @@ export function parseJsx(moduleURL) {
       ClassDeclaration(node) {
         // @ts-ignore
         if (node.superClass.name === 'HTMLElement') {
-          const hasShadowRoot =
+          hasShadowRoot =
             moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
           for (const n1 of node.body.body) {
@@ -581,8 +582,9 @@ export function parseJsx(moduleURL) {
     );
 
     // here we do the following with all the work we've done so far tracking attributes, signals, effects, etc
-    // 1. setup static template functions and observed attributes that we've tracked so far to inject into the top of the class body
-    // 1. append all effects to the end of the connectedCallback function
+    // - setup static template functions and observed attributes that we've tracked so far to inject into the top of the class body
+    // - append all effects to the end of the connectedCallback function
+    // - setup cache references to all elements used in effects
     walk.simple(
       tree,
       {
@@ -595,14 +597,14 @@ export function parseJsx(moduleURL) {
             // TODO: do we even need this filter?
             const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
 
-            console.log('statics', `${effects.map((effect) => effect.template).join('\n')}`);
+            console.log('effect', { effects });
             console.log('observedAttributes', trackingAttrs);
-            console.log('effects', effects.map((effect) => effect.template).join('\n'));
 
             // TODO: better way to determine value type, e,g. array, number, object, etc for `parseAttribute`?
             // have to wrap these `static` calls in a class here, otherwise we can't parse them standalone w/ acorn
             const staticContents = `
               class Stub {
+                ${effects.map((effect, idx) => `$el${idx};`).join('')}
                 ${effects.map((effect) => effect.template).join('\n')}
                 static get observedAttributes() {
                   return [${[...trackingAttrs]
@@ -635,22 +637,34 @@ export function parseJsx(moduleURL) {
           // TODO: detect for shadowRoot vs innerHTML here
           // TODO: we should cache these element queries instead querying on every effect trigger
           if (node.key.name === 'connectedCallback') {
+            const root = hasShadowRoot ? 'this.shadowRoot' : 'this';
+            const effectElements = effects
+              .map((effect, idx) => `this.$el${idx} = ${root}.querySelector('${effect.selector}');`)
+              .join('\n');
             const effectContents = effects
               .map(
-                (effect) => `
+                (effect, idx) => `                  
                   effect(() => {
-                    this.shadowRoot.querySelector('${effect.selector}').textContent = ${effect.expression}
+                    this.$el${idx}.textContent = ${effect.expression}
                   });\n
                 `,
               )
               .join('\n');
 
+            const effectElementsTree = acorn.parse(effectElements, {
+              ecmaVersion: 'latest',
+              sourceType: 'module',
+            });
             const effectContentsTree = acorn.parse(effectContents, {
               ecmaVersion: 'latest',
               sourceType: 'module',
             });
 
-            node.value.body.body = [...node.value.body.body, ...effectContentsTree.body];
+            node.value.body.body = [
+              ...node.value.body.body,
+              ...effectElementsTree.body,
+              ...effectContentsTree.body,
+            ];
           }
         },
       },
