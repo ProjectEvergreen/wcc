@@ -6,13 +6,18 @@ import fs from 'fs';
 // ideally we can eventually adopt an ESM compatible version of this plugin
 // https://github.com/acornjs/acorn-jsx/issues/112
 // @ts-ignore
-// but it does have a default export???
+// but it does have a default export?
 import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
 import { transform } from 'sucrase';
-import { Signal } from 'signal-polyfill';
 
+// Signal has to come before effect
+import { Signal } from 'signal-polyfill';
 globalThis.Signal = globalThis.Signal ?? Signal;
+
+// no-op implementation for SSR
+function effect() {}
+globalThis.effect = globalThis.effect ?? effect;
 
 const jsxRegex = /\.(jsx)$/;
 const tsxRegex = /\.(tsx)$/;
@@ -297,9 +302,10 @@ export function parseJsx(moduleURL) {
   // however, this requires making parseJsx async, but WCC acorn walking is done sync
   const hasOwnObservedAttributes = undefined;
   let inferredObservability = false;
-  // TODO: "merge" observedAtttibutes tracking with constructor tracking
+  // TODO: "merge" observedAttributes tracking with constructor tracking
   let observedAttributes = [];
   let constructorMembersSignals = new Map();
+  let effects = [];
   let componentName;
   let tree = acorn.Parser.extend(jsx()).parse(result.code, {
     ecmaVersion: 'latest',
@@ -408,6 +414,92 @@ export function parseJsx(moduleURL) {
     },
   );
 
+  // we do this first to track reactivity usage before we transform the template and re-write its contents
+  if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
+    console.log(
+      'inferredObservability enabled, but no static observedAttributes defined. Adding observedAttributes for',
+      observedAttributes,
+    );
+
+    // TODO: can this be done during the transformation pass instead of having to generate and re-parse the module again?
+    // this scans for signals usage within the template and builds up reactive list of templates + effects
+    // - text nodes
+    // - TODO: attributes
+    // - TODO: recursive scanning for nested components
+    walk.simple(
+      tree,
+      {
+        MethodDefinition(node) {
+          if (node.key.name === 'render') {
+            for (const n2 in node.value.body.body) {
+              const n = node.value.body.body[n2];
+              if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
+                console.log('ENTERING TEMPLATE AT =>', n.argument.openingElement.name.name);
+                let template = '';
+                let signals = [];
+                let selector;
+
+                for (const child of n.argument.children) {
+                  // TODO: need to handle recursion
+                  if (child.type === 'JSXText') {
+                    // console.log('TEXT NODE', { child })
+                    // TODO: track top level reactivity
+                  } else if (child.type === 'JSXElement') {
+                    console.log('ENTERING CHILD ELEMENT', child.openingElement.name.name);
+                    const hasReactivity = child.children.some(
+                      (c) =>
+                        c.type === 'JSXExpressionContainer' &&
+                        c.expression?.type === 'CallExpression' &&
+                        c.expression?.callee?.type === 'MemberExpression' &&
+                        c.expression?.callee?.property?.name === 'get',
+                    );
+
+                    if (hasReactivity) {
+                      console.log('CHILD ELEMENT HAS REACTIVITY', child.openingElement.name.name);
+                      selector = `${n.argument.openingElement.name.name} > ${child.openingElement.name.name}`;
+                      for (const c of child.children) {
+                        // TODO: track attributes here too for the template
+                        if (c.type === 'JSXText') {
+                          // TODO: trim text / line breaks?
+                          template += c.value;
+                        } else if (c.type === 'JSXExpressionContainer') {
+                          const { object } = c.expression.callee || {};
+                          template += `$\{${object.name}}`;
+                          signals.push(object.name);
+                        }
+                      }
+                    }
+                  }
+                }
+
+                if (template !== '' && signals.length > 0) {
+                  const $$templ = `$$tmpl${effects.length}`;
+                  // TODO: need to handle runtime assumption here with `_wcc`
+                  // TODO: handle when there is only one signal (e.g. no danging comma))
+                  const staticTemplate = `static ${$$templ} = (${signals.join(',')}) => _wcc\`${template}\`;`;
+                  // TODO: handle when there is only one signal (e.g. no danging comma))
+                  const effect = `${componentName}.${$$templ}(${signals.map((s) => `${s}.get()`).join(', ')});`;
+
+                  effects.push({
+                    template: staticTemplate,
+                    effect,
+                    selector,
+                  });
+                }
+              }
+            }
+          }
+        },
+      },
+      {
+        // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
+        ...walk.base,
+        // @ts-ignore
+        JSXElement: () => {},
+      },
+    );
+  }
+
   // apply all JSX transformations
   walk.simple(
     tree,
@@ -430,8 +522,25 @@ export function parseJsx(moduleURL) {
                     const html = parseJsxElement(n.argument, moduleContents, inferredObservability);
                     const elementTree = getParse(html)(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
-
+                    let allEffects = '';
                     applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
+
+                    console.log('EFFECT', { effects });
+                    // TODO: is this best place to do this?  or maybe connectedCallback or constructor?
+                    // TODO: can we move this down to the inferredObservability block where we set attributeChangedCallback
+                    // TODO: detect for shadowRoot vs innerHTML here
+                    // TODO: we should cache these element queries instead querying on every effect trigger
+                    if (inferredObservability && effects.length > 0) {
+                      effects.map((effect) => {
+                        allEffects += `
+                          effect(() => {
+                            this.shadowRoot.querySelector('${effect.selector}').textContent = ${effect.effect}
+                          });\n
+                        `;
+                      });
+                    }
+
+                    console.log({ allEffects });
 
                     const serializedHtml = serialize(elementTree);
                     // we have to Shadow DOM use cases here
@@ -450,8 +559,10 @@ export function parseJsx(moduleURL) {
                         } else {
                           this.shadowRoot.innerHTML = template.innerHTML;
                         }
+
+                        ${allEffects}
                       `
-                      : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
+                      : `${elementRoot}.innerHTML = \`${serializedHtml}\`; ${allEffects}`;
                     const transformed = acorn.parse(renderHandler, {
                       ecmaVersion: 'latest',
                       sourceType: 'module',
@@ -475,50 +586,69 @@ export function parseJsx(moduleURL) {
     },
   );
 
+  // TODO: why does this compilation happen twice?  logging here will output the message twice
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
-    let insertPoint;
-    for (const line of tree.body) {
-      // TODO: test for class MyComponent vs export default class MyComponent
-      // https://github.com/ProjectEvergreen/wcc/issues/117
-      // @ts-ignore
-      if (
-        line.type === 'ClassDeclaration' ||
-        (line.declaration && line.declaration.type) === 'ClassDeclaration'
-      ) {
+    console.log(
+      'Adding static observedAttributes and attributeChangedCallback for inferredObservability',
+      { effects },
+    );
+
+    // here we wire up all effects, templates, and observed attributes that we've tracked so far to inject into the top of the class body
+    walk.simple(
+      tree,
+      {
+        ClassDeclaration(node) {
+          if (
+            node.id.name === componentName &&
+            node.type === 'ClassDeclaration' &&
+            node.body.type === 'ClassBody'
+          ) {
+            // TODO: do we even need this filter?
+            const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
+
+            console.log('statics', `${effects.map((effect) => effect.template).join('\n')}`);
+            console.log('observedAttributes', trackingAttrs);
+            console.log('effects', effects.map((effect) => effect.template).join('\n'));
+            // TODO: better way to determine value type, e,g. array, number, object, etc within `parseAttribute`?
+            // have to wrap these `static` calls in a class here, otherwise we can't parse them standalone w/ acorn
+            const staticContents = `
+              class Stub {
+                ${effects.map((effect) => effect.template).join('\n')}
+                static get observedAttributes() {
+                  return [${[...trackingAttrs]
+                    .filter((attr) => constructorMembersSignals.get(attr)?.isState)
+                    .map((attr) => `'${attr}'`)
+                    .join()}]
+                }
+                static parseAttribute = (value) => value.charAt(0) === '{' || value.charAt(0) === '['
+                  ? JSON.parse(value)
+                  : !isNaN(value)
+                    ? parseInt(value, 10)
+                    : value === 'true' || value === 'false'
+                      ? value === 'true' ? true : false
+                      : value;
+                attributeChangedCallback(name, oldValue, newValue) {
+                  this[name].set(${componentName}.parseAttribute(newValue));
+                }
+              }
+            `;
+
+            const staticContentsTree = acorn.parse(staticContents, {
+              ecmaVersion: 'latest',
+              sourceType: 'module',
+            });
+
+            node.body.body.unshift(...staticContentsTree.body[0].body.body);
+          }
+        },
+      },
+      {
+        // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
+        ...walk.base,
         // @ts-ignore
-        insertPoint = line.declaration.body.start + 1;
-      }
-    }
-
-    let newModuleContents = generate(tree);
-    const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
-
-    // TODO: better way to determine value type, e,g. array, number, object, etc within `parseAttribute`?
-    newModuleContents = `${newModuleContents.slice(0, insertPoint)}
-      static get observedAttributes() {
-        return [${[...trackingAttrs]
-          .filter((attr) => constructorMembersSignals.get(attr)?.isState)
-          .map((attr) => `'${attr}'`)
-          .join()}]
-      }
-      static parseAttribute = (value) => value.charAt(0) === '{' || value.charAt(0) === '['
-        ? JSON.parse(value)
-        : !isNaN(value)
-          ? parseInt(value, 10)
-          : value === 'true' || value === 'false'
-            ? value === 'true' ? true : false
-            : value;
-      attributeChangedCallback(name, oldValue, newValue) {
-        this[name].set(${componentName}.parseAttribute(newValue));
-      }
-
-      ${newModuleContents.slice(insertPoint)}
-    `;
-
-    tree = acorn.Parser.extend(jsx()).parse(newModuleContents, {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-    });
+        JSXElement: () => {},
+      },
+    );
   }
 
   return tree;

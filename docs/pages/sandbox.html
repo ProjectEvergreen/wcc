@@ -46,7 +46,8 @@
     <script type="importmap">
       {
         "imports": {
-          "signal-polyfill": "../node_modules/signal-polyfill/dist/index.js"
+          "signal-polyfill": "../node_modules/signal-polyfill/dist/index.js",
+          "wc-compiler/effect": "../node_modules/wc-compiler/src/effect.js"
         }
       }
     </script>
@@ -54,6 +55,19 @@
       import { Signal } from 'signal-polyfill';
 
       globalThis.Signal = Signal;
+    </script>
+    <script type="module">
+      // NOTE: `Signal` has to be defined first
+      import { effect } from 'wc-compiler/effect';
+      globalThis.effect = effect;
+
+      globalThis._wcc = function (strings, ...values) {
+        let str = '';
+        strings.forEach((string, i) => {
+          str += string + (values[i] === 0 ? '0' : values[i] || '');
+        });
+        return str;
+      };
     </script>
     <script>
       function randomReset() {
@@ -67,7 +81,9 @@
         // const counterTsxDsdResetButton = document.getElementById('counter-tsx-dsd-reset');
 
         signalCounterJsxResetButton.addEventListener('click', () => {
-          document.querySelector('sb-signal-counter-jsx').setAttribute('count', randomReset());
+          document.querySelectorAll('sb-signal-counter-jsx').forEach((el) => {
+            el.setAttribute('count', randomReset());
+          });
         });
 
         // counterJsxResetButton.addEventListener('click', () => {
@@ -92,6 +108,7 @@
 
     <h2>JSX + inferredObservability</h2>
 
+    <sb-signal-counter-jsx count="0"></sb-signal-counter-jsx>
     <sb-signal-counter-jsx count="3"></sb-signal-counter-jsx>
 
     <button class="reset" id="signal-counter-reset">Random Reset</button>
