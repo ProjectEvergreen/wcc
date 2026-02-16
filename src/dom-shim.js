@@ -149,6 +149,10 @@ class Node extends EventTarget {
       this.childNodes.push(textNode);
     }
   }
+
+  // minimal shim to support JSX <> Signals compilation and caching DOM references tracked to effects
+  querySelector() {}
+  querySelectorAll() {}
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Element
@@ -198,10 +202,6 @@ class Element extends Node {
       this.attrs?.push({ name, value });
     }
   }
-
-  // minimal shim to support JSX <> Signals compilation and caching DOM references tracked to effects
-  querySelector() {}
-  querySelectorAll() {}
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Document
@@ -257,10 +257,6 @@ class ShadowRoot extends DocumentFragment {
       `<template shadowrootmode="${this.mode}">${html}</template>`,
     ).childNodes;
   }
-
-  // minimal shim to support JSX <> Signals compilation and caching DOM references tracked to effects
-  querySelector() {}
-  querySelectorAll() {}
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLTemplateElement
