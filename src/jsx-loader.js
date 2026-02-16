@@ -74,6 +74,9 @@ function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = fals
         }
       }
 
+      // TODO: handle text nodes for __this__ references
+      // https://github.com/ProjectEvergreen/wcc/issues/88
+
       if (node.childNodes && node.childNodes.length > 0) {
         applyDomDepthSubstitutions(node, currentDepth + 1, hasShadowRoot);
       }
@@ -221,7 +224,8 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
         element.expression?.callee?.type === 'MemberExpression' &&
         element.expression?.callee?.property?.name === 'get'
       ) {
-        // The count is {count.get()}
+        // TODO: handle this references
+        // https://github.com/ProjectEvergreen/wcc/issues/88
         // TODO: do we need to handle for set()?
         const { object, property } = element.expression.callee;
         string += `$\{${object.name}.${property.name}()}`;
@@ -421,9 +425,8 @@ export function parseJsx(moduleURL) {
       observedAttributes,
     );
 
-    // TODO: can this be done during the transformation pass instead of having to generate and re-parse the module again?
-    // this scans for signals usage within the template and builds up reactive list of templates + effects
-    // - text nodes
+    // this scans for signals usage within the template and builds up a reactive list of templates + effects
+    // (could this be done during the transformation pass instead of having to generate and re-parse the module again?)
     // - TODO: attributes
     // - TODO: recursive scanning for nested components
     walk.simple(
@@ -446,6 +449,7 @@ export function parseJsx(moduleURL) {
                     // TODO: track top level reactivity
                   } else if (child.type === 'JSXElement') {
                     console.log('ENTERING CHILD ELEMENT', child.openingElement.name.name);
+                    // TODO: I think we are only checking for State, I think we also need to handle Computeds (by themselves) here as well
                     const hasReactivity = child.children.some(
                       (c) =>
                         c.type === 'JSXExpressionContainer' &&
@@ -463,6 +467,8 @@ export function parseJsx(moduleURL) {
                           // TODO: trim text / line breaks?
                           template += c.value;
                         } else if (c.type === 'JSXExpressionContainer') {
+                          // TODO: handle this references
+                          // https://github.com/ProjectEvergreen/wcc/issues/88
                           const { object } = c.expression.callee || {};
                           template += `$\{${object.name}}`;
                           signals.push(object.name);
@@ -539,8 +545,6 @@ export function parseJsx(moduleURL) {
                         `;
                       });
                     }
-
-                    console.log({ allEffects });
 
                     const serializedHtml = serialize(elementTree);
                     // we have to Shadow DOM use cases here
