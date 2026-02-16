@@ -19,7 +19,12 @@ export default class Counter extends HTMLElement {
   }
 
   connectedCallback() {
-    this.render();
+    if (!this.shadowRoot) {
+      this.attachShadow({
+        mode: 'open',
+      });
+      this.render();
+    }
   }
 
   render() {
@@ -33,21 +38,20 @@ export default class Counter extends HTMLElement {
           {' '}
           - (function reference)
         </button>
-        <button id="evt-assignment" onclick={() => this.count.set(this.count.get() - 1)}>
+        <button id="evt-assignment" onclick={(this.count -= 1)}>
           {' '}
           - (inline state update)
         </button>
-        <span>
+        <span id="one-deep">Top level count is {count.get()}</span>
+        {/* TODO: test for nested signals */}
+        <span id="two-deep">
           You have clicked{' '}
-          <span class={highlight.get()} id="expression">
+          <span class="red" id="expression">
             {count.get()}
           </span>{' '}
           times
         </span>
-        <button onclick={() => this.count.set(this.count.get() + 1)}>
-          {' '}
-          + (inline state update)
-        </button>
+        <button onclick={() => count.set(count.get() + 1)}> + (inline state update)</button>
         <button onclick={this.increment}> + (function reference)</button>
       </div>
     );

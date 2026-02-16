@@ -17,7 +17,8 @@
     "./register": "./src/register.js",
     "./dom-shim": "./src/dom-shim.js",
     "./jsx-loader": "./src/jsx-loader.js",
-    "./jsx-runtime": "./src/jsx-runtime.ts"
+    "./jsx-runtime": "./src/jsx-runtime.ts",
+    "./effect": "./src/effect.js"
   },
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "keywords": [

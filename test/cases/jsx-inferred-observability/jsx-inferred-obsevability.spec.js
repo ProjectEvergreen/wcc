@@ -7,6 +7,7 @@
  *
  * User Workspace
  * src/
+ *   badge.jsx
  *   counter.jsx
  */
 import chai from 'chai';
@@ -20,6 +21,8 @@ describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element using JSX and Inferred Observability';
   let fixtureAttributeChangedCallback;
   let fixtureGetObservedAttributes;
+  let fixtureStaticTemplates;
+  let fixtureEffects;
   let meta;
   let dom;
 
@@ -37,6 +40,11 @@ describe('Run WCC For ', function () {
       new URL('./fixtures/get-observed-attributes.txt', import.meta.url),
       'utf-8',
     );
+    fixtureStaticTemplates = await fs.readFile(
+      new URL('./fixtures/static-templates.txt', import.meta.url),
+      'utf-8',
+    );
+    fixtureEffects = await fs.readFile(new URL('./fixtures/effects.txt', import.meta.url), 'utf-8');
   });
 
   describe(LABEL, function () {
@@ -55,17 +63,50 @@ describe('Run WCC For ', function () {
         expect(actual).to.contain(expected);
       });
 
+      it('should infer observability by generating a static attribute method', () => {
+        const actual = meta['wcc-counter-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
+        const expected = fixtureStaticTemplates.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(expected);
+      });
+
+      it('should infer observability by generating an effects method', () => {
+        const actual = meta['wcc-counter-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
+        const expected = fixtureEffects.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(expected);
+      });
+
       // <wcc-badge count="0"></wcc-badge>
       it('should have the expected observability attributes on the <wcc-badge> component', () => {
-        const badge = dom.window.document.querySelector('wcc-badge');
+        const counterDom = new JSDOM(
+          dom.window.document.querySelector('wcc-counter-jsx template[shadowrootmode="open"]')
+            .innerHTML,
+        ).window.document;
+        const badge = counterDom.querySelector('wcc-badge');
         const conditionalClassSpan = badge.querySelector('span[class="unmet"]'); // conditional class rendering
 
         expect(conditionalClassSpan.textContent.trim()).to.equal('0');
       });
 
-      // <span class="red" data-wcc-highlight="class" id="expression">0</span>
-      it('should have the expected observability attributes on the <wcc-counter-jsx> component', () => {
-        const span = dom.window.document.querySelector('wcc-counter-jsx span[class="red"]');
+      // <span id="one-deep">Top level count is {count.get()}</span>
+      it('should have the expected value for the nested count signal', () => {
+        const counterDom = new JSDOM(
+          dom.window.document.querySelector('wcc-counter-jsx template[shadowrootmode="open"]')
+            .innerHTML,
+        ).window.document;
+        const span = counterDom.querySelector('span#one-deep');
+
+        expect(span.textContent.trim()).to.equal('Top level count is 0');
+      });
+
+      // <span>You have clicked{' '}<span class="red" id="expression">{count.get()}</span>times</span>
+      it('should have the expected value for the nested count signal', () => {
+        const counterDom = new JSDOM(
+          dom.window.document.querySelector('wcc-counter-jsx template[shadowrootmode="open"]')
+            .innerHTML,
+        ).window.document;
+        const span = counterDom.querySelector('span#two-deep span[class="red"]');
 
         expect(span.textContent.trim()).to.equal('0');
       });

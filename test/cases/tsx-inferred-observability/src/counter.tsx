@@ -11,12 +11,10 @@ export default class Counter extends HTMLElement {
 
   increment() {
     this.count.set(this.count.get() + 1);
-    this.render();
   }
 
   decrement() {
     this.count.set(this.count.get() - 1);
-    this.render();
   }
 
   connectedCallback() {
@@ -37,7 +35,9 @@ export default class Counter extends HTMLElement {
           {' '}
           - (inline state update)
         </button>
-        <span>
+        <span id="one-deep">Top level count is {count.get()}</span>
+        {/* TODO: test for nested signals */}
+        <span id="two-deep">
           You have clicked{' '}
           <span class="red" id="expression">
             {count.get()}

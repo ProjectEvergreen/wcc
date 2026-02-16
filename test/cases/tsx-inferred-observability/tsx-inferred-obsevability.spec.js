@@ -20,6 +20,8 @@ describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element using TSX and Inferred Observability';
   let fixtureAttributeChangedCallback;
   let fixtureGetObservedAttributes;
+  let fixtureStaticTemplates;
+  let fixtureEffects;
   let meta;
   let dom;
 
@@ -37,6 +39,11 @@ describe('Run WCC For ', function () {
       new URL('./fixtures/get-observed-attributes.txt', import.meta.url),
       'utf-8',
     );
+    fixtureStaticTemplates = await fs.readFile(
+      new URL('./fixtures/static-templates.txt', import.meta.url),
+      'utf-8',
+    );
+    fixtureEffects = await fs.readFile(new URL('./fixtures/effects.txt', import.meta.url), 'utf-8');
   });
 
   describe(LABEL, function () {
@@ -55,9 +62,32 @@ describe('Run WCC For ', function () {
         expect(actual).to.contain(expected);
       });
 
-      // <span class="red" id="expression">0</span>
-      it('should have the expected observability attributes on the <wcc-counter-tsx> component', () => {
-        const span = dom.window.document.querySelector('wcc-counter-tsx span[class="red"]');
+      it('should infer observability by generating a static attribute method', () => {
+        const actual = meta['wcc-counter-tsx'].source.replace(/ /g, '').replace(/\n/g, '');
+        const expected = fixtureStaticTemplates.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(expected);
+      });
+
+      it('should infer observability by generating an effects method', () => {
+        const actual = meta['wcc-counter-tsx'].source.replace(/ /g, '').replace(/\n/g, '');
+        const expected = fixtureEffects.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(expected);
+      });
+
+      // <span id="one-deep">Top level count is {count.get()}</span>
+      it('should have the expected value for the nested count signal', () => {
+        const span = dom.window.document.querySelector('wcc-counter-tsx span#one-deep');
+
+        expect(span.textContent.trim()).to.equal('Top level count is 0');
+      });
+
+      // <span>You have clicked{' '}<span class="red" id="expression">{count.get()}</span>times</span>
+      it('should have the expected value for the nested count signal', () => {
+        const span = dom.window.document.querySelector(
+          'wcc-counter-tsx span#two-deep span[class="red"]',
+        );
 
         expect(span.textContent.trim()).to.equal('0');
       });
