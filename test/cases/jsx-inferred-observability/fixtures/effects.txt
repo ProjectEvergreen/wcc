@@ -1,3 +1,4 @@
+this.$el0 = this.shadowRoot.querySelector('div > span');
 effect(() => {
-  this.shadowRoot.querySelector('div > span').textContent = Counter.$$tmpl0(this.count.get());
+  this.$el0.textContent = Counter.$$tmpl0(this.count.get());
 });     
