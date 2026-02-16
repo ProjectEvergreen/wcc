@@ -1,3 +1,3 @@
 effect(() => {
-  this.shadowRoot.querySelector('div > span').textContent = Counter.$$tmpl0(count.get());
+  this.shadowRoot.querySelector('div > span').textContent = Counter.$$tmpl0(this.count.get());
 });     
