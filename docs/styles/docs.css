@@ -1,4 +1,4 @@
-wcc-sidenav {
+wcc-side-nav {
   display: block;
   margin: var(--size-4) auto;
 }
@@ -89,7 +89,7 @@ body:has(#compact-menu:popover-open) {
     font-size: var(--font-size-1);
   }
 
-  wcc-sidenav {
+  wcc-side-nav {
     display: inline-block;
     width: 20%;
     min-width: 25%;
