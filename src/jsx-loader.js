@@ -182,7 +182,6 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
             }
           }
         } else if (attribute.name.type === 'JSXIdentifier') {
-          // TODO: is there any difference between an attribute for an event handler vs a normal attribute?
           if (attribute.value) {
             const expression = attribute?.value?.expression;
             if (attribute.value.type === 'Literal') {
@@ -465,7 +464,6 @@ export function parseJsx(moduleURL) {
                       for (const c of child.children) {
                         // TODO: track attributes here too for the template
                         if (c.type === 'JSXText') {
-                          // TODO: trim text / line breaks?
                           template += c.value;
                         } else if (c.type === 'JSXExpressionContainer') {
                           // TODO: handle this references
@@ -482,7 +480,7 @@ export function parseJsx(moduleURL) {
                 if (template !== '' && signals.length > 0) {
                   const $$templ = `$$tmpl${effects.length}`;
                   // TODO: need to handle runtime assumption here with `_wcc`
-                  const staticTemplate = `static ${$$templ} = (${signals.join(',')}) => _wcc\`${template}\`;`;
+                  const staticTemplate = `static ${$$templ} = (${signals.join(',')}) => _wcc\`${template.trim()}\`;`;
                   // TODO: handle this references?
                   // https://www.github.com/ProjectEvergreen/wcc/issues/88
                   const expression = `${componentName}.${$$templ}(${signals.map((s) => `this.${s}.get()`).join(', ')});`;
@@ -582,9 +580,9 @@ export function parseJsx(moduleURL) {
     );
 
     // here we do the following with all the work we've done so far tracking attributes, signals, effects, etc
-    // - setup static template functions and observed attributes that we've tracked so far to inject into the top of the class body
-    // - append all effects to the end of the connectedCallback function
-    // - setup cache references to all elements used in effects
+    // 1. setup static template functions and observed attributes that we've tracked so far to inject into the top of the class body
+    // 2. append all effects to the end of the connectedCallback function
+    // 3. setup cache references to all elements used in effects
     walk.simple(
       tree,
       {
