@@ -321,6 +321,7 @@ export function parseJsx(moduleURL) {
   // 1. if `inferredObservability` is set
   // 2. get the name of the component class for `static` references
   // 3, track observed attributes from `this` references in the template
+  // 4. track if Shadow DOM is being used
   walk.simple(
     tree,
     {
@@ -355,6 +356,9 @@ export function parseJsx(moduleURL) {
       ClassDeclaration(node) {
         // @ts-ignore
         if (node.superClass.name === 'HTMLElement') {
+          hasShadowRoot =
+            moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
+
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
               // @ts-ignore
@@ -512,9 +516,6 @@ export function parseJsx(moduleURL) {
       ClassDeclaration(node) {
         // @ts-ignore
         if (node.superClass.name === 'HTMLElement') {
-          hasShadowRoot =
-            moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
-
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
               // @ts-ignore
@@ -632,7 +633,6 @@ export function parseJsx(moduleURL) {
           }
         },
         MethodDefinition(node) {
-          // TODO: detect for shadowRoot vs innerHTML here
           // TODO: we should cache these element queries instead querying on every effect trigger
           if (node.key.name === 'connectedCallback') {
             const root = hasShadowRoot ? 'this.shadowRoot' : 'this';
