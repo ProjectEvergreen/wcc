@@ -76,11 +76,12 @@ describe('Run WCC For ', function () {
         expect(actual).to.contain(expected);
       });
 
-      // <span id="one-deep">Top level count is {count.get()}</span>
+      // <span id="one-deep" data-count={count.get()}>Top level count is {count.get()}</span>
       it('should have the expected value for the nested count signal', () => {
         const span = dom.window.document.querySelector('wcc-counter-tsx span#one-deep');
 
         expect(span.textContent.trim()).to.equal('Top level count is 0');
+        expect(span.getAttribute('data-count')).to.equal('0');
       });
 
       // <span>You have clicked{' '}<span class="red" id="expression">{count.get()}</span>times</span>

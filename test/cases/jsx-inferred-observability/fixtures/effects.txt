@@ -1,4 +1,11 @@
-this.$el0 = this.shadowRoot.querySelector('div > span');
+this.$el0 = this.shadowRoot.querySelector('div > wcc-badge');
+this.$el1 = this.shadowRoot.querySelector('div > span');
 effect(() => {
-  this.$el0.textContent = Counter.$$tmpl0(this.count.get());
-});     
+  this.$el0.setAttribute('count', this.count.get());
+});
+effect(() => {
+  this.$el1.textContent = Counter.$$tmpl1(this.count.get());
+});
+effect(() => {
+  this.$el1.setAttribute('data-count', this.count.get());
+});

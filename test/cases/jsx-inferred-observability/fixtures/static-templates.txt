@@ -1,2 +1,3 @@
 $el0;
-static $$tmpl0 = count => _wcc`Top level count is ${count}`;
+$el1;
+static $$tmpl1 = count => _wcc`Top level count is ${count}`;
