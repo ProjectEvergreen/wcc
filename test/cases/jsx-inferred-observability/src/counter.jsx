@@ -28,7 +28,7 @@ export default class Counter extends HTMLElement {
   }
 
   render() {
-    const { count, highlight } = this;
+    const { count, highlight, parity } = this;
 
     return (
       <div>
@@ -53,6 +53,7 @@ export default class Counter extends HTMLElement {
           </span>{' '}
           times
         </span>
+        <span id="three-deep">Parity is: {parity.get()}</span>
         <button onclick={() => count.set(count.get() + 1)}> + (inline state update)</button>
         <button onclick={this.increment}> + (function reference)</button>
       </div>

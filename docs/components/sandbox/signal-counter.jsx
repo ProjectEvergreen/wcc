@@ -48,6 +48,7 @@ export default class SignalCounter extends HTMLElement {
         <span class={parity.get()}>
           The count is {count.get()} ({parity.get()})
         </span>
+        <span>{isLarge.get()}</span>
         <p data-count={count.get()}>{isLarge.get()}</p>
       </div>
     );
