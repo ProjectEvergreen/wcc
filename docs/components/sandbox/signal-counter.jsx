@@ -7,7 +7,9 @@ export default class SignalCounter extends HTMLElement {
     super();
     this.count = new Signal.State(0);
     this.parity = new Signal.Computed(() => (this.count.get() % 2 === 0 ? 'even' : 'odd'));
-    this.isLarge = new Signal.Computed(() => (this.count.get() >= 100 ? 'Wow!!!' : 'Keep Going'));
+    this.isLarge = new Signal.Computed(() =>
+      this.count.get() >= 100 ? 'Wow!!!' : 'Keep Going...',
+    );
   }
 
   connectedCallback() {
