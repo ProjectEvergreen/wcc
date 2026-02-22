@@ -42,7 +42,9 @@ export default class Counter extends HTMLElement {
           {' '}
           - (inline state update)
         </button>
-        <span id="one-deep">Top level count is {count.get()}</span>
+        <span id="one-deep" data-count={count.get()}>
+          Top level count is {count.get()}
+        </span>
         {/* TODO: test for nested signals */}
         <span id="two-deep">
           You have clicked{' '}

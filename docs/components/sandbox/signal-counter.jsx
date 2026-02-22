@@ -1,3 +1,5 @@
+import sheet from './signal-counter.css' with { type: 'css' };
+
 export const inferredObservability = true;
 
 export default class SignalCounter extends HTMLElement {
@@ -14,6 +16,8 @@ export default class SignalCounter extends HTMLElement {
       });
       this.render();
     }
+
+    this.shadowRoot.adoptedStyleSheets = [sheet];
   }
 
   increment() {
@@ -38,7 +42,7 @@ export default class SignalCounter extends HTMLElement {
         {/* TODO: inline version breaks with effects */}
         {/* <button onclick={() => this.count.set(this.count.get() * 2)}>Double (++)</button> */}
         <button onclick={this.double}>Double (++)</button>
-        <span>
+        <span class={parity.get()}>
           The count is {count.get()} ({parity.get()})
         </span>
       </div>
