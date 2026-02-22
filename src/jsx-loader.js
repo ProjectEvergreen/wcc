@@ -495,7 +495,7 @@ export function parseJsx(moduleURL) {
                         a.value.expression?.callee?.property?.name === 'get',
                     );
 
-                    if (hasReactiveAttributes || hasReactiveAttributes) {
+                    if (hasReactiveTemplate || hasReactiveAttributes) {
                       reactiveElements.push({
                         selector: `${n.argument.openingElement.name.name} > ${child.openingElement.name.name}`,
                         template: {},
