@@ -2,3 +2,6 @@ this.$el0 = this.querySelector('div > span');
 effect(() => {
   this.$el0.textContent = Counter.$$tmpl0(this.count.get());
 });
+effect(() => {
+  this.$el0.setAttribute('data-count', this.count.get());
+});

@@ -86,10 +86,11 @@ describe('Run WCC For ', function () {
         const badge = counterDom.querySelector('wcc-badge');
         const conditionalClassSpan = badge.querySelector('span[class="unmet"]'); // conditional class rendering
 
+        expect(badge.getAttribute('count')).to.equal('0');
         expect(conditionalClassSpan.textContent.trim()).to.equal('0');
       });
 
-      // <span id="one-deep">Top level count is {count.get()}</span>
+      // <span id="one-deep" data-count={count.get()}>Top level count is {count.get()}</span>
       it('should have the expected value for the nested count signal', () => {
         const counterDom = new JSDOM(
           dom.window.document.querySelector('wcc-counter-jsx template[shadowrootmode="open"]')
@@ -98,6 +99,7 @@ describe('Run WCC For ', function () {
         const span = counterDom.querySelector('span#one-deep');
 
         expect(span.textContent.trim()).to.equal('Top level count is 0');
+        expect(span.getAttribute('data-count')).to.equal('0');
       });
 
       // <span>You have clicked{' '}<span class="red" id="expression">{count.get()}</span>times</span>
