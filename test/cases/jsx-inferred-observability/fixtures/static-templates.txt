@@ -1,3 +1,5 @@
 $el0;
 $el1;
+$el2;
 static $$tmpl1 = count => _wcc`Top level count is ${count}`;
+static $$tmpl2 = parity => _wcc`Parity is: ${parity}`;

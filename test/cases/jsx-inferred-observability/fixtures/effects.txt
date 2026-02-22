@@ -1,5 +1,6 @@
-this.$el0 = this.shadowRoot.querySelector('div > wcc-badge');
-this.$el1 = this.shadowRoot.querySelector('div > span');
+this.$el0 = this.shadowRoot.querySelector('div > wcc-badge:nth-of-type(1)');
+this.$el1 = this.shadowRoot.querySelector('div > span:nth-of-type(1)');
+this.$el2 = this.shadowRoot.querySelector('div > span:nth-of-type(2)');
 effect(() => {
   this.$el0.setAttribute('count', this.count.get());
 });
@@ -8,4 +9,7 @@ effect(() => {
 });
 effect(() => {
   this.$el1.setAttribute('data-count', this.count.get());
+});
+effect(() => {
+  this.$el2.textContent = Counter.$$tmpl2(this.parity.get());
 });

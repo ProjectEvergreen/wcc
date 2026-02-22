@@ -469,7 +469,9 @@ export function parseJsx(moduleURL) {
             for (const n2 in node.value.body.body) {
               const n = node.value.body.body[n2];
               if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                console.log('ENTERING TEMPLATE AT =>', n.argument.openingElement.name.name);
+                const parentTag = n.argument.openingElement.name.name;
+                console.log('ENTERING TEMPLATE AT =>', { parentTag });
+                const children = [];
 
                 for (const child of n.argument.children) {
                   // TODO: need to handle recursion
@@ -477,7 +479,8 @@ export function parseJsx(moduleURL) {
                     // console.log('TEXT NODE', { child })
                     // TODO: track top level reactivity for text nodes?
                   } else if (child.type === 'JSXElement') {
-                    console.log('ENTERING CHILD ELEMENT', child.openingElement.name.name);
+                    const childTag = child.openingElement.name.name;
+                    console.log('ENTERING CHILD ELEMENT', { childTag });
 
                     // TODO: I think we are only checking for State, I think we also need to handle Computeds (by themselves) here as well
                     const hasReactiveTemplate = child.children.some(
@@ -496,18 +499,20 @@ export function parseJsx(moduleURL) {
                     );
 
                     if (hasReactiveTemplate || hasReactiveAttributes) {
+                      if (!children[childTag]) {
+                        children[childTag] = [];
+                      }
+
+                      children[childTag].push(childTag);
                       reactiveElements.push({
-                        selector: `${n.argument.openingElement.name.name} > ${child.openingElement.name.name}`,
+                        selector: `${parentTag} > ${childTag}:nth-of-type(${children[childTag].length})`,
                         template: {},
                         attributes: [],
                       });
                     }
 
                     if (hasReactiveTemplate) {
-                      console.log(
-                        'CHILD ELEMENT HAS TEXT CONTENT REACTIVITY',
-                        child.openingElement.name.name,
-                      );
+                      console.log('CHILD ELEMENT HAS TEXT CONTENT REACTIVITY', { childTag });
                       const signals = [];
                       let template = '';
 
