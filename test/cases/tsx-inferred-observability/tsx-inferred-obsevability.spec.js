@@ -92,6 +92,13 @@ describe('Run WCC For ', function () {
 
         expect(span.textContent.trim()).to.equal('0');
       });
+
+      // <span id="three-deep">Parity is: {parity.get()}</span>
+      it('should have the expected value for a signal used in another tag with the same name', () => {
+        const span = dom.window.document.querySelector('wcc-counter-tsx span#three-deep');
+
+        expect(span.textContent.trim()).to.equal('Parity is: even');
+      });
     });
   });
 });

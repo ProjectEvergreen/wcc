@@ -1,7 +1,11 @@
-this.$el0 = this.querySelector('div > span');
+this.$el0 = this.querySelector('div > span:nth-of-type(1)');
+this.$el1 = this.querySelector('div > span:nth-of-type(2)');
 effect(() => {
   this.$el0.textContent = Counter.$$tmpl0(this.count.get());
 });
 effect(() => {
   this.$el0.setAttribute('data-count', this.count.get());
+});
+effect(() => {
+  this.$el1.textContent = Counter.$$tmpl1(this.parity.get());
 });

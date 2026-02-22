@@ -3,10 +3,12 @@ export const inferredObservability = true;
 export default class Counter extends HTMLElement {
   // TODO: get Signal types for this
   count: any;
+  parity: any;
 
   constructor() {
     super();
     this.count = new Signal.State(0);
+    this.parity = new Signal.Computed(() => (this.count.get() % 2 === 0 ? 'even' : 'odd'));
   }
 
   increment() {
@@ -22,7 +24,7 @@ export default class Counter extends HTMLElement {
   }
 
   render() {
-    const { count } = this;
+    const { count, parity } = this;
 
     return (
       <div>
@@ -46,6 +48,7 @@ export default class Counter extends HTMLElement {
           </span>{' '}
           times
         </span>
+        <span id="three-deep">Parity is: {parity.get()}</span>
         <button onclick={() => count.set(count.get() + 1)}> + (inline state update)</button>
         <button onclick={this.increment}> + (function reference)</button>
       </div>
