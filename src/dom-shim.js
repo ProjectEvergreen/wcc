@@ -149,6 +149,10 @@ class Node extends EventTarget {
       this.childNodes.push(textNode);
     }
   }
+
+  // minimal shim to support JSX <> Signals compilation and caching DOM references tracked to effects
+  querySelector() {}
+  querySelectorAll() {}
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Element

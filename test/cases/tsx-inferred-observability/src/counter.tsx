@@ -1,21 +1,22 @@
 export const inferredObservability = true;
 
 export default class Counter extends HTMLElement {
-  count: number;
+  // TODO: get Signal types for this
+  count: any;
+  parity: any;
 
   constructor() {
     super();
-    this.count = 0;
+    this.count = new Signal.State(0);
+    this.parity = new Signal.Computed(() => (this.count.get() % 2 === 0 ? 'even' : 'odd'));
   }
 
   increment() {
-    this.count += 1;
-    this.render();
+    this.count.set(this.count.get() + 1);
   }
 
   decrement() {
-    this.count -= 1;
-    this.render();
+    this.count.set(this.count.get() - 1);
   }
 
   connectedCallback() {
@@ -23,7 +24,7 @@ export default class Counter extends HTMLElement {
   }
 
   render() {
-    const { count } = this;
+    const { count, parity } = this;
 
     return (
       <div>
@@ -36,14 +37,19 @@ export default class Counter extends HTMLElement {
           {' '}
           - (inline state update)
         </button>
-        <span>
+        <span id="one-deep" data-count={count.get()}>
+          Top level count is {count.get()}
+        </span>
+        {/* TODO: test for nested signals */}
+        <span id="two-deep">
           You have clicked{' '}
           <span class="red" id="expression">
-            {count}
+            {count.get()}
           </span>{' '}
           times
         </span>
-        <button onclick={(this.count += 1)}> + (inline state update)</button>
+        <span id="three-deep">Parity is: {parity.get()}</span>
+        <button onclick={() => count.set(count.get() + 1)}> + (inline state update)</button>
         <button onclick={this.increment}> + (function reference)</button>
       </div>
     );

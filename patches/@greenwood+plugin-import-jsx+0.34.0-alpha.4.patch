@@ -1,0 +1,13 @@
+diff --git a/node_modules/@greenwood/plugin-import-jsx/src/index.js b/node_modules/@greenwood/plugin-import-jsx/src/index.js
+index 5fe6e11..5975de3 100644
+--- a/node_modules/@greenwood/plugin-import-jsx/src/index.js
++++ b/node_modules/@greenwood/plugin-import-jsx/src/index.js
+@@ -4,7 +4,7 @@
+  *
+  */
+ import { generate } from "astring";
+-import { parseJsx } from "wc-compiler/src/jsx-loader.js";
++import { parseJsx } from "../../../../src/jsx-loader.js";
+ 
+ class ImportJsxResource {
+   constructor(compilation, options) {

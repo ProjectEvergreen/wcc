@@ -32,7 +32,7 @@
       }
     </style>
 
-    <script type="module" src="../components/sandbox/card.js"></script>
+    <!-- <script type="module" src="../components/sandbox/card.js"></script>
     <script type="module" src="../components/sandbox/card.jsx"></script>
 
     <script type="module" src="../components/sandbox/counter-dsd.jsx"></script>
@@ -42,38 +42,84 @@
 
     <script type="module" src="../components/sandbox/header.js"></script>
     <script type="module" src="../components/sandbox/header.jsx"></script>
-    <script type="module" src="../components/sandbox/picture-frame.js"></script>
+    <script type="module" src="../components/sandbox/picture-frame.js"></script> -->
+    <script type="importmap">
+      {
+        "imports": {
+          "signal-polyfill": "../node_modules/signal-polyfill/dist/index.js",
+          "wc-compiler/effect": "../node_modules/wc-compiler/src/effect.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import { Signal } from 'signal-polyfill';
+
+      globalThis.Signal = Signal;
+    </script>
+    <script type="module">
+      // NOTE: `Signal` has to be defined first
+      import { effect } from 'wc-compiler/effect';
+      globalThis.effect = effect;
+
+      globalThis._wcc = function (strings, ...values) {
+        let str = '';
+        strings.forEach((string, i) => {
+          str += string + (values[i] === 0 ? '0' : values[i] || '');
+        });
+        return str;
+      };
+    </script>
     <script>
       function randomReset() {
         return Math.floor(Math.random() * 100);
       }
 
       globalThis.document.addEventListener('DOMContentLoaded', () => {
-        const counterJsxResetButton = document.getElementById('counter-jsx-reset');
-        const counterJsxDsdResetButton = document.getElementById('counter-jsx-dsd-reset');
-        const counterTsxDsdResetButton = document.getElementById('counter-tsx-dsd-reset');
+        const signalCounterJsxResetButton = document.getElementById('signal-counter-reset');
+        // const counterJsxResetButton = document.getElementById('counter-jsx-reset');
+        // const counterJsxDsdResetButton = document.getElementById('counter-jsx-dsd-reset');
+        // const counterTsxDsdResetButton = document.getElementById('counter-tsx-dsd-reset');
 
-        counterJsxResetButton.addEventListener('click', () => {
-          document.querySelector('sb-counter-jsx').setAttribute('count', randomReset());
+        signalCounterJsxResetButton.addEventListener('click', () => {
+          document.querySelectorAll('sb-signal-counter-jsx').forEach((el) => {
+            el.setAttribute('count', randomReset());
+          });
         });
 
-        counterJsxDsdResetButton.addEventListener('click', () => {
-          document.querySelector('sb-counter-dsd-jsx').setAttribute('count', randomReset());
-        });
+        // counterJsxResetButton.addEventListener('click', () => {
+        //   document.querySelector('sb-counter-jsx').setAttribute('count', randomReset());
+        // });
 
-        counterTsxDsdResetButton.addEventListener('click', () => {
-          document.querySelector('sb-counter-dsd-tsx').setAttribute('count', randomReset());
-        });
+        // counterJsxDsdResetButton.addEventListener('click', () => {
+        //   document.querySelector('sb-counter-dsd-jsx').setAttribute('count', randomReset());
+        // });
+
+        // counterTsxDsdResetButton.addEventListener('click', () => {
+        //   document.querySelector('sb-counter-dsd-tsx').setAttribute('count', randomReset());
+        // });
       });
     </script>
 
-    <!-- interactive scripts can be configured in sandbox.js -->
+    <script type="module" src="../components/sandbox/signal-counter.jsx"></script>
   </head>
 
   <body>
     <h1>WCC Sandbox</h1>
 
-    <h2>Light DOM (no JS)</h2>
+    <h2>JSX + inferredObservability</h2>
+
+    <sb-signal-counter-jsx count="0"></sb-signal-counter-jsx>
+    <sb-signal-counter-jsx count="3"></sb-signal-counter-jsx>
+
+    <button class="reset" id="signal-counter-reset">Random Reset</button>
+
+    <pre>
+      &lt;sb-signal-counter-jsx
+        count="3"
+      &gt;&lt;/sb-signal-counter-jsx&gt;
+    </pre>
+
+    <!-- <h2>Light DOM (no JS)</h2>
 
     <sb-header></sb-header>
 
@@ -211,6 +257,6 @@
       &lt;sb-counter-dsd-tsx
         count="3"
       &gt;&lt;/sb-counter-dsd-tsx&gt;
-    </pre>
+    </pre> -->
   </body>
 </html>
