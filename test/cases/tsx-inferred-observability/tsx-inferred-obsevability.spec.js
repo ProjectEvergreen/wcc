@@ -99,6 +99,13 @@ describe('Run WCC For ', function () {
 
         expect(span.textContent.trim()).to.equal('Parity is: even');
       });
+
+      // <span id="non-reactive">Just some non-reactive text</span>
+      it('should have the expected static content for a non-reactive element that has the same tag as another reactive tag', () => {
+        const span = dom.window.document.querySelector('wcc-counter-tsx span#non-reactive');
+
+        expect(span.textContent).to.equal('Just some static text');
+      });
     });
   });
 });

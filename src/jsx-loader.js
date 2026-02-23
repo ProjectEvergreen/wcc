@@ -482,6 +482,12 @@ export function parseJsx(moduleURL) {
                     const childTag = child.openingElement.name.name;
                     console.log('ENTERING CHILD ELEMENT', { childTag });
 
+                    // track children for determining correct effect selector
+                    if (!children[childTag]) {
+                      children[childTag] = [];
+                    }
+                    children[childTag].push(childTag);
+
                     // TODO: I think we are only checking for State, I think we also need to handle Computeds (by themselves) here as well
                     const hasReactiveTemplate = child.children.some(
                       (c) =>
@@ -499,11 +505,6 @@ export function parseJsx(moduleURL) {
                     );
 
                     if (hasReactiveTemplate || hasReactiveAttributes) {
-                      if (!children[childTag]) {
-                        children[childTag] = [];
-                      }
-
-                      children[childTag].push(childTag);
                       reactiveElements.push({
                         selector: `${parentTag} > ${childTag}:nth-of-type(${children[childTag].length})`,
                         template: {},

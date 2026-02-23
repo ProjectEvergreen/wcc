@@ -1,5 +1,5 @@
 this.$el0 = this.querySelector('div > span:nth-of-type(1)');
-this.$el1 = this.querySelector('div > span:nth-of-type(2)');
+this.$el1 = this.querySelector('div > span:nth-of-type(4)');
 effect(() => {
   this.$el0.textContent = Counter.$$tmpl0(this.count.get());
 });
