@@ -48,6 +48,7 @@ export default class Counter extends HTMLElement {
           </span>{' '}
           times
         </span>
+        <span id="non-reactive">Just some static text</span>
         <span id="three-deep">Parity is: {parity.get()}</span>
         <button onclick={() => count.set(count.get() + 1)}> + (inline state update)</button>
         <button onclick={this.increment}> + (function reference)</button>
