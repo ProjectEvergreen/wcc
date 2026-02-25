@@ -30,6 +30,12 @@
         min-width: 5%;
         margin: 0 auto;
       }
+
+      sb-signal-counter-jsx {
+        display: block;
+        margin: 0 auto;
+        width: 50%;
+      }
     </style>
 
     <!-- <script type="module" src="../components/sandbox/card.js"></script>
@@ -108,11 +114,15 @@
 
     <h2>JSX + inferredObservability</h2>
 
-    <sb-signal-counter-jsx count="0"></sb-signal-counter-jsx>
+    <sb-signal-counter-jsx></sb-signal-counter-jsx>
+    <hr />
     <sb-signal-counter-jsx count="3"></sb-signal-counter-jsx>
 
     <button class="reset" id="signal-counter-reset">Random Reset</button>
 
+    <pre>
+      &lt;sb-signal-counter-jsx&gt;&lt;/sb-signal-counter-jsx&gt;
+    </pre>
     <pre>
       &lt;sb-signal-counter-jsx
         count="3"

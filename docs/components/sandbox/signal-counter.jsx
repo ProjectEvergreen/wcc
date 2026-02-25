@@ -40,6 +40,7 @@ export default class SignalCounter extends HTMLElement {
 
     return (
       <div>
+        <span class="heading">My Signal Counter</span>
         <button onclick={this.increment}>Increment (+)</button>
         <button onclick={this.decrement}>Decrement (-)</button>
         {/* TODO: inline version breaks with effects */}
@@ -48,9 +49,7 @@ export default class SignalCounter extends HTMLElement {
         <span class={parity.get()}>
           The count is {count.get()} ({parity.get()})
         </span>
-        <span>(Just some static text)</span>
-        <span>{isLarge.get()}</span>
-        <p data-count={count.get()}>{isLarge.get()}</p>
+        <p data-count={count.get()}>({isLarge.get()})</p>
       </div>
     );
   }
