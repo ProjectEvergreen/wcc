@@ -385,6 +385,7 @@ export function parseJsx(moduleURL) {
       ClassDeclaration(node) {
         // @ts-ignore
         if (node.superClass.name === 'HTMLElement') {
+          // TODO: (good first issue) find a more AST (visitor) based way to check for this
           hasShadowRoot =
             moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
@@ -453,10 +454,7 @@ export function parseJsx(moduleURL) {
 
   // we do this first to track reactivity usage before we transform the template and re-write its contents
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
-    console.log(
-      'inferredObservability enabled, but no static observedAttributes defined. Adding observedAttributes for',
-      observedAttributes,
-    );
+    console.log('inferredObservability enabled. scanning for reactivity...', observedAttributes);
 
     // this scans for signals usage within the template and builds up a reactive list of templates + effects
     // (could this be done during the transformation pass instead of having to generate and re-parse the module again?)
@@ -489,6 +487,7 @@ export function parseJsx(moduleURL) {
                     children[childTag].push(childTag);
 
                     // TODO: I think we are only checking for State, I think we also need to handle Computeds (by themselves) here as well
+                    // TODO: should we filter the things that call .get() out against actual signals found in the constructor / JSX?
                     const hasReactiveTemplate = child.children.some(
                       (c) =>
                         c.type === 'JSXExpressionContainer' &&
@@ -652,10 +651,9 @@ export function parseJsx(moduleURL) {
 
   // TODO: why does this compilation run twice?  logging here will output the message twice
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
-    console.log(
-      'Adding static observedAttributes and attributeChangedCallback for inferredObservability',
-      { reactiveElements },
-    );
+    console.log('inferredObservability enabled. applying templates and effects...', {
+      reactiveElements,
+    });
 
     // here we do the following with all the work we've done so far tracking attributes, signals, effects, etc
     // 1. setup static template functions and observed attributes that we've tracked so far to inject into the top of the class body
