@@ -530,7 +530,7 @@ export function parseJsx(moduleURL) {
 
                       if (template !== '' && signals.length > 0) {
                         const $$templ = `$$tmpl${reactiveElements.length - 1}`;
-                        // TODO: need to handle runtime assumption here with `_wcc`
+                        // TODO: need to handle runtime assumption here with `_wcc`, or do we even need it all?  I don't think so...
                         const staticTemplate = `static ${$$templ} = (${signals.join(',')}) => _wcc\`${template.trim()}\`;`;
                         // TODO: handle this references?
                         // https://www.github.com/ProjectEvergreen/wcc/issues/88
