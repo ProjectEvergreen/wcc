@@ -1,9 +1,8 @@
 export const inferredObservability = true;
 
 export default class Counter extends HTMLElement {
-  // TODO: get Signal types for this
-  count: any;
-  parity: any;
+  count;
+  parity;
 
   constructor() {
     super();
@@ -33,7 +32,7 @@ export default class Counter extends HTMLElement {
           {' '}
           - (function reference)
         </button>
-        <button id="evt-assignment" onclick={(this.count -= 1)}>
+        <button id="evt-assignment" onclick={() => this.count.set(this.count.get() - 1)}>
           {' '}
           - (inline state update)
         </button>

@@ -3,6 +3,10 @@ import sheet from './signal-counter.css' with { type: 'css' };
 export const inferredObservability = true;
 
 export default class SignalCounter extends HTMLElement {
+  count;
+  parity;
+  isLarge;
+
   constructor() {
     super();
     this.count = new Signal.State(0);
