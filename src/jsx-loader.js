@@ -13,11 +13,11 @@ import { transform } from 'sucrase';
 
 // Signal has to come before effect
 import { Signal } from 'signal-polyfill';
-globalThis.Signal = globalThis.Signal ?? Signal;
+globalThis.Signal = Signal;
 
 // no-op implementation for SSR
 function effect() {}
-globalThis.effect = globalThis.effect ?? effect;
+globalThis.effect = effect;
 
 const jsxRegex = /\.(jsx)$/;
 const tsxRegex = /\.(tsx)$/;
