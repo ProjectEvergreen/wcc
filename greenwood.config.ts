@@ -1,8 +1,33 @@
-import type { Config } from '@greenwood/cli';
+import type { Config, CopyPlugin } from '@greenwood/cli';
 import { greenwoodPluginMarkdown } from '@greenwood/plugin-markdown';
 import { greenwoodPluginImportJsx } from '@greenwood/plugin-import-jsx';
 import { greenwoodPluginCssModules } from '@greenwood/plugin-css-modules';
 import { greenwoodPluginImportRaw } from '@greenwood/plugin-import-raw';
+import fs from 'node:fs';
+
+// TODO: this does not run in dev :/
+function copyEffectPlugin(): CopyPlugin {
+  console.log('herere???');
+  return {
+    type: 'copy',
+    name: 'plugin-copy-wcc-effect',
+    provider: async () => {
+      console.log('copy???');
+      return [
+        {
+          // copy a file
+          from: new URL('./src/effect.js', import.meta.url),
+          to: new URL('./node_modules/wc-compiler/src/effect.js', import.meta.url),
+        },
+      ];
+    },
+  };
+}
+
+fs.copyFileSync(
+  new URL('./src/effect.js', import.meta.url),
+  new URL('./node_modules/wc-compiler/src/effect.js', import.meta.url),
+);
 
 const config: Config = {
   activeContent: true,
@@ -12,6 +37,7 @@ const config: Config = {
     importAttributes: ['css'],
   },
   plugins: [
+    // copyEffectPlugin(),
     greenwoodPluginImportRaw(),
     greenwoodPluginCssModules(),
     greenwoodPluginImportJsx(),
