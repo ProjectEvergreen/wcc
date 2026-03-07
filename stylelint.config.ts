@@ -1,3 +1,5 @@
+import type { Config } from 'stylelint';
+
 export default {
   extends: ['stylelint-config-recommended'],
   plugins: ['@double-great/stylelint-a11y'], // -> no `extends` https://github.com/double-great/stylelint-a11y/issues/65
@@ -6,4 +8,4 @@ export default {
     'a11y/no-outline-none': true,
     'a11y/selector-pseudo-class-focus': true,
   },
-};
+} satisfies Config;
