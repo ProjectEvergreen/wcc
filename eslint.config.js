@@ -9,7 +9,7 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 export default [
   {
     // https://github.com/eslint/eslint/discussions/18304#discussioncomment-9069706
-    ignores: ['node_modules/*', 'dist/*', 'coverage/*', 'public/*'],
+    ignores: ['node_modules/*', 'dist/*', 'coverage/*', 'public/*', 'storybook-static'],
   },
   {
     languageOptions: {
