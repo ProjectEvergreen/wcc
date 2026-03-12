@@ -1,3 +1,4 @@
+import '../docs/styles/theme.css';
 import type { Preview } from '@storybook/web-components-vite';
 
 const preview: Preview = {
