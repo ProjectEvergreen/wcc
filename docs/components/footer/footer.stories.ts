@@ -3,7 +3,7 @@ import Footer from './footer.tsx';
 import type { Meta, StoryObj } from '@storybook/web-components';
 
 const meta = {
-  component: 'Components/Footer',
+  title: 'Components/Footer',
 } satisfies Meta<typeof Footer>;
 
 export default meta;
