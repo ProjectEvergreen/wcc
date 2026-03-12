@@ -1,6 +1,6 @@
 import { html } from 'lit';
 import Footer from './footer.tsx';
-import type { Meta, StoryObj } from '@storybook/web-components';
+import type { Meta } from '@storybook/web-components';
 
 const meta = {
   title: 'Components/Footer',
@@ -9,5 +9,5 @@ const meta = {
 export default meta;
 
 export const Primary = () => {
-  return html`<wcc-footer></wcc-footer`;
+  return html`<wcc-footer></wcc-footer>`;
 };
