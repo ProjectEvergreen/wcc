@@ -31,3 +31,6 @@ jobs:
       - name: Test Docs
         run: |
           npm run test:docs
+      - name: Build Storybook
+        run: |
+          npm run story:build
