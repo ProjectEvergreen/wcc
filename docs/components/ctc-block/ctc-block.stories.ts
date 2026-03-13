@@ -3,7 +3,7 @@ import CopyToClipboardBlock from './ctc-block.ts';
 import type { Meta } from '@storybook/web-components';
 
 const meta = {
-  title: 'Components/Copy To Clipboard Block',
+  title: 'Components/Copy to Clipboard Block',
 } satisfies Meta<typeof CopyToClipboardBlock>;
 
 export default meta;
@@ -36,10 +36,10 @@ export const SnippetTemplate = () => `
 `;
 
 export const ShellScriptTemplate = () => `
-  <wcc-ctc-block variant="shell" paste-contents="npx @greenwood/init@latest my-app">
+  <wcc-ctc-block variant="shell" paste-contents="npm i -D wc-compiler">
     <pre class="language-shell"><code class="language-shell">
-    <span class="token comment"># initialize a new directory called my-app for your Greenwood project</span>
-    $ npx @greenwood/init@latest my-app
+    <span class="token comment"># install WCC with this command</span>
+    $ npm i -D wc-compiler
     </code></pre>
   </wcc-ctc-block>
 `;
