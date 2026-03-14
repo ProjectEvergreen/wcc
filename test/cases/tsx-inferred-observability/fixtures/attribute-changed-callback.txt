@@ -1,6 +1,6 @@
 static parseAttribute = value => value.charAt(0) === '{' || value.charAt(0) === '['
   ? JSON.parse(value)
-  : !isNaN(value)
+  : value !== '' && !isNaN(+value)
     ? parseInt(value, 10)
     : value === 'true' || value === 'false'
       ? value === 'true' ? true : false

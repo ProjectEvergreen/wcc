@@ -31,7 +31,9 @@
         margin: 0 auto;
       }
 
-      sb-signal-counter-jsx {
+      sb-signal-counter-jsx,
+      sb-signal-greeting-jsx,
+      input {
         display: block;
         margin: 0 auto;
         width: 50%;
@@ -59,21 +61,14 @@
     </script>
     <script type="module">
       import { Signal } from 'signal-polyfill';
-
-      globalThis.Signal = Signal;
-    </script>
-    <script type="module">
       // NOTE: `Signal` has to be defined first
       import { effect } from 'wc-compiler/effect';
-      globalThis.effect = effect;
 
-      globalThis._wcc = function (strings, ...values) {
-        let str = '';
-        strings.forEach((string, i) => {
-          str += string + (values[i] === 0 ? '0' : values[i] || '');
-        });
-        return str;
-      };
+      globalThis.Signal = Signal;
+      globalThis.effect = effect;
+    </script>
+    <script type="module">
+      globalThis.effect = effect;
     </script>
     <script>
       function randomReset() {
@@ -81,10 +76,16 @@
       }
 
       globalThis.document.addEventListener('DOMContentLoaded', () => {
+        const signalGreetingInput = document.getElementById('signal-greeting-input');
         const signalCounterJsxResetButton = document.getElementById('signal-counter-reset');
         // const counterJsxResetButton = document.getElementById('counter-jsx-reset');
         // const counterJsxDsdResetButton = document.getElementById('counter-jsx-dsd-reset');
         // const counterTsxDsdResetButton = document.getElementById('counter-tsx-dsd-reset');
+
+        signalGreetingInput.addEventListener('keyup', (e) => {
+          console.log('update greeting value => ', e.target.value);
+          document.querySelector('sb-signal-greeting-jsx').setAttribute('name', e.target.value);
+        });
 
         signalCounterJsxResetButton.addEventListener('click', () => {
           document.querySelectorAll('sb-signal-counter-jsx').forEach((el) => {
@@ -107,12 +108,20 @@
     </script>
 
     <script type="module" src="../components/sandbox/signal-counter.tsx"></script>
+    <script type="module" src="../components/sandbox/signal-greeting.tsx"></script>
   </head>
 
   <body>
     <h1>WCC Sandbox</h1>
 
-    <h2>JSX + inferredObservability</h2>
+    <h2>JSX + inferredObservability (Greeting)</h2>
+
+    <input id="signal-greeting-input" placeholder="World" />
+    <sb-signal-greeting-jsx></sb-signal-greeting-jsx>
+
+    <hr />
+
+    <h2>JSX + inferredObservability (Counter)</h2>
 
     <sb-signal-counter-jsx></sb-signal-counter-jsx>
     <hr />
