@@ -43,7 +43,7 @@
     "lint": "npm run lint:js && npm run lint:ls && npm run lint:css",
     "lint:js": "eslint",
     "lint:ls": "ls-lint",
-    "lint:css": "stylelint \"./docs/**/*.css\"",
+    "lint:css": "stylelint \"./docs/**/*.css\" \"./.storybook/*.css\"",
     "check:types": "tsc",
     "format": "prettier . --write",
     "format:check": "prettier . --check",

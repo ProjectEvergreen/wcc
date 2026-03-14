@@ -28,22 +28,19 @@ $ nvm use
 
 ## Local Development
 
-The local development flow is based around building the docs website, using `wcc` in an SSG based workflow, and running tests.
+Below are the local development workflows for working on WCC itself:
 
-### Commands
-
-These are the main tasks, and you can see them all listed in _package.json#scripts_.
-
-- `npm run dev` - Builds the docs site for local development
 - `npm test` - Run all the tests
 - `npm test:tdd` - Run all the tests in watch mode
 - `npm run lint` - Run all linters
 - `npm run check:types` - Run `tsc` to validate TypeScript types
 - `npm run format` - Auto-format all file
 
+> You can see them all scripts in _package.json#scripts_.
+
 ## Website
 
-The website is built with [**Greenwood**](https://www.greenwoodjs.dev). To run the website locally, use one of the following commands:
+The documentation website for WCC is built with [**Greenwood**](https://www.greenwoodjs.dev). To run the website locally, use one of the following commands:
 
 - `npm run dev` - Start the dev server
 - `npm run build` - Generate a production build
@@ -53,6 +50,10 @@ To run tests for the website, first make sure you have at least run `npm run bui
 
 - `npm run test:docs` - Run a single suite of tests with Vitest
 - `npm run test:docs:tdd` - Run the test suite with Vitest in watch mode
+
+To run Storybook for the components used in the website, run:
+
+- `npm run story:dev`
 
 ### Sandbox
 
