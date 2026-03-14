@@ -19,3 +19,4 @@ ignore:
   - node_modules
   - public
   - .greenwood
+  - storybook-static

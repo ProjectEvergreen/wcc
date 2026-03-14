@@ -1,0 +1,147 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Overview/Styleguide" />
+
+<style>
+  {`
+    :root {
+      --size: 50px;
+    }
+
+    h2 {
+      text-decoration: underline;
+    }
+
+    .palette-box {
+      width: var(--size);
+      height: var(--size);
+      display: block;
+      margin: 0 auto;
+    }
+
+    .palette-primary {
+      background-color: var(--color-primary);
+    }
+
+    .palette-secondary {
+      background-color: var(--color-secondary);
+    }
+
+    .palette-accent {
+      background-color: var(--color-accent);
+    } 
+
+    .palette-white {
+      background-color: var(--color-white);
+    }
+
+    .palette-black {
+      background-color: var(--color-black);
+    }
+
+    .palette-gray {
+      background-color: var(--color-gray);
+    }
+
+    .palette-gray-background {
+      background-color: var(--color-background);
+    }
+
+    .palette-prism-bg {
+      background-color: var(--color-prism-bg);
+    }
+
+    .typography {
+      font-size: 1.4rem;
+    }
+
+    .typography-primary {
+      font-family: var(--font-primary);
+      color: var(--color-primary);
+    }
+
+    .typography-primary {
+      font-family: var(--font-primary-bold);
+      color: var(--color-primary);
+    }
+
+    .typography-secondary {
+      font-family: var(--font-secondary);
+      color: var(--color-primary);
+    }
+  `}
+</style>
+
+---
+
+# Welcome to the GreenwoodJS style guide
+
+### The WCC website styleguide breaks down into the following sections:
+
+1. Colors
+1. Typography
+1. Components
+
+## Colors
+
+The following theme colors available are:
+
+### `--color-primary`
+
+<span class="palette-box palette-primary"></span>
+
+### `--color-secondary`
+
+<span class="palette-box palette-secondary"></span>
+
+### `--color-accent`
+
+<span class="palette-box palette-accent"></span>
+
+### `--color-white`
+
+<span class="palette-box palette-white"></span>
+
+### `--color-black`
+
+<span class="palette-box palette-black"></span>
+
+### `--color-gray`
+
+<span class="palette-box palette-gray"></span>
+
+### `--color-gray-background`
+
+<span class="palette-box palette-gray-background"></span>
+
+### `--color-prism-bg`
+
+<span class="palette-box palette-prism-bg"></span>
+
+## Typography
+
+The whole website uses [Vercel's **Geist** font](https://vercel.com/font) in Sans and Mono:
+
+### `--font-primary`
+
+This is the primary font for the website.
+
+<span class="typography typography-primary">The quick brown fox jumped over the lazy dog.</span>
+
+### `--font-primary-bold`
+
+This is the primary font for the website for bolded text.
+
+<span class="typography typography-primary-bold">
+  The quick brown fox jumped over the lazy dog.
+</span>
+
+### `--font-secondary`
+
+This is the font intended to be used for code samples.
+
+<span class="typography typography-secondary">The quick brown fox jumped over the lazy dog.</span>
+
+## Components
+
+👈 All available components can be found on the left sidebar of the Storybook site.

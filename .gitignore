@@ -5,3 +5,5 @@ dist/
 node_modules/
 .greenwood/
 public/
+*storybook.log
+storybook-static
