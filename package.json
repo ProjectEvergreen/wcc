@@ -37,9 +37,9 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "greenwood develop",
-    "build": "NODE_OPTIONS='--import @greenwood/cli/register' greenwood build",
-    "serve": "greenwood serve",
+    "docs:dev": "greenwood develop",
+    "docs:build": "NODE_OPTIONS='--import @greenwood/cli/register' greenwood build",
+    "docs:serve": "greenwood serve",
     "lint": "npm run lint:js && npm run lint:ls && npm run lint:css",
     "lint:js": "eslint",
     "lint:ls": "ls-lint",

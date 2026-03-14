@@ -24,7 +24,7 @@ jobs:
           npx playwright install --with-deps
       - name: Build the website
         run: |
-          npm run build
+          npm run docs:build
       - name: Check Types
         run: |
           npm run check:types
