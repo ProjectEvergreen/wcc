@@ -22,6 +22,12 @@ jobs:
       - name: Setup Playwright
         run: |
           npx playwright install --with-deps
+      - name: Format
+        run: |
+          npm run format:check
+      - name: Lint
+        run: |
+          npm run lint
       - name: Build the website
         run: |
           npm run docs:build
