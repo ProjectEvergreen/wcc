@@ -348,24 +348,14 @@ export function parseJsx(moduleURL) {
                     applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
                     const serializedHtml = serialize(elementTree);
-                    // we have to Shadow DOM use cases here
-                    // 1. No shadowRoot, so we attachShadow and append the template
-                    // 2. If there is root from the attachShadow signal, so we just need to inject innerHTML, say in an htmx
-                    // could / should we do something else instead of .innerHTML
-                    // https://github.com/ProjectEvergreen/wcc/issues/138
-                    const renderHandler = hasShadowRoot
-                      ? `
-                        const template = document.createElement('template');
-                        template.innerHTML = \`${serializedHtml}\`;
 
-                        if(!${elementRoot}) {
-                          this.attachShadow({ mode: 'open' });
-                          this.shadowRoot.appendChild(template.content.cloneNode(true));
-                        } else {
-                          this.shadowRoot.innerHTML = template.innerHTML;
-                        }
-                      `
-                      : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
+                    const renderHandler = `
+                      const template = document.createElement('template');
+                      template.innerHTML = \`${serializedHtml}\`;
+
+                      ${elementRoot}.textContent = '';
+                      ${elementRoot}.appendChild(template.content.cloneNode(true));
+                    `;
                     const transformed = acorn.parse(renderHandler, {
                       ecmaVersion: 'latest',
                       sourceType: 'module',
