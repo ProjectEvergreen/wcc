@@ -1,0 +1,2 @@
+$el0;
+static $$tmpl0 = name => `Hello ${name} 👋`;
