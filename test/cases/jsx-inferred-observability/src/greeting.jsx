@@ -19,12 +19,8 @@ export default class SignalGreeting extends HTMLElement {
   render() {
     const { name } = this;
 
-    return (
-      <h3 style="text-align: center" data-name={name.get()}>
-        Hello {name.get()} 👋
-      </h3>
-    );
+    return <h3 data-name={name.get()}>Hello {name.get()} 👋</h3>;
   }
 }
 
-customElements.define('sb-signal-greeting-jsx', SignalGreeting);
+customElements.define('wcc-greeting-jsx', SignalGreeting);

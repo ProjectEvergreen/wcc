@@ -467,15 +467,39 @@ export function parseJsx(moduleURL) {
             for (const n2 in node.value.body.body) {
               const n = node.value.body.body[n2];
               if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                const parentTag = n.argument.openingElement.name.name;
+                const rootNode = n.argument;
+                const parentTag = rootNode.openingElement.name.name;
                 console.log('ENTERING TEMPLATE AT =>', { parentTag });
                 const children = [];
+                let parentTemplate = '';
+                let parentHasReactiveTemplate;
+                let parentHasReactiveAttributes;
+                let parentSignals = [];
 
-                for (const child of n.argument.children) {
-                  // TODO: need to handle recursion
+                // TODO: need to handle recursion
+                for (const child of rootNode.children) {
                   if (child.type === 'JSXText') {
-                    // console.log('TEXT NODE', { child })
                     // TODO: track top level reactivity for text nodes?
+                    parentTemplate += child.raw;
+                  } else if (child.type === 'JSXExpressionContainer') {
+                    if (
+                      child.expression?.type === 'CallExpression' &&
+                      child.expression?.callee?.type === 'MemberExpression' &&
+                      child.expression?.callee?.property?.name === 'get'
+                    ) {
+                      const { object } = child.expression.callee || {};
+                      parentTemplate += `$\{${object.name}}`;
+                      parentSignals.push(object.name);
+                      parentHasReactiveTemplate = true;
+                    }
+
+                    parentHasReactiveAttributes = rootNode.openingElement.attributes.some(
+                      (a) =>
+                        a.value.type === 'JSXExpressionContainer' &&
+                        a.value.expression?.type === 'CallExpression' &&
+                        a.value.expression?.callee?.type === 'MemberExpression' &&
+                        a.value.expression?.callee?.property?.name === 'get',
+                    );
                   } else if (child.type === 'JSXElement') {
                     const childTag = child.openingElement.name.name;
                     console.log('ENTERING CHILD ELEMENT', { childTag });
@@ -566,6 +590,50 @@ export function parseJsx(moduleURL) {
                             value,
                           });
                         }
+                      }
+                    }
+                  }
+                }
+
+                if (parentHasReactiveTemplate) {
+                  console.log('tracking parent template reactivity');
+                  const $$templ = `$$tmpl${reactiveElements.length}`;
+                  const staticTemplate = `static ${$$templ} = (${parentSignals.join(',')}) => \`${parentTemplate.trim()}\`;`;
+                  // TODO: handle this references?
+                  // https://www.github.com/ProjectEvergreen/wcc/issues/88
+                  const expression = `${componentName}.${$$templ}(${parentSignals.map((s) => `this.${s}.get()`).join(', ')});`;
+
+                  reactiveElements.push({
+                    selector: `${parentTag}:nth-of-type(1)`,
+                    effect: {
+                      template: staticTemplate,
+                      expression,
+                    },
+                    attributes: [],
+                  });
+
+                  if (parentHasReactiveAttributes) {
+                    console.log(
+                      'PARENT ELEMENT HAS ATTRIBUTE REACTIVITY',
+                      rootNode.openingElement.name.name,
+                    );
+                    for (const attr of rootNode.openingElement.attributes) {
+                      if (
+                        attr.value.type === 'JSXExpressionContainer' &&
+                        attr.value.expression?.type === 'CallExpression' &&
+                        attr.value.expression?.callee?.type === 'MemberExpression' &&
+                        attr.value.expression?.callee?.property?.name === 'get'
+                      ) {
+                        const isThisExpression =
+                          attr.value.expression?.callee?.object?.object?.type === 'ThisExpression';
+                        const value = isThisExpression
+                          ? attr.value.expression?.callee?.object?.property.name
+                          : attr.value.expression?.callee?.object.name;
+
+                        reactiveElements[reactiveElements.length - 1].attributes.push({
+                          name: attr.name.name,
+                          value,
+                        });
                       }
                     }
                   }

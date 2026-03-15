@@ -18,36 +18,42 @@ import { renderToString } from '../../../src/wcc.js';
 const expect = chai.expect;
 
 describe('Run WCC For ', function () {
-  const LABEL = 'Single Custom Element using JSX and Inferred Observability';
-  let fixtureAttributeChangedCallback;
-  let fixtureGetObservedAttributes;
-  let fixtureStaticTemplates;
-  let fixtureEffects;
-  let meta;
-  let dom;
-
-  before(async function () {
-    const { html, metadata } = await renderToString(new URL('./src/counter.jsx', import.meta.url));
-
-    meta = metadata;
-    dom = new JSDOM(html);
-
-    fixtureAttributeChangedCallback = await fs.readFile(
-      new URL('./fixtures/attribute-changed-callback.txt', import.meta.url),
-      'utf-8',
-    );
-    fixtureGetObservedAttributes = await fs.readFile(
-      new URL('./fixtures/get-observed-attributes.txt', import.meta.url),
-      'utf-8',
-    );
-    fixtureStaticTemplates = await fs.readFile(
-      new URL('./fixtures/static-templates.txt', import.meta.url),
-      'utf-8',
-    );
-    fixtureEffects = await fs.readFile(new URL('./fixtures/effects.txt', import.meta.url), 'utf-8');
-  });
+  const LABEL = 'Custom Elements using JSX and Inferred Observability';
 
   describe(LABEL, function () {
+    let fixtureAttributeChangedCallback;
+    let fixtureGetObservedAttributes;
+    let fixtureStaticTemplates;
+    let fixtureEffects;
+    let meta;
+    let dom;
+
+    before(async function () {
+      const { html, metadata } = await renderToString(
+        new URL('./src/counter.jsx', import.meta.url),
+      );
+
+      meta = metadata;
+      dom = new JSDOM(html);
+
+      fixtureAttributeChangedCallback = await fs.readFile(
+        new URL('./fixtures/attribute-changed-callback.txt', import.meta.url),
+        'utf-8',
+      );
+      fixtureGetObservedAttributes = await fs.readFile(
+        new URL('./fixtures/get-observed-attributes.txt', import.meta.url),
+        'utf-8',
+      );
+      fixtureStaticTemplates = await fs.readFile(
+        new URL('./fixtures/static-templates.txt', import.meta.url),
+        'utf-8',
+      );
+      fixtureEffects = await fs.readFile(
+        new URL('./fixtures/effects.txt', import.meta.url),
+        'utf-8',
+      );
+    });
+
     describe('<Counter> component w/ <Badge> and Inferred Observability', function () {
       it('should infer observability by generating a get observedAttributes method', () => {
         const actual = meta['wcc-counter-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
@@ -133,6 +139,38 @@ describe('Run WCC For ', function () {
         const span = counterDom.querySelector('span#non-reactive');
 
         expect(span.textContent).to.equal('Just some static text');
+      });
+    });
+
+    describe('<Greeting> component and Inferred Observability', function () {
+      let dom;
+
+      before(async function () {
+        const { html } = await renderToString(new URL('./src/greeting.jsx', import.meta.url));
+
+        dom = new JSDOM(html);
+      });
+
+      // <h3>Hello {name.get()} 👋</h3>
+      it('should have the expected value for a top level tag with reactive content', () => {
+        const greetingDom = new JSDOM(
+          dom.window.document.querySelector('wcc-greeting-jsx template[shadowrootmode="open"]')
+            .innerHTML,
+        ).window.document;
+        const heading = greetingDom.querySelector('h3');
+
+        expect(heading.textContent.trim()).to.equal('Hello World 👋');
+      });
+
+      // <h3 data-name={name.get()}>Hello {name.get()} 👋</h3>
+      it('should have the expected value for a top level tag with reactive attributes', () => {
+        const greetingDom = new JSDOM(
+          dom.window.document.querySelector('wcc-greeting-jsx template[shadowrootmode="open"]')
+            .innerHTML,
+        ).window.document;
+        const heading = greetingDom.querySelector('h3');
+
+        expect(heading.getAttribute('data-name')).to.equal('World');
       });
     });
   });
