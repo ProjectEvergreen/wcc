@@ -8,6 +8,7 @@
  * User Workspace
  * src/
  *   counter.tsx
+ *   greeting.tsx
  */
 import chai from 'chai';
 import fs from 'fs/promises';
@@ -37,19 +38,19 @@ describe('Run WCC For ', function () {
         dom = new JSDOM(html);
 
         fixtureAttributeChangedCallback = await fs.readFile(
-          new URL('./fixtures/attribute-changed-callback.txt', import.meta.url),
+          new URL('./fixtures/counter/attribute-changed-callback.txt', import.meta.url),
           'utf-8',
         );
         fixtureGetObservedAttributes = await fs.readFile(
-          new URL('./fixtures/get-observed-attributes.txt', import.meta.url),
+          new URL('./fixtures/counter/get-observed-attributes.txt', import.meta.url),
           'utf-8',
         );
         fixtureStaticTemplates = await fs.readFile(
-          new URL('./fixtures/static-templates.txt', import.meta.url),
+          new URL('./fixtures/counter/static-templates.txt', import.meta.url),
           'utf-8',
         );
         fixtureEffects = await fs.readFile(
-          new URL('./fixtures/effects.txt', import.meta.url),
+          new URL('./fixtures/counter/effects.txt', import.meta.url),
           'utf-8',
         );
       });
@@ -115,12 +116,65 @@ describe('Run WCC For ', function () {
     });
 
     describe('<Greeting> component and Inferred Observability', function () {
+      let fixtureAttributeChangedCallback;
+      let fixtureGetObservedAttributes;
+      let fixtureStaticTemplates;
+      let fixtureEffects;
+      let meta;
       let dom;
 
       before(async function () {
-        const { html } = await renderToString(new URL('./src/greeting.tsx', import.meta.url));
+        const { html, metadata } = await renderToString(
+          new URL('./src/greeting.tsx', import.meta.url),
+        );
 
+        fixtureAttributeChangedCallback = await fs.readFile(
+          new URL('./fixtures/greeting/attribute-changed-callback.txt', import.meta.url),
+          'utf-8',
+        );
+        fixtureGetObservedAttributes = await fs.readFile(
+          new URL('./fixtures/greeting/get-observed-attributes.txt', import.meta.url),
+          'utf-8',
+        );
+        fixtureStaticTemplates = await fs.readFile(
+          new URL('./fixtures/greeting/static-templates.txt', import.meta.url),
+          'utf-8',
+        );
+        fixtureEffects = await fs.readFile(
+          new URL('./fixtures/greeting/effects.txt', import.meta.url),
+          'utf-8',
+        );
+
+        meta = metadata;
         dom = new JSDOM(html);
+      });
+
+      it('should infer observability by generating a get observedAttributes method', () => {
+        const actual = meta['wcc-greeting-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
+        const expected = fixtureGetObservedAttributes.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(expected);
+      });
+
+      it('should infer observability by generating an attributeChangedCallback method', () => {
+        const actual = meta['wcc-greeting-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
+        const expected = fixtureAttributeChangedCallback.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(expected);
+      });
+
+      it('should infer observability by generating a static attribute method', () => {
+        const actual = meta['wcc-greeting-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
+        const expected = fixtureStaticTemplates.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(expected);
+      });
+
+      it('should infer observability by generating an effects method', () => {
+        const actual = meta['wcc-greeting-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
+        const expected = fixtureEffects.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(expected);
       });
 
       // <h3>Hello {name.get()} 👋</h3>

@@ -1,6 +1,6 @@
 export const inferredObservability = true;
 
-export default class SignalGreeting extends HTMLElement {
+export default class Greeting extends HTMLElement {
   name;
 
   constructor() {
@@ -19,4 +19,4 @@ export default class SignalGreeting extends HTMLElement {
   }
 }
 
-customElements.define('wcc-greeting-jsx', SignalGreeting);
+customElements.define('wcc-greeting-jsx', Greeting);

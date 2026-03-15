@@ -1,0 +1,7 @@
+this.$el0 = this.querySelector('h3:nth-of-type(1)');
+effect(() => {
+  this.$el0.textContent = Greeting.$$tmpl0(this.name.get());
+});
+effect(() => {
+  this.$el0.setAttribute('data-name', this.name.get());
+});
