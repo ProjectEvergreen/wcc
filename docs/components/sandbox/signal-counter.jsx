@@ -1,5 +1,3 @@
-import sheet from './signal-counter.css' with { type: 'css' };
-
 export const inferredObservability = true;
 
 export default class SignalCounter extends HTMLElement {
@@ -16,16 +14,9 @@ export default class SignalCounter extends HTMLElement {
     );
   }
 
-  // Shadow DOM
+  // Light DOM
   connectedCallback() {
-    if (!this.shadowRoot) {
-      this.attachShadow({
-        mode: 'open',
-      });
-      this.render();
-    }
-
-    this.shadowRoot.adoptedStyleSheets = [sheet];
+    this.render();
   }
 
   increment() {
@@ -60,4 +51,4 @@ export default class SignalCounter extends HTMLElement {
   }
 }
 
-customElements.define('sb-signal-counter-tsx', SignalCounter);
+customElements.define('sb-signal-counter-jsx', SignalCounter);
