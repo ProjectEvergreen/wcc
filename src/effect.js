@@ -21,6 +21,11 @@ function processPending() {
 }
 
 export function effect(callback) {
+  // export effect function as a no-op for SSR environments
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
   let cleanup;
 
   const computed = new Signal.Computed(() => {

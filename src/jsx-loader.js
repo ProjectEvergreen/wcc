@@ -11,13 +11,9 @@ import jsx from '@projectevergreen/acorn-jsx-esm';
 import { parse, parseFragment, serialize } from 'parse5';
 import { transform } from 'sucrase';
 
-// Signal has to come before effect
+// expose global Signal polyfill to SSR environment
 import { Signal } from 'signal-polyfill';
 globalThis.Signal = Signal;
-
-// no-op implementation for SSR
-function effect() {}
-globalThis.effect = effect;
 
 const jsxRegex = /\.(jsx)$/;
 const tsxRegex = /\.(tsx)$/;
@@ -811,6 +807,15 @@ export function parseJsx(moduleURL) {
         JSXElement: () => {},
       },
     );
+
+    // inject WCC's effect function
+    const effectImportContents = `import { effect } from 'wc-compiler/effect'`;
+    const effectImportTree = acorn.parse(effectImportContents, {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    });
+
+    tree.body = [...effectImportTree.body, ...tree.body];
   }
 
   return tree;

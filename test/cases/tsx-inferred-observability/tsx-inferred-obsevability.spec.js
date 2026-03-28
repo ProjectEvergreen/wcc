@@ -19,6 +19,7 @@ const expect = chai.expect;
 
 describe('Run WCC For ', function () {
   const LABEL = 'Custom Elements using TSX and Inferred Observability';
+  const effectImport = `import{effect}from'wc-compiler/effect';`;
 
   describe(LABEL, function () {
     let fixtureAttributeChangedCallback;
@@ -81,6 +82,12 @@ describe('Run WCC For ', function () {
         const expected = fixtureEffects.replace(/ /g, '').replace(/\n/g, '');
 
         expect(actual).to.contain(expected);
+      });
+
+      it("should infer observability by generating an import for WCC's effect function", () => {
+        const actual = meta['wcc-counter-tsx'].source.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(effectImport);
       });
 
       // <span id="one-deep" data-count={count.get()}>Top level count is {count.get()}</span>
@@ -175,6 +182,12 @@ describe('Run WCC For ', function () {
         const expected = fixtureEffects.replace(/ /g, '').replace(/\n/g, '');
 
         expect(actual).to.contain(expected);
+      });
+
+      it("should infer observability by generating an import for WCC's effect function", () => {
+        const actual = meta['wcc-greeting-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
+
+        expect(actual).to.contain(effectImport);
       });
 
       // <h3>Hello {name.get()} 👋</h3>

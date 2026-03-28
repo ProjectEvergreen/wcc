@@ -61,14 +61,8 @@
     </script>
     <script type="module">
       import { Signal } from 'signal-polyfill';
-      // NOTE: `Signal` has to be defined first
-      import { effect } from 'wc-compiler/effect';
 
       globalThis.Signal = Signal;
-      globalThis.effect = effect;
-    </script>
-    <script type="module">
-      globalThis.effect = effect;
     </script>
     <script>
       function randomReset() {
