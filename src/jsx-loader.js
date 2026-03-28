@@ -17,6 +17,10 @@ globalThis.Signal = Signal;
 
 const jsxRegex = /\.(jsx)$/;
 const tsxRegex = /\.(tsx)$/;
+const acornParseOptions = {
+  ecmaVersion: 'latest',
+  sourceType: 'module',
+};
 
 // TODO: same hack as definitions
 // https://github.com/ProjectEvergreen/wcc/discussions/74
@@ -336,10 +340,7 @@ export function parseJsx(moduleURL) {
   let reactiveElements = [];
   let componentName;
   let hasShadowRoot;
-  let tree = acorn.Parser.extend(jsx()).parse(result.code, {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-  });
+  let tree = acorn.Parser.extend(jsx()).parse(result.code, acornParseOptions);
   string = '';
 
   // initial pass to get certain information before running JSX transformations (could we do this in one pass?)
@@ -689,10 +690,7 @@ export function parseJsx(moduleURL) {
                         }
                       `
                       : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
-                    const transformed = acorn.parse(renderHandler, {
-                      ecmaVersion: 'latest',
-                      sourceType: 'module',
-                    });
+                    const transformed = acorn.parse(renderHandler, acornParseOptions);
 
                     // @ts-ignore
                     n1.value.body.body[n2] = transformed;
@@ -765,10 +763,7 @@ export function parseJsx(moduleURL) {
               }
             `;
 
-            const staticContentsTree = acorn.parse(staticContents, {
-              ecmaVersion: 'latest',
-              sourceType: 'module',
-            });
+            const staticContentsTree = acorn.parse(staticContents, acornParseOptions);
 
             node.body.body.unshift(...staticContentsTree.body[0].body.body);
           }
@@ -783,14 +778,8 @@ export function parseJsx(moduleURL) {
               .map((element, idx) => generateEffectsForReactiveElement(element, idx))
               .join('\n');
 
-            const effectElementsTree = acorn.parse(effectElements, {
-              ecmaVersion: 'latest',
-              sourceType: 'module',
-            });
-            const effectContentsTree = acorn.parse(effectContents, {
-              ecmaVersion: 'latest',
-              sourceType: 'module',
-            });
+            const effectElementsTree = acorn.parse(effectElements, acornParseOptions);
+            const effectContentsTree = acorn.parse(effectContents, acornParseOptions);
 
             node.value.body.body = [
               ...node.value.body.body,
@@ -810,10 +799,7 @@ export function parseJsx(moduleURL) {
 
     // inject WCC's effect function
     const effectImportContents = `import { effect } from 'wc-compiler/effect'`;
-    const effectImportTree = acorn.parse(effectImportContents, {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-    });
+    const effectImportTree = acorn.parse(effectImportContents, acornParseOptions);
 
     tree.body = [...effectImportTree.body, ...tree.body];
   }
