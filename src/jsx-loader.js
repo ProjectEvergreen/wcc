@@ -374,6 +374,7 @@ export function parseJsx(moduleURL) {
   let reactiveElements = [];
   let componentName;
   let hasShadowRoot;
+  let hasDisconnectedCallback;
   let tree = acorn.Parser.extend(jsx()).parse(result.code, acornParseOptions);
   string = '';
 
@@ -382,6 +383,7 @@ export function parseJsx(moduleURL) {
   // 2. get the name of the component class for `static` references
   // 3, track observed attributes from `this` references in the template
   // 4. track if Shadow DOM is being used
+  // 5. track if disconnectedCallback is already defined
   walk.simple(
     tree,
     {
@@ -441,6 +443,10 @@ export function parseJsx(moduleURL) {
         }
       },
       MethodDefinition(node) {
+        if (node.kind === 'method' && node?.key.name === 'disconnectedCallback') {
+          hasDisconnectedCallback = true;
+        }
+
         // @ts-ignore
         if (
           node.kind === 'constructor' &&
@@ -765,7 +771,13 @@ export function parseJsx(moduleURL) {
           ) {
             // TODO: do we even need this filter?
             const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
-
+            const disconnectedCallbackContents = hasDisconnectedCallback
+              ? ''
+              : `
+                disconnectedCallback() {
+                  ${generateEffectsCleanupForReactiveElements(reactiveElements)}
+                }
+              `;
             console.log('effect', { reactiveElements });
             console.log('observedAttributes', trackingAttrs);
 
@@ -795,9 +807,7 @@ export function parseJsx(moduleURL) {
                 attributeChangedCallback(name, oldValue, newValue) {
                   this[name].set(${componentName}.parseAttribute(newValue));
                 }
-                disconnectedCallback() {
-                  ${generateEffectsCleanupForReactiveElements(reactiveElements)}
-                }
+                ${disconnectedCallbackContents}
               }
             `;
 
@@ -822,6 +832,15 @@ export function parseJsx(moduleURL) {
               ...effectElementsTree.body,
               ...effectContentsTree.body,
             ];
+          }
+
+          if (node.key.name === 'disconnectedCallback' && hasDisconnectedCallback) {
+            console.log('injecting effect cleanup into existing disconnectedCallback');
+            const effectCleanupContents =
+              generateEffectsCleanupForReactiveElements(reactiveElements);
+            const effectCleanupElementsTree = acorn.parse(effectCleanupContents, acornParseOptions);
+
+            node.value.body.body = [...node.value.body.body, ...effectCleanupElementsTree.body];
           }
         },
       },

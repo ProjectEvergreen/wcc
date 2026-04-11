@@ -40,6 +40,10 @@ export default class SignalCounter extends HTMLElement {
     this.count.set(this.count.get() * 2);
   }
 
+  disconnectedCallback() {
+    console.log('Disconnected!');
+  }
+
   render() {
     const { count, parity, isLarge } = this;
 

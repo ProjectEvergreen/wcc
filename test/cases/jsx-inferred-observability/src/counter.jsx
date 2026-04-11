@@ -27,6 +27,10 @@ export default class Counter extends HTMLElement {
     }
   }
 
+  disconnectedCallback() {
+    console.log('Counter disconnected!');
+  }
+
   render() {
     const { count, highlight, parity } = this;
 

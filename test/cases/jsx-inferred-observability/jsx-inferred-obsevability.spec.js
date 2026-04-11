@@ -71,6 +71,23 @@ describe('Run WCC For ', function () {
         expect(actual).to.contain(expected);
       });
 
+      it('should infer observability by merging disconnectedCallback', () => {
+        const actual = meta['wcc-counter-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
+        const expected = `
+          disconnectedCallback() {
+            console.log('Counter disconnected!');
+            this.$eff0();
+            this.$eff1();
+            this.$eff2();
+            this.$eff3();
+          }
+        `
+          .replace(/ /g, '')
+          .replace(/\n/g, '');
+
+        expect(actual).to.contain(expected);
+      });
+
       it('should infer observability by generating a static attribute method', () => {
         const actual = meta['wcc-counter-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
         const expected = fixtureStaticTemplates.replace(/ /g, '').replace(/\n/g, '');
