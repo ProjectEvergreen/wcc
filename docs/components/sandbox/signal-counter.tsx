@@ -53,6 +53,7 @@ export default class SignalCounter extends HTMLElement {
         <button onclick={this.increment}>Increment (+)</button>
         <button onclick={this.decrement}>Decrement (-)</button>
         {/* TODO: inline version breaks with effects */}
+        {/* https://github.com/ProjectEvergreen/wcc/issues/256 */}
         {/* <button onclick={() => this.count.set(this.count.get() * 2)}>Double (++)</button> */}
         <button onclick={this.double}>Double (++)</button>
         <span class={parity.get()}>

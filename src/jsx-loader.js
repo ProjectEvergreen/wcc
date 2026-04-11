@@ -116,7 +116,7 @@ function findThisReferences(context, statement) {
           references.push(property.key.name);
         });
       } else {
-        // TODO: we are just blindly tracking anything here.
+        // TODO: we are just blindly tracking anything here?
         // everything should ideally be mapped to actual this references, to create a strong chain of direct reactivity
         // instead of tracking any declaration as a derived tracking attr
         // for convenience here, we push the entire declaration here, instead of the name like for direct this references (see above)
@@ -197,7 +197,6 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
               expression?.callee?.property?.name === 'get'
             ) {
               // xxx={products.get().length} >
-              // TODO: do we need to handle for set()?
               const { object, property } = expression.callee;
 
               if (object.type === 'MemberExpression' && object?.object.type === 'ThisExpression') {
@@ -265,7 +264,6 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
       ) {
         // TODO: handle this references
         // https://github.com/ProjectEvergreen/wcc/issues/88
-        // TODO: do we need to handle for set()?
         const { object, property } = element.expression.callee;
         string += `$\{${object.name}.${property.name}()}`;
       } else if (type === 'Identifier') {
@@ -419,6 +417,7 @@ export function parseJsx(moduleURL) {
         // @ts-ignore
         if (node.superClass.name === 'HTMLElement') {
           // TODO: (good first issue) find a more AST (visitor) based way to check for this
+          // https://github.com/ProjectEvergreen/wcc/issues/258
           hasShadowRoot =
             moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
@@ -491,11 +490,10 @@ export function parseJsx(moduleURL) {
 
   // we do this first to track reactivity usage before we transform the template and re-write its contents
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
-    console.log('inferredObservability enabled. scanning for reactivity...', observedAttributes);
-
     // this scans for signals usage within the template and builds up a reactive list of templates + effects
     // (could this be done during the transformation pass instead of having to generate and re-parse the module again?)
-    // - TODO: recursive scanning for nested components
+    // TODO: recursive scanning for nested components
+    // https://github.com/ProjectEvergreen/wcc/issues/256
     walk.simple(
       tree,
       {
@@ -506,17 +504,16 @@ export function parseJsx(moduleURL) {
               if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
                 const rootNode = n.argument;
                 const parentTag = rootNode.openingElement.name.name;
-                console.log('ENTERING TEMPLATE AT =>', { parentTag });
                 const children = [];
                 let parentTemplate = '';
                 let parentHasReactiveTemplate;
                 let parentHasReactiveAttributes;
                 let parentSignals = [];
 
-                // TODO: need to handle recursion
                 for (const child of rootNode.children) {
                   if (child.type === 'JSXText') {
                     // TODO: track top level reactivity for text nodes?
+                    // https://github.com/ProjectEvergreen/wcc/issues/256
                     parentTemplate += child.raw;
                   } else if (child.type === 'JSXExpressionContainer') {
                     if (
@@ -539,7 +536,6 @@ export function parseJsx(moduleURL) {
                     );
                   } else if (child.type === 'JSXElement') {
                     const childTag = child.openingElement.name.name;
-                    console.log('ENTERING CHILD ELEMENT', { childTag });
 
                     // track children for determining correct effect selector
                     if (!children[childTag]) {
@@ -549,6 +545,7 @@ export function parseJsx(moduleURL) {
 
                     // TODO: I think we are only checking for State, I think we also need to handle Computeds (by themselves) here as well
                     // TODO: should we filter the things that call .get() out against actual signals found in the constructor / JSX?
+                    // https://github.com/ProjectEvergreen/wcc/issues/256
                     const hasReactiveTemplate = child.children.some(
                       (c) =>
                         c.type === 'JSXExpressionContainer' &&
@@ -573,7 +570,6 @@ export function parseJsx(moduleURL) {
                     }
 
                     if (hasReactiveTemplate) {
-                      console.log('CHILD ELEMENT HAS TEXT CONTENT REACTIVITY', { childTag });
                       const signals = [];
                       let template = '';
 
@@ -604,10 +600,6 @@ export function parseJsx(moduleURL) {
                     }
 
                     if (hasReactiveAttributes) {
-                      console.log(
-                        'CHILD ELEMENT HAS ATTRIBUTE REACTIVITY',
-                        child.openingElement.name.name,
-                      );
                       for (const attr of child.openingElement.attributes) {
                         if (
                           attr.value.type === 'JSXExpressionContainer' &&
@@ -633,7 +625,6 @@ export function parseJsx(moduleURL) {
                 }
 
                 if (parentHasReactiveTemplate) {
-                  console.log('tracking parent template reactivity');
                   const $$templ = `$$tmpl${reactiveElements.length}`;
                   const staticTemplate = `static ${$$templ} = (${parentSignals.join(',')}) => \`${parentTemplate.trim()}\`;`;
                   // TODO: handle this references?
@@ -650,10 +641,6 @@ export function parseJsx(moduleURL) {
                   });
 
                   if (parentHasReactiveAttributes) {
-                    console.log(
-                      'PARENT ELEMENT HAS ATTRIBUTE REACTIVITY',
-                      rootNode.openingElement.name.name,
-                    );
                     for (const attr of rootNode.openingElement.attributes) {
                       if (
                         attr.value.type === 'JSXExpressionContainer' &&
@@ -752,10 +739,6 @@ export function parseJsx(moduleURL) {
 
   // TODO: why does this compilation run twice?  logging here will output the message twice
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
-    console.log('inferredObservability enabled. applying templates and effects...', {
-      reactiveElements,
-    });
-
     // here we do the following with all the work we've done so far tracking attributes, signals, effects, etc
     // 1. setup static template functions and observed attributes that we've tracked so far to inject into the top of the class body
     // 2. append all effects to the end of the connectedCallback function
@@ -778,12 +761,9 @@ export function parseJsx(moduleURL) {
                   ${generateEffectsCleanupForReactiveElements(reactiveElements)}
                 }
               `;
-            console.log('effect', { reactiveElements });
-            console.log('observedAttributes', trackingAttrs);
 
             // TODO: better way to determine value type, e,g. array, number, object, etc for `parseAttribute`?
             // have to wrap these `static` calls in a class here, otherwise we can't parse them standalone w/ acorn
-            // TODO: check for existing disconnectedCallback
             const staticContents = `
               class Stub {
                 ${reactiveElements.map((el, idx) => `$el${idx};`).join('')}
@@ -835,7 +815,6 @@ export function parseJsx(moduleURL) {
           }
 
           if (node.key.name === 'disconnectedCallback' && hasDisconnectedCallback) {
-            console.log('injecting effect cleanup into existing disconnectedCallback');
             const effectCleanupContents =
               generateEffectsCleanupForReactiveElements(reactiveElements);
             const effectCleanupElementsTree = acorn.parse(effectCleanupContents, acornParseOptions);
