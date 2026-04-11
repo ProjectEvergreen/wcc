@@ -294,31 +294,65 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
   return string;
 }
 
-function generateEffectsForReactiveElement(reactiveElement, idx) {
-  const { effect, attributes } = reactiveElement;
+function generateEffectsForReactiveElements(reactiveElements) {
+  let effectsCount = 0;
   let contents = '';
 
-  if (reactiveElement.effect?.expression) {
-    contents += `
-      effect(() => {
-        this.$el${idx}.textContent = ${effect.expression}
-      });\n
-    `;
-  }
+  reactiveElements.forEach((element, idx) => {
+    const { effect, attributes } = element;
 
-  if (attributes.length > 0) {
-    const attributeUpdates = attributes
-      .map((attr) => {
-        return `this.$el${idx}.setAttribute('${attr.name}', this.${attr.value}.get())`;
-      })
-      .join('\n');
+    if (effect?.expression) {
+      contents += `
+        this.$eff${effectsCount} = effect(() => {
+          this.$el${idx}.textContent = ${effect.expression}
+        });\n
+      `;
 
-    contents += `
-      effect(() => {
-        ${attributeUpdates}
-      });\n
-    `;
-  }
+      effectsCount++;
+    }
+
+    if (attributes.length > 0) {
+      const attributeUpdates = attributes
+        .map((attr) => {
+          return `this.$el${idx}.setAttribute('${attr.name}', this.${attr.value}.get())`;
+        })
+        .join('\n');
+
+      contents += `
+        this.$eff${effectsCount} = effect(() => {
+          ${attributeUpdates}
+        });\n
+      `;
+
+      effectsCount++;
+    }
+  });
+
+  return contents;
+}
+
+function generateEffectsCleanupForReactiveElements(reactiveElements) {
+  let contents = '';
+  let effectCount = 0;
+
+  reactiveElements.forEach((element) => {
+    const { effect, attributes } = element;
+
+    if (effect?.expression) {
+      contents += `
+        this.$eff${effectCount}()\n;
+      `;
+
+      effectCount++;
+    }
+
+    if (attributes.length > 0) {
+      contents += `
+        this.$eff${effectCount}();
+      `;
+      effectCount += 1;
+    }
+  });
 
   return contents;
 }
@@ -737,6 +771,7 @@ export function parseJsx(moduleURL) {
 
             // TODO: better way to determine value type, e,g. array, number, object, etc for `parseAttribute`?
             // have to wrap these `static` calls in a class here, otherwise we can't parse them standalone w/ acorn
+            // TODO: check for existing disconnectedCallback
             const staticContents = `
               class Stub {
                 ${reactiveElements.map((el, idx) => `$el${idx};`).join('')}
@@ -760,6 +795,9 @@ export function parseJsx(moduleURL) {
                 attributeChangedCallback(name, oldValue, newValue) {
                   this[name].set(${componentName}.parseAttribute(newValue));
                 }
+                disconnectedCallback() {
+                  ${generateEffectsCleanupForReactiveElements(reactiveElements)}
+                }
               }
             `;
 
@@ -774,9 +812,7 @@ export function parseJsx(moduleURL) {
             const effectElements = reactiveElements
               .map((el, idx) => `this.$el${idx} = ${root}.querySelector('${el.selector}');`)
               .join('\n');
-            const effectContents = reactiveElements
-              .map((element, idx) => generateEffectsForReactiveElement(element, idx))
-              .join('\n');
+            const effectContents = generateEffectsForReactiveElements(reactiveElements);
 
             const effectElementsTree = acorn.parse(effectElements, acornParseOptions);
             const effectContentsTree = acorn.parse(effectContents, acornParseOptions);

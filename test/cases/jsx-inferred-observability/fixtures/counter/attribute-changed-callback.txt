@@ -8,3 +8,9 @@ static parseAttribute = value => value.charAt(0) === '{' || value.charAt(0) === 
 attributeChangedCallback(name, oldValue, newValue) {
   this[name].set(Counter.parseAttribute(newValue));
 }
+disconnectedCallback() {
+  this.$eff0();
+  this.$eff1();
+  this.$eff2();
+  this.$eff3();
+}
