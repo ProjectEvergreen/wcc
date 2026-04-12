@@ -317,6 +317,18 @@ export function parseJsx(moduleURL) {
     },
   );
 
+  // Remove `inferredObservability` export statement from the compiled output
+  // https://github.com/ProjectEvergreen/wcc/issues/257
+  tree.body = tree.body.filter((node) => {
+    if (node.type === 'ExportNamedDeclaration' && node.declaration) {
+      // @ts-ignore
+      if (node.declaration.declarations?.[0]?.id?.name === 'inferredObservability') {
+        return false;
+      }
+    }
+    return true;
+  });
+
   walk.simple(
     tree,
     {
