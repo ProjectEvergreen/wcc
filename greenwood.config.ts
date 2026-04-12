@@ -5,25 +5,7 @@ import { greenwoodPluginCssModules } from '@greenwood/plugin-css-modules';
 import { greenwoodPluginImportRaw } from '@greenwood/plugin-import-raw';
 import fs from 'node:fs';
 
-// TODO: this does not run in dev :/
-function copyEffectPlugin(): CopyPlugin {
-  console.log('herere???');
-  return {
-    type: 'copy',
-    name: 'plugin-copy-wcc-effect',
-    provider: async () => {
-      console.log('copy???');
-      return [
-        {
-          // copy a file
-          from: new URL('./src/effect.js', import.meta.url),
-          to: new URL('./node_modules/wc-compiler/src/effect.js', import.meta.url),
-        },
-      ];
-    },
-  };
-}
-
+// NOTE: Greenwood does not run the copy plugin in dev, so we have to do this manually for now
 fs.copyFileSync(
   new URL('./src/effect.js', import.meta.url),
   new URL('./node_modules/wc-compiler/src/effect.js', import.meta.url),
@@ -37,7 +19,6 @@ const config: Config = {
     importAttributes: ['css'],
   },
   plugins: [
-    // copyEffectPlugin(),
     greenwoodPluginImportRaw(),
     greenwoodPluginCssModules(),
     greenwoodPluginImportJsx(),
