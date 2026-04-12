@@ -557,7 +557,7 @@ An optional feature based on [TC39 Signals](https://github.com/tc39/proposal-sig
 
 The JSX transformation will now also do the following:
 
-1. Map each member instance to an entry in the `observedAttributes` array
+1. Map each Signal to an entry in the `observedAttributes` array
 1. Automatically handle / generate `attributeChangedCallback` updates
 1. Setup effects (and tear them down in `disconnectedCallback`)
 
