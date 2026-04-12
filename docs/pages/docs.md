@@ -551,53 +551,103 @@ Using, the Counter example from above, we would amend it like so:
 
 <!-- prettier-ignore-end -->
 
-### (Inferred) Attribute Observability
+### Inferred Observability (Signals)
 
-An optional feature supported by JSX based compilation is `inferredObservability`. With this enabled, WCC will read any `this` member references in your component's `render` function and map each member instance to:
+An optional feature based on [TC39 Signals](https://github.com/tc39/proposal-signals) that when enabled, will map Signal reads in a component's JSX template to [observed attributes](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#responding_to_attribute_changes). This feature is inspired by projects such as [**SolidJS**](https://www.solidjs.com/) and [**Svelte**](https://svelte.dev/).
 
-1. an entry in the `observedAttributes` array
-1. automatically handle `attributeChangedCallback` updates
+The JSX transformation will now also do the following:
 
-So taking the above counter example, and opting-in to this feature, we just need to enable the `inferredObservability` option in the component by exporting it as a `const`:
+1. Map each member instance to an entry in the `observedAttributes` array
+1. Automatically handle / generate `attributeChangedCallback` updates
+1. Setup effects (and tear them down in `disconnectedCallback`)
+
+So taking the above counter example, enable the inferred observability behavior as an option in the component by exporting it as a `const`:
 
 <!-- prettier-ignore-start -->
 
 <wcc-ctc-block variant="snippet" heading="src/components/counter.jsx">
 
   ```jsx
+  // include this line
   export const inferredObservability = true;
 
   export default class Counter extends HTMLElement {
-    // ...
+    constructor() {
+      super();
+      // using TC39 signals
+      this.count = new Signal.State(0);
+      this.parity = new Signal.Computed(() => (this.count.get() % 2 === 0 ? 'even' : 'odd'));
+    }
+
+    connectedCallback() {
+      if (!this.shadowRoot) {
+        this.attachShadow({
+          mode: 'open',
+        });
+        // this call is still needed
+        this.render();
+      }
+    }
+
+    increment() {
+      this.count.set(this.count.get() + 1);
+    }
+
+    decrement() {
+      this.count.set(this.count.get() - 1);
+    }
 
     render() {
-      const { count } = this;
+      const { count, parity } = this;
 
-      // note that {count} has to be wrapped in its own HTML tag
       return (
         <div>
-          <button onclick={this.count -= 1}> -</button>
+          <button onclick={this.increment}>Increment (+)</button>
+          <button onclick={this.decrement}>Decrement (-)</button>
+
           <span>
-            You have clicked <span class="red">{count}</span> times
+            The count is {count.get()} ({parity.get()})
           </span>
-          <button onclick={this.increment}> +</button>
         </div>
       );
     }
   }
+
+  customElements.define('wcc-counter', Counter);
   ```
 
 </wcc-ctc-block>
 
 <!-- prettier-ignore-end -->
 
-And so now when the attribute is set on this component, the component will re-render automatically using fine-grained updates; no need to write out `observedAttributes` or `attributeChangedCallback`!
+It is required to setup `Signal` as a global in the browser, and add import maps for the polyfill and WCC's `effect` function in the `<head>` of your HTML page(s):
 
-```html
-<wcc-counter count="100"></wcc-counter>
-```
+<!-- prettier-ignore-start -->
+
+<wcc-ctc-block variant="snippet" heading="src/index.html">
+
+  ```html
+  <script type="importmap">
+    {
+      "imports": {
+        "signal-polyfill": "../path/to/node_modules/signal-polyfill/dist/index.js",
+        "wc-compiler/effect": "../path/to/node_modules/wc-compiler/src/effect.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import { Signal } from 'signal-polyfill';
+
+    globalThis.Signal = Signal;
+  </script>
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
 
 Some notes / limitations:
 
+- Reactivity is [only supported at one depth of the JSX tree](https://github.com/ProjectEvergreen/wcc/issues/256)
 - Please be aware of the above linked discussion and issue filter which is tracking any known bugs / feature requests / open items related to all things WCC + JSX.
-- This automatically reflects properties used in the `render` function to attributes, so [YMMV](https://dictionary.cambridge.org/us/dictionary/english/ymmv).
+- If you're using Greenwood, the [JSX Import plugin](https://github.com/ProjectEvergreen/greenwood/tree/master/packages/plugin-import-jsx#inferred-observability-signals) can automatically handle setting up the `<script>` blocks.
