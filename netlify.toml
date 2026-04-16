@@ -1,6 +1,6 @@
 [build]
   publish = "public/"
-  command = "npm run docs:build"
+  command = "npx patch-package && npm run docs:build"
 
 [build.processing]
   skip_processing = true
