@@ -19,6 +19,10 @@ jobs:
       - name: Installing project dependencies
         run: |
           npm ci
+      # Greenwood specific patches
+      - name: Run patch-package
+        run: |
+          npx patch-package
       - name: Setup Playwright
         run: |
           npx playwright install --with-deps
