@@ -30,48 +30,117 @@
         min-width: 5%;
         margin: 0 auto;
       }
+
+      sb-signal-counter-jsx,
+      sb-signal-greeting-jsx,
+      input {
+        display: block;
+        margin: 0 auto;
+        width: 50%;
+      }
+
+      sb-signal-counter-jsx {
+        text-align: center;
+
+        & .heading {
+          display: block;
+          text-decoration: underline;
+        }
+
+        & .even {
+          color: green;
+          display: block;
+        }
+
+        & .odd {
+          color: red;
+          display: block;
+        }
+      }
     </style>
 
-    <script type="module" src="../components/sandbox/card.js"></script>
-    <script type="module" src="../components/sandbox/card.jsx"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "signal-polyfill": "../node_modules/signal-polyfill/dist/index.js",
+          "wc-compiler/effect": "../node_modules/wc-compiler/src/effect.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import { Signal } from 'signal-polyfill';
 
-    <script type="module" src="../components/sandbox/counter-dsd.jsx"></script>
-    <script type="module" src="../components/sandbox/counter-dsd.tsx"></script>
-    <script type="module" src="../components/sandbox/counter.jsx"></script>
-    <script type="module" src="../components/sandbox/counter.tsx"></script>
-
-    <script type="module" src="../components/sandbox/header.js"></script>
-    <script type="module" src="../components/sandbox/header.jsx"></script>
-    <script type="module" src="../components/sandbox/picture-frame.js"></script>
+      globalThis.Signal = Signal;
+    </script>
     <script>
       function randomReset() {
         return Math.floor(Math.random() * 100);
       }
 
       globalThis.document.addEventListener('DOMContentLoaded', () => {
-        const counterJsxResetButton = document.getElementById('counter-jsx-reset');
-        const counterJsxDsdResetButton = document.getElementById('counter-jsx-dsd-reset');
-        const counterTsxDsdResetButton = document.getElementById('counter-tsx-dsd-reset');
+        const signalGreetingInput = document.getElementById('signal-greeting-input');
+        const signalCounterJsxResetButton = document.getElementById('signal-counter-reset');
+        const signalCounterJsxLightDomResetButton = document.getElementById(
+          'signal-counter-jsx-reset',
+        );
 
-        counterJsxResetButton.addEventListener('click', () => {
-          document.querySelector('sb-counter-jsx').setAttribute('count', randomReset());
+        signalGreetingInput.addEventListener('keyup', (e) => {
+          console.log('update greeting value => ', e.target.value);
+          document.querySelector('sb-signal-greeting-jsx').setAttribute('name', e.target.value);
         });
 
-        counterJsxDsdResetButton.addEventListener('click', () => {
-          document.querySelector('sb-counter-dsd-jsx').setAttribute('count', randomReset());
+        signalCounterJsxResetButton.addEventListener('click', () => {
+          document.querySelectorAll('sb-signal-counter-tsx').forEach((el) => {
+            el.setAttribute('count', randomReset());
+          });
         });
 
-        counterTsxDsdResetButton.addEventListener('click', () => {
-          document.querySelector('sb-counter-dsd-tsx').setAttribute('count', randomReset());
+        signalCounterJsxLightDomResetButton.addEventListener('click', () => {
+          document.querySelector('sb-signal-counter-jsx').setAttribute('count', randomReset());
         });
       });
     </script>
 
-    <!-- interactive scripts can be configured in sandbox.js -->
+    <script type="module" src="../components/sandbox/signal-counter.tsx"></script>
+    <script type="module" src="../components/sandbox/signal-greeting.tsx"></script>
+    <script type="module" src="../components/sandbox/header.js"></script>
+    <script type="module" src="../components/sandbox/card.js"></script>
+    <script type="module" src="../components/sandbox/picture-frame.js"></script>
+    <script type="module" src="../components/sandbox/header.jsx"></script>
+    <script type="module" src="../components/sandbox/card.jsx"></script>
+    <script type="module" src="../components/sandbox/signal-counter.jsx"></script>
   </head>
 
   <body>
     <h1>WCC Sandbox</h1>
+
+    <h2>JSX + DSD + inferredObservability (Greeting)</h2>
+
+    <input id="signal-greeting-input" placeholder="World" />
+    <sb-signal-greeting-jsx></sb-signal-greeting-jsx>
+
+    <hr />
+
+    <h2>JSX + DSD + inferredObservability (Counter)</h2>
+
+    <sb-signal-counter-tsx></sb-signal-counter-tsx>
+
+    <hr />
+
+    <sb-signal-counter-tsx count="3"></sb-signal-counter-tsx>
+
+    <button class="reset" id="signal-counter-reset">Random Reset</button>
+
+    <pre>
+      &lt;sb-signal-counter-tsx&gt;&lt;/sb-signal-counter-tsx&gt;
+    </pre>
+    <pre>
+      &lt;sb-signal-counter-tsx
+        count="3"
+      &gt;&lt;/sb-signal-counter-tsx&gt;
+    </pre>
+
+    <hr />
 
     <h2>Light DOM (no JS)</h2>
 
@@ -97,6 +166,8 @@
       &gt;&lt;/sb-card&gt;
     </pre>
 
+    <hr />
+
     <h2>HTML Web Component (Light DOM + has JS)</h2>
 
     <style>
@@ -114,6 +185,7 @@
         }
       }
     </style>
+
     <sb-picture-frame title="Greenwood Logo">
       <img src="https://www.greenwoodjs.dev/assets/greenwood-logo-og.png" alt="Greenwood logo" />
     </sb-picture-frame>
@@ -157,60 +229,14 @@
 
     <h2>JSX + Light DOM + inferredObservability (has JS)</h2>
 
-    <sb-counter-jsx count="5"></sb-counter-jsx>
+    <sb-signal-counter-jsx count="3"></sb-signal-counter-jsx>
 
-    <button class="reset" id="counter-jsx-reset">Random Reset</button>
-
-    <pre>
-      &lt;sb-counter-jsx
-        count="5"
-      &gt;&lt;/sb-counter-jsx&gt;
-    </pre>
-
-    <hr />
-
-    <h2>JSX + DSD + inferredObservability (has JS)</h2>
-
-    <sb-counter-dsd-jsx count="3"></sb-counter-dsd-jsx>
-
-    <button class="reset" id="counter-jsx-dsd-reset">Random Reset</button>
+    <button class="reset" id="signal-counter-jsx-reset">Random Reset</button>
 
     <pre>
-      &lt;sb-counter-dsd-jsx
+      &lt;sb-signal-counter-jsx
         count="3"
-      &gt;&lt;/sb-counter-dsd-jsx&gt;
-    </pre>
-
-    <h2>TypeScript</h2>
-
-    <sb-greeting-ts name="TypeScript"></sb-greeting-ts>
-
-    <pre>
-      &lt;sb-greeting-ts
-        name="TypeScript"
-      &gt;&lt;/sb-greeting-ts&gt;
-    </pre>
-
-    <h2>TSX</h2>
-
-    <sb-counter-tsx count="3"></sb-counter-tsx>
-
-    <pre>
-      &lt;sb-counter-tsx
-        count="3"
-      &gt;&lt;/sb-counter-tsx&gt;
-    </pre>
-
-    <h2>TSX + DSD + inferredObservability</h2>
-
-    <sb-counter-dsd-tsx count="3"></sb-counter-dsd-tsx>
-
-    <button class="reset" id="counter-tsx-dsd-reset">Random Reset</button>
-
-    <pre>
-      &lt;sb-counter-dsd-tsx
-        count="3"
-      &gt;&lt;/sb-counter-dsd-tsx&gt;
+      &gt;&lt;/sb-signal-counter-jsx&gt;
     </pre>
   </body>
 </html>

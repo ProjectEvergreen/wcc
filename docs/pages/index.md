@@ -133,7 +133,7 @@ In addition to server rendering, WCC also supports these additional features.
 
 <wcc-feature-box heading="JSX">
 
-  <p>Custom JSX transform with the option to enable fine-grained reactivity compilation for interactive components.</p>
+  <p>Custom JSX transform with the option to enable fine-grained reactivity based on (TC39) Signals.</p>
   
 </wcc-feature-box>
 

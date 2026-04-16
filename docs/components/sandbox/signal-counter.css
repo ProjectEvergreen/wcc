@@ -1,0 +1,19 @@
+:host,
+:root {
+  text-align: center;
+}
+
+.heading {
+  display: block;
+  text-decoration: underline;
+}
+
+.even {
+  color: green;
+  display: block;
+}
+
+.odd {
+  color: red;
+  display: block;
+}

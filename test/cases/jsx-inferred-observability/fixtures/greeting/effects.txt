@@ -1,0 +1,7 @@
+this.$el0 = this.shadowRoot.querySelector('h3:nth-of-type(1)');
+this.$eff0 = effect(() => {
+  this.$el0.textContent = Greeting.$$tmpl0(this.name.get());
+});
+this.$eff1 = effect(() => {
+  this.$el0.setAttribute('data-name', this.name.get());
+});

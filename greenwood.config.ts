@@ -1,8 +1,15 @@
-import type { Config } from '@greenwood/cli';
+import type { Config, CopyPlugin } from '@greenwood/cli';
 import { greenwoodPluginMarkdown } from '@greenwood/plugin-markdown';
 import { greenwoodPluginImportJsx } from '@greenwood/plugin-import-jsx';
 import { greenwoodPluginCssModules } from '@greenwood/plugin-css-modules';
 import { greenwoodPluginImportRaw } from '@greenwood/plugin-import-raw';
+import fs from 'node:fs';
+
+// NOTE: Greenwood does not run the copy plugin in dev, so we have to do this manually for now
+fs.copyFileSync(
+  new URL('./src/effect.js', import.meta.url),
+  new URL('./node_modules/wc-compiler/src/effect.js', import.meta.url),
+);
 
 const config: Config = {
   activeContent: true,

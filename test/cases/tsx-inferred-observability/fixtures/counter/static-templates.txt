@@ -1,0 +1,4 @@
+$el0;
+$el1;
+static $$tmpl0 = count => `Top level count is ${count}`;
+static $$tmpl1 = parity => `Parity is: ${parity}`;
