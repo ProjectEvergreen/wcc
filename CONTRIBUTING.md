@@ -11,6 +11,7 @@ To develop for the project, you'll want to follow these steps:
 1. Clone the repository
 1. Have [NodeJS LTS](https://nodejs.org) installed and / or use `nvm` (see below)
 1. Run `npm ci`
+1. Run `npx patch-package`
 1. Run `npx playwright install`
 
 ### NVM
