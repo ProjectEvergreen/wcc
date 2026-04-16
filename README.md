@@ -10,7 +10,7 @@
 
 > _Native Web Components compiler. It's Web Components all the way down!_ 🐢
 
-## How It Works
+## How It Works!!!
 
 1. Write a Web Component
 
