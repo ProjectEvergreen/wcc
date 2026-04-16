@@ -82,7 +82,7 @@
 }
 
 .navBarMenuItem a.active {
-  font-weight: extra-bold;
+  font-weight: 800;
   background-color: var(--color-white);
   border-radius: var(--radius-3);
   padding: var(--size-1) var(--size-3);
