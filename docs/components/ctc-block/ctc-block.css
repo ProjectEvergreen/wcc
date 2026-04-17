@@ -21,8 +21,8 @@
     display: inline-block;
     background-color: var(--color-prism-bg);
     color: var(--color-white);
-    padding: 10px;
-    font-size: var(--size-3);
+    padding: var(--size-2);
+    font-size: var(--size-2);
     border-radius: var(--radius-2) var(--radius-2) 0 0;
     font-family: 'Geist-Mono', monospace;
     font-style: italic;
@@ -71,6 +71,14 @@
 .snippet-container:has(.heading) {
   & .copy-icon {
     top: 50px;
+  }
+}
+
+@media (min-width: 500px) {
+  .snippet-container {
+    & .heading {
+      font-size: var(--size-3);
+    }
   }
 }
 
