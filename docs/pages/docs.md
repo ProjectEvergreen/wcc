@@ -620,6 +620,8 @@ So taking the above counter example, enable the inferred observability behavior 
 
 <!-- prettier-ignore-end -->
 
+#### Signals Support
+
 It is required to setup `Signal` as a global in the browser, and add import maps for the polyfill and WCC's `effect` function in the `<head>` of your HTML page(s):
 
 <!-- prettier-ignore-start -->
@@ -646,7 +648,26 @@ It is required to setup `Signal` as a global in the browser, and add import maps
 
 <!-- prettier-ignore-end -->
 
-Some notes / limitations:
+For TypeScript support, you'll need to expose the Signal type-definition globally:
+
+<!-- prettier-ignore-start -->
+
+<wcc-ctc-block variant="snippet" heading="src/globals.d.ts">
+
+  ```ts
+  // alias Signal to avoid name conflicts with the global Signal type
+  import { Signal as SignalInterface } from "signal-polyfill";
+
+  declare global {
+    const Signal: typeof SignalInterface;
+  }
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
+
+#### Limitations
 
 - Reactivity is [only supported at one depth of the JSX tree](https://github.com/ProjectEvergreen/wcc/issues/256)
 - Please be aware of the above linked discussion and issue filter which is tracking any known bugs / feature requests / open items related to all things WCC + JSX.
