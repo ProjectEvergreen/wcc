@@ -9,44 +9,27 @@ type ElementAttributes<E extends HTMLElement> = {
   class?: string;
 };
 
+type PopoverHint = 'auto' | 'manual' | 'hint';
 type PopoverTargetAction = 'show' | 'hide' | 'toggle';
-type PopoverTargetAttributes = {
+type PopoverAttributes = any & {
   // have to manage this manually, can't seem to get this from TypeScript itself (not sure if just skill issue? :D)
   // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1790
   // it should be there per https://github.com/mdn/browser-compat-data/pull/21875
   // https://github.com/ProjectEvergreen/wcc/issues/236
   // per the spec, this should only apply to <button> and <input> elements.
+  popover?: PopoverHint;
   popovertarget?: string;
   popovertargetaction?: PopoverTargetAction;
 };
 
-type PopoverAttributes = {
-  // Popover API attribute
-  popover?: 'auto' | 'manual';
-};
-
-// map each HTML tag to its attributes, excluding button and div which we'll define explicitly
+// map each HTML tag to its attributes
 type IntrinsicElementsFromDom = {
-  [E in keyof HTMLElementTagNameMap as E extends 'button' | 'div' ? never : E]: ElementAttributes<
-    HTMLElementTagNameMap[E]
-  > &
-    (E extends 'input' ? PopoverTargetAttributes : {});
+  [E in keyof HTMLElementTagNameMap]: ElementAttributes<HTMLElementTagNameMap[E]>;
 };
 
 declare namespace JSX {
   interface IntrinsicElements extends IntrinsicElementsFromDom {
-    // Explicitly define button and div with full popover support
-    button: any & {
-      class?: string;
-      popovertarget?: string;
-      popovertargetaction?: 'show' | 'hide' | 'toggle';
-      popover?: 'auto' | 'manual';
-    };
-    div: any & {
-      class?: string;
-      popover?: 'auto' | 'manual';
-      popovertarget?: string;
-      popovertargetaction?: 'show' | 'hide' | 'toggle';
-    };
+    button: any & PopoverAttributes;
+    input: any & PopoverAttributes;
   }
 }
