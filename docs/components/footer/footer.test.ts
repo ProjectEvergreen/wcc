@@ -38,6 +38,7 @@ describe('Components/Footer', () => {
 
   afterEach(() => {
     footer.remove();
+    // @ts-expect-error
     footer = undefined;
   });
 });
