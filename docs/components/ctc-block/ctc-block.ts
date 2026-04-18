@@ -7,11 +7,13 @@ const template = document.createElement('template');
 export default class CopyToClipboardBlock extends HTMLElement {
   selectCommandRunnerIdx;
   snippetContents;
+  root: ShadowRoot | null;
 
   constructor() {
     super();
     this.selectCommandRunnerIdx = 0;
     this.snippetContents = '';
+    this.root = null;
   }
 
   connectedCallback() {
@@ -48,23 +50,26 @@ export default class CopyToClipboardBlock extends HTMLElement {
         console.warn(`Unknown variant provided => ${variant}`);
       }
 
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.appendChild(template.content.cloneNode(true));
+      this.root = this.attachShadow({ mode: 'open' });
 
-      switch (variant) {
-        case 'snippet':
-          this.shadowRoot
-            .querySelector('.copy-icon')
-            .addEventListener('click', this.copySnippetToClipboard.bind(this));
-          break;
-        case 'shell':
-          this.shadowRoot
-            .querySelector('.copy-icon')
-            .addEventListener('click', this.copyShellScriptToClipboard.bind(this));
-          break;
+      if (this.root) {
+        this.root.appendChild(template.content.cloneNode(true));
+
+        switch (variant) {
+          case 'snippet':
+            this.root
+              ?.querySelector('.copy-icon')
+              ?.addEventListener('click', this.copySnippetToClipboard.bind(this));
+            break;
+          case 'shell':
+            this.root
+              ?.querySelector('.copy-icon')
+              ?.addEventListener('click', this.copyShellScriptToClipboard.bind(this));
+            break;
+        }
+
+        this.root.adoptedStyleSheets = [theme, sheet];
       }
-
-      this.shadowRoot.adoptedStyleSheets = [theme, sheet];
     }
   }
 
@@ -76,7 +81,12 @@ export default class CopyToClipboardBlock extends HTMLElement {
   }
 
   copyShellScriptToClipboard() {
-    const contents = this.getAttribute('paste-contents').trim();
+    const contents = this.getAttribute('paste-contents')?.trim();
+
+    if (!contents) {
+      console.warn('No content provided to copy to clipboard');
+      return;
+    }
 
     navigator.clipboard.writeText(contents);
     console.log('copying the following contents to your clipboard =>', contents);

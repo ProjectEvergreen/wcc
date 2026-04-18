@@ -35,7 +35,7 @@ describe('Components/Header', () => {
     });
 
     it('should have an anchor tag with title attribute wrapping the logo', () => {
-      const anchor = header.querySelector("a[title='WCC Home Page']");
+      const anchor = header.querySelector("a[title='WCC Home Page']") as HTMLAnchorElement;
 
       expect(anchor).to.not.equal(undefined);
       expect(anchor.getAttribute('href')).to.equal('/');
@@ -56,22 +56,23 @@ describe('Components/Header', () => {
         const navItem = pages.find((nav) => nav.route === link.getAttribute('href'));
 
         expect(navItem).to.not.equal(undefined);
-        expect(navItem.data.order).to.equal((idx += 1));
-        expect(link.textContent).to.equal(navItem.label);
+        expect(navItem?.data.order).to.equal((idx += 1));
+        expect(link.textContent).to.equal(navItem?.label);
 
         // Home page doesn't have a title, for example
         // maybe a Greenwood bug?
-        if (navItem.title) {
-          expect(link.getAttribute('title')).to.equal(navItem.title);
+        if (navItem?.title) {
+          expect(link.getAttribute('title')).to.equal(navItem?.title);
         }
 
         // current route should display as active
-        if (navItem.route === CURRENT_ROUTE && link.getAttribute('class').includes('active')) {
-          activeRoute = navItem;
+        if (navItem?.route === CURRENT_ROUTE && link?.getAttribute('class')?.includes('active')) {
+          activeRoute = navItem as unknown as Page;
         }
       });
 
-      expect(activeRoute.route).to.equal(CURRENT_ROUTE);
+      // @ts-expect-error
+      expect(activeRoute?.route).to.equal(CURRENT_ROUTE);
     });
   });
 
@@ -106,33 +107,35 @@ describe('Components/Header', () => {
 
     it('should have the expected navigation links', () => {
       const links = header.querySelectorAll("nav[aria-label='Mobile'] ul li a");
-      let activeRoute: Page = undefined;
+      let activeRoute: Page;
 
       Array.from(links).forEach((link, idx) => {
         const navItem = pages.find((nav) => nav.route === link.getAttribute('href'));
 
         expect(navItem).to.not.equal(undefined);
-        expect(navItem.data.order).to.equal((idx += 1));
-        expect(link.textContent).to.equal(navItem.label);
+        expect(navItem?.data.order).to.equal((idx += 1));
+        expect(link.textContent).to.equal(navItem?.label);
 
         // Home page doesn't have a title, for example
         // maybe a Greenwood bug?
-        if (navItem.title) {
+        if (navItem?.title) {
           expect(link.getAttribute('title')).to.equal(navItem.title);
         }
 
         // current route should display as active
-        if (navItem.route === CURRENT_ROUTE && link.getAttribute('class').includes('active')) {
-          activeRoute = navItem;
+        if (navItem?.route === CURRENT_ROUTE && link?.getAttribute('class')?.includes('active')) {
+          activeRoute = navItem as unknown as Page;
         }
       });
 
-      expect(activeRoute.route).to.equal(CURRENT_ROUTE);
+      // @ts-expect-error
+      expect(activeRoute?.route).to.equal(CURRENT_ROUTE);
     });
   });
 
   afterEach(() => {
     header.remove();
+    // @ts-expect-error
     header = undefined;
   });
 

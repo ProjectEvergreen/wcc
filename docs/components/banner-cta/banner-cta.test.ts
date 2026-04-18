@@ -43,6 +43,7 @@ describe('Components/Banner CTA', () => {
 
   afterEach(() => {
     bannerCta.remove();
+    // @ts-expect-error
     bannerCta = undefined;
   });
 });

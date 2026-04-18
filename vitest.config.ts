@@ -43,7 +43,7 @@ function transformConstructableStylesheetsPlugin(): Plugin {
   return {
     name: 'transform-constructable-stylesheets',
     enforce: 'pre',
-    resolveId: (id, importer) => {
+    resolveId: (id, importer = '') => {
       if (
         // you'll need to configure this `importer` line to the location of your own components
         importer?.indexOf('/docs/components/') >= 0 &&
@@ -79,10 +79,10 @@ function transformRawImports(): Plugin {
     name: 'transform-raw-imports',
     enforce: 'pre',
     transform: async (src, id) => {
-      if (id.endsWith('?type=raw')) {
+      if (id.endsWith('?type=raw') && rawResource.intercept) {
         const url = new URL(`file://${id}`);
         const contents = await fs.readFile(url, 'utf-8');
-        const response = await rawResource.intercept(url, null, new Response(contents));
+        const response = await rawResource.intercept(url, new Request(url), new Response(contents));
         const body = await response.text();
 
         return {
