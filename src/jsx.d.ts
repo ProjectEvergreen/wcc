@@ -11,7 +11,7 @@ type ElementAttributes<E extends HTMLElement> = {
 
 type PopoverHint = 'auto' | 'manual' | 'hint';
 type PopoverTargetAction = 'show' | 'hide' | 'toggle';
-type PopoverAttributes = any & {
+type PopoverAttributes = {
   // have to manage this manually, can't seem to get this from TypeScript itself (not sure if just skill issue? :D)
   // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1790
   // it should be there per https://github.com/mdn/browser-compat-data/pull/21875
@@ -24,12 +24,10 @@ type PopoverAttributes = any & {
 
 // map each HTML tag to its attributes
 type IntrinsicElementsFromDom = {
-  [E in keyof HTMLElementTagNameMap]: ElementAttributes<HTMLElementTagNameMap[E]>;
+  [E in keyof HTMLElementTagNameMap]: ElementAttributes<HTMLElementTagNameMap[E]> &
+    (E extends 'button' | 'input' ? PopoverAttributes : {});
 };
 
 declare namespace JSX {
-  interface IntrinsicElements extends IntrinsicElementsFromDom {
-    button: any & PopoverAttributes;
-    input: any & PopoverAttributes;
-  }
+  interface IntrinsicElements extends IntrinsicElementsFromDom {}
 }
