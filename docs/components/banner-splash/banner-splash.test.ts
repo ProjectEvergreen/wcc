@@ -25,6 +25,7 @@ describe('Components/Banner Splash', () => {
 
   afterEach(() => {
     bannerSplash.remove();
+    // @ts-expect-error
     bannerSplash = undefined;
   });
 });

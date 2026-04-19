@@ -56,6 +56,7 @@ describe('Components/Capability Box', () => {
 
   afterEach(() => {
     capabilityBox.remove();
+    // @ts-ignore
     capabilityBox = undefined;
   });
 });
