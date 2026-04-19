@@ -9,7 +9,7 @@ type ElementAttributes<E extends HTMLElement> = {
   class?: string;
 };
 
-type PopoverHint = 'auto' | 'manual' | 'hint';
+type PopoverState = 'auto' | 'manual' | 'hint';
 type PopoverTargetAction = 'show' | 'hide' | 'toggle';
 type PopoverAttributes = {
   // have to manage this manually, can't seem to get this from TypeScript itself (not sure if just skill issue? :D)
@@ -17,7 +17,7 @@ type PopoverAttributes = {
   // it should be there per https://github.com/mdn/browser-compat-data/pull/21875
   // https://github.com/ProjectEvergreen/wcc/issues/236
   // per the spec, this should only apply to <button> and <input> elements.
-  popover?: PopoverHint;
+  popover?: PopoverState;
   popovertarget?: string;
   popovertargetaction?: PopoverTargetAction;
 };
