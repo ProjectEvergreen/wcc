@@ -56,6 +56,15 @@
     "test:docs:tdd": "vitest",
     "prepare": "husky"
   },
+  "overrides": {
+    "wc-compiler": "file:.",
+    "@greenwood/cli": {
+      "wc-compiler": "file:../../../../"
+    },
+    "@greenwood/plugin-import-jsx": {
+      "wc-compiler": "file:../../../../"
+    }
+  },
   "dependencies": {
     "@projectevergreen/acorn-jsx-esm": "~0.1.0",
     "acorn": "^8.14.0",
