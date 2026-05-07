@@ -18,14 +18,15 @@ describe('Components/Copy To Clipboard (Button)', () => {
     });
 
     it('should have an icon with the user provided content set', () => {
-      const icon = ctc.shadowRoot.querySelectorAll("[title='Copy to clipboard']");
+      const icon = ctc?.shadowRoot?.querySelectorAll("[title='Copy to clipboard']");
 
-      expect(icon.length).to.equal(1);
+      expect(icon?.length).to.equal(1);
     });
   });
 
   afterEach(() => {
     ctc.remove();
+    // @ts-expect-error
     ctc = undefined;
   });
 });

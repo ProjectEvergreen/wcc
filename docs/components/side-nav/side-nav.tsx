@@ -14,14 +14,14 @@ export type DocsPage = Page & {
 };
 
 export default class SideNav extends HTMLElement {
-  route: string;
-  toc: TableOfContents;
-  heading: string;
+  route: string = '';
+  toc: TableOfContents = [];
+  heading: string = '';
 
   async connectedCallback() {
     const route = this.getAttribute('route') ?? '';
     const heading = this.getAttribute('heading') ?? '';
-    const page: DocsPage = (await getContent()).find((page) => page.route === route);
+    const page: DocsPage = (await getContent()).find((page) => page.route === route) as DocsPage;
 
     this.heading = heading;
     this.toc = page?.data?.tableOfContents ?? [];

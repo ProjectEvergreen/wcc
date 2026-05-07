@@ -48,7 +48,7 @@ describe('Components/Social Tray', () => {
         const iconItem = ICONS.find((icon) => icon.title === link.getAttribute('title'));
 
         expect(iconItem).to.not.equal(undefined);
-        expect(link.getAttribute('href')).to.equal(iconItem.link);
+        expect(link.getAttribute('href')).to.equal(iconItem?.link);
         expect(link.getAttribute('target')).equal('_blank');
       });
     });
@@ -56,6 +56,7 @@ describe('Components/Social Tray', () => {
 
   afterEach(() => {
     tray.remove();
+    // @ts-expect-error
     tray = undefined;
   });
 });
