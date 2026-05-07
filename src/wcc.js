@@ -9,6 +9,8 @@ import { serialize } from 'parse5';
 import { transform } from 'sucrase';
 import fs from 'fs';
 
+console.log('WCC: Rendering to string from local version!!!');
+
 function isCustomElementDefinitionNode(node) {
   const { expression } = node;
 
