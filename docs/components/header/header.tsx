@@ -64,7 +64,7 @@ export default class Header extends HTMLElement {
         <div class={styles.badgeContainer}>
           <a class={styles.badge} href="https://github.com/ProjectEvergreen/wcc" target="_blank">
             <img
-              src="https://img.shields.io/github/stars/ProjectEvergreen/wcc.svg?style=social&logo=github&label=github"
+              src="https://img.shields.io/github/stars/ProjectEvergreen/wcc?style=social&label=GitHub"
               alt="WCC GitHub badge"
               width={135}
               class="github-badge"
