@@ -107,7 +107,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['./docs/components/**'],
-      exclude: ['./docs/components/sandbox/**'],
+      exclude: ['./docs/components/sandbox/**', './docs/components/**/*.module.css'],
       thresholds: {
         lines: 65,
         functions: 75,
