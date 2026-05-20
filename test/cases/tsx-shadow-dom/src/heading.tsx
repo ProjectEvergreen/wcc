@@ -1,5 +1,5 @@
 export default class HeadingComponent extends HTMLElement {
-  greeting: string;
+  greeting: string = '';
 
   sayHello() {
     alert(`Hello, ${this.greeting}!`);

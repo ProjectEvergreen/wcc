@@ -25,7 +25,9 @@ export default class SignalCounter extends HTMLElement {
       this.render();
     }
 
-    this.shadowRoot.adoptedStyleSheets = [sheet];
+    if (this.shadowRoot) {
+      this.shadowRoot.adoptedStyleSheets = [sheet];
+    }
   }
 
   increment() {
