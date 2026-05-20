@@ -66,6 +66,7 @@ export default class Header extends HTMLElement {
             <img
               src="https://img.shields.io/github/stars/ProjectEvergreen/wcc?style=social&label=GitHub"
               alt="WCC GitHub badge"
+              height={28}
               width={135}
               class="github-badge"
             />
