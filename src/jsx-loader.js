@@ -159,14 +159,14 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
               }
             }
 
-            // onclick={() => this.deleteUser(user.id)}
-            // TODO onclick={(e) => { this.deleteUser(user.id) }}
-            // TODO onclick={(e) => { this.deleteUser(user.id) && this.logAction(user.id) }}
+            // <button onclick={(e: Event) => this.count.set(this.count.get() * 2)}>Double (++)</button>
             // https://github.com/ProjectEvergreen/wcc/issues/88
             if (expression.type === 'ArrowFunctionExpression') {
               if (expression.body && expression.body.type === 'CallExpression') {
-                const { start, end } = expression;
-                string += ` ${name}="${moduleContents.slice(start, end).replace(/this./g, '__this__.').replace('() => ', '')}"`;
+                const contents = generate(expression.body);
+                console.log('contents', contents);
+                // TODO: shadow root detection for host element detection
+                string += ` ${name}="(function (e, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this.getRootNode().host)"`;
               }
             }
 

@@ -36,10 +36,6 @@ export default class SignalCounter extends HTMLElement {
     this.count.set(this.count.get() - 1);
   }
 
-  double() {
-    this.count.set(this.count.get() * 2);
-  }
-
   disconnectedCallback() {
     console.log('Disconnected!');
   }
@@ -52,10 +48,7 @@ export default class SignalCounter extends HTMLElement {
         <span class="heading">My Signal Counter</span>
         <button onclick={this.increment}>Increment (+)</button>
         <button onclick={this.decrement}>Decrement (-)</button>
-        {/* TODO: inline version breaks with effects */}
-        {/* https://github.com/ProjectEvergreen/wcc/issues/256 */}
-        {/* <button onclick={() => this.count.set(this.count.get() * 2)}>Double (++)</button> */}
-        <button onclick={this.double}>Double (++)</button>
+        <button onclick={(e: Event) => this.count.set(this.count.get() * 2)}>Double (++)</button>
         <span class={parity.get()}>
           The count is {count.get()} ({parity.get()})
         </span>
