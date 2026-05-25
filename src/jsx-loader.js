@@ -160,11 +160,11 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
             }
 
             // <button onclick={(e: Event) => this.count.set(this.count.get() * 2)}>Double (++)</button>
-            // https://github.com/ProjectEvergreen/wcc/issues/88
             if (expression.type === 'ArrowFunctionExpression') {
               if (expression.body && expression.body.type === 'CallExpression') {
+                // quick hack to get expression contents until we can properly build this all up from an AST
                 const contents = generate(expression.body);
-                console.log('contents', contents);
+
                 // TODO: shadow root detection for host element detection
                 string += ` ${name}="(function (e, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this.getRootNode().host)"`;
               }
