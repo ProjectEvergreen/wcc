@@ -160,14 +160,13 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
             }
 
             // <button onclick={(e: Event) => this.count.set(this.count.get() * 2)}>Double (++)</button>
-            if (expression.type === 'ArrowFunctionExpression') {
-              if (expression.body && expression.body.type === 'CallExpression') {
-                // quick hack to get expression contents until we can properly build this all up from an AST
-                const contents = generate(expression.body);
+            if (expression.type === 'ArrowFunctionExpression' && expression.body) {
+              // quick hack to get expression contents until we can properly build this all up from an AST
+              const contents = generate(expression.body);
 
-                // TODO: shadow root detection for host element detection
-                string += ` ${name}="(function (e, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this.getRootNode().host)"`;
-              }
+              // TODO: shadow root detection for host element detection
+              // TODO: remap event handler identifier
+              string += ` ${name}="(function (e, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this.getRootNode().host)"`;
             }
 
             if (expression.type === 'AssignmentExpression') {
