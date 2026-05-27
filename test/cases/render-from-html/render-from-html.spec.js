@@ -11,11 +11,9 @@
  *     navigation.js
  *     header.js
  */
-import chai from 'chai';
+import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
 import { renderFromHTML } from '../../../src/wcc.js';
-
-const expect = chai.expect;
 
 describe('Run WCC ', function () {
   const LABEL = 'Using renderFromHTML';

@@ -14,13 +14,11 @@
  *   pages/
  *     index.js
  */
-import chai from 'chai';
+import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
 import fs from 'fs/promises';
 import { renderToString } from '../../../src/wcc.js';
 import { parseFragment, serialize } from 'parse5';
-
-const expect = chai.expect;
 
 describe('Run WCC For ', function () {
   const LABEL = 'HTML (Light DOM) Web Components';

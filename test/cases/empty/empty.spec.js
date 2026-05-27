@@ -10,10 +10,8 @@
  *   empty.js
  */
 
-import chai from 'chai';
+import { expect } from 'chai';
 import { renderToString } from '../../../src/wcc.js';
-
-const expect = chai.expect;
 
 describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element with an empty class definition';

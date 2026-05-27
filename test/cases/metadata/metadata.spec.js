@@ -14,10 +14,8 @@
  *   pages/
  *     index.js
  */
-import chai from 'chai';
+import { expect } from 'chai';
 import { renderToString } from '../../../src/wcc.js';
-
-const expect = chai.expect;
 
 describe('Run WCC For ', function () {
   const LABEL = 'Metadata graph';
