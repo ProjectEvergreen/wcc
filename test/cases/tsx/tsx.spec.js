@@ -73,7 +73,7 @@ describe('Run WCC For ', function () {
           );
 
           expect(element.getAttribute('onclick')).to.be.equal(
-            'this.parentElement.parentElement.decrement()',
+            'this.parentElement.parentElement.decrement(event)',
           );
         });
 

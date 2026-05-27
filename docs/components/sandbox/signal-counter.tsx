@@ -28,7 +28,8 @@ export default class SignalCounter extends HTMLElement {
     this.shadowRoot.adoptedStyleSheets = [sheet];
   }
 
-  increment() {
+  increment(evt: Event) {
+    console.log({ evt });
     this.count.set(this.count.get() + 1);
   }
 

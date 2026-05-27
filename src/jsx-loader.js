@@ -160,7 +160,7 @@ function parseJsxElement(
                 if (expression.property.type === 'Identifier') {
                   // we leave markers for `this` so we can replace it later while also NOT accidentally replacing
                   // legitimate uses of this that might be actual content / markup of the custom element
-                  string += ` ${name}="__this__.${expression.property.name}()"`;
+                  string += ` ${name}="__this__.${expression.property.name}(event)"`;
                 }
               }
             }

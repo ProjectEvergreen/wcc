@@ -54,7 +54,9 @@ describe('Run WCC For ', function () {
             (button) => button.getAttribute('id') === 'evt-this',
           );
 
-          expect(button.getAttribute('onclick')).to.be.equal('this.getRootNode().host.sayHello()');
+          expect(button.getAttribute('onclick')).to.be.equal(
+            'this.getRootNode().host.sayHello(event)',
+          );
         });
 
         // <button onclick={(e) => { console.log({ e }); }}> Click Me</button>
