@@ -37,6 +37,14 @@ export default class Counter extends HTMLElement {
           {' '}
           - (inline state update)
         </button>
+        <button
+          id="evt-inline"
+          onclick={(e: Event) => {
+            console.log({ e });
+          }}
+        >
+          Click Me
+        </button>
         <span>
           You have clicked{' '}
           <span class="red" id="expression">

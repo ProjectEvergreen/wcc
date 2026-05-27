@@ -20,7 +20,17 @@ export default class HeadingComponent extends HTMLElement {
         <h1>
           Hello, <span>{greeting}</span>!
         </h1>
-        <button onclick={this.sayHello}>Get a greeting!</button>
+        <button
+          id="evt-inline"
+          onclick={(e) => {
+            console.log({ e });
+          }}
+        >
+          Click Me
+        </button>
+        <button id="evt-this" onclick={this.sayHello}>
+          Get a greeting!
+        </button>
       </div>
     );
   }
