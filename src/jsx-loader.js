@@ -128,7 +128,13 @@ function findThisReferences(context, statement) {
   return references;
 }
 
-function parseJsxElement(element, moduleContents = '', inferredObservability) {
+function parseJsxElement(
+  element,
+  moduleContents = '',
+  inferredObservability,
+  hasShadowRoot = false,
+  currentDepth = 1,
+) {
   try {
     const { type } = element;
 
@@ -164,9 +170,11 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
               // quick hack to get expression contents until we can properly build this all up from an AST
               const contents = generate(expression.body);
               const eventIdentifier = expression?.params[0]?.name || 'event';
+              const root = hasShadowRoot
+                ? '.getRootNode().host'
+                : `${'.parentElement'.repeat(currentDepth)}`;
 
-              // TODO: shadow root detection for host element detection
-              string += ` ${name}="(function (${eventIdentifier}, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this.getRootNode().host)"`;
+              string += ` ${name}="(function (${eventIdentifier}, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this${root})"`;
             }
 
             if (expression.type === 'AssignmentExpression') {
@@ -240,7 +248,13 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
 
       if (element.children.length > 0) {
         element.children.forEach((child) =>
-          parseJsxElement(child, moduleContents, inferredObservability),
+          parseJsxElement(
+            child,
+            moduleContents,
+            inferredObservability,
+            hasShadowRoot,
+            currentDepth + 1,
+          ),
         );
       }
 
@@ -691,7 +705,13 @@ export function parseJsx(moduleURL) {
                   const n = n1.value.body.body[n2];
 
                   if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                    const html = parseJsxElement(n.argument, moduleContents, inferredObservability);
+                    const html = parseJsxElement(
+                      n.argument,
+                      moduleContents,
+                      inferredObservability,
+                      hasShadowRoot,
+                      1,
+                    );
                     const elementTree = getParse(html)(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
