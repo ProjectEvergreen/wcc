@@ -163,10 +163,10 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
             if (expression.type === 'ArrowFunctionExpression' && expression.body) {
               // quick hack to get expression contents until we can properly build this all up from an AST
               const contents = generate(expression.body);
+              const eventIdentifier = expression?.params[0]?.name || 'event';
 
               // TODO: shadow root detection for host element detection
-              // TODO: remap event handler identifier
-              string += ` ${name}="(function (e, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this.getRootNode().host)"`;
+              string += ` ${name}="(function (${eventIdentifier}, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this.getRootNode().host)"`;
             }
 
             if (expression.type === 'AssignmentExpression') {
