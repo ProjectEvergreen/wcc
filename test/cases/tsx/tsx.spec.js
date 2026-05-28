@@ -73,7 +73,7 @@ describe('Run WCC For ', function () {
           );
 
           expect(element.getAttribute('onclick')).to.be.equal(
-            'this.parentElement.parentElement.decrement()',
+            'this.parentElement.parentElement.decrement(event)',
           );
         });
 
@@ -85,6 +85,17 @@ describe('Run WCC For ', function () {
 
           expect(element.getAttribute('onclick')).to.be.equal(
             'this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();',
+          );
+        });
+
+        // <button onclick={(e: Event) => { console.log({ e }); }}> Click Me</button>
+        it('should handle an inline event handler with custom event identifier', () => {
+          const element = Array.from(buttons).find(
+            (button) => button.getAttribute('id') === 'evt-inline',
+          );
+
+          expect(element.getAttribute('onclick').trim().replace(/\s+/g, '')).to.be.equal(
+            '(function(e,self){{console.log({e});}})(event,this.parentElement.parentElement)',
           );
         });
       });

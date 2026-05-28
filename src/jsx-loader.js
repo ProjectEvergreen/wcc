@@ -128,7 +128,13 @@ function findThisReferences(context, statement) {
   return references;
 }
 
-function parseJsxElement(element, moduleContents = '', inferredObservability) {
+function parseJsxElement(
+  element,
+  moduleContents = '',
+  inferredObservability,
+  hasShadowRoot = false,
+  currentDepth = 1,
+) {
   try {
     const { type } = element;
 
@@ -154,20 +160,21 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
                 if (expression.property.type === 'Identifier') {
                   // we leave markers for `this` so we can replace it later while also NOT accidentally replacing
                   // legitimate uses of this that might be actual content / markup of the custom element
-                  string += ` ${name}="__this__.${expression.property.name}()"`;
+                  string += ` ${name}="__this__.${expression.property.name}(event)"`;
                 }
               }
             }
 
-            // onclick={() => this.deleteUser(user.id)}
-            // TODO onclick={(e) => { this.deleteUser(user.id) }}
-            // TODO onclick={(e) => { this.deleteUser(user.id) && this.logAction(user.id) }}
-            // https://github.com/ProjectEvergreen/wcc/issues/88
-            if (expression.type === 'ArrowFunctionExpression') {
-              if (expression.body && expression.body.type === 'CallExpression') {
-                const { start, end } = expression;
-                string += ` ${name}="${moduleContents.slice(start, end).replace(/this./g, '__this__.').replace('() => ', '')}"`;
-              }
+            // <button onclick={(e: Event) => this.count.set(this.count.get() * 2)}>Double (++)</button>
+            if (expression.type === 'ArrowFunctionExpression' && expression.body) {
+              // quick hack to get expression contents until we can properly build this all up from an AST
+              const contents = generate(expression.body);
+              const eventIdentifier = expression?.params[0]?.name || 'event';
+              const root = hasShadowRoot
+                ? '.getRootNode().host'
+                : `${'.parentElement'.repeat(currentDepth)}`;
+
+              string += ` ${name}="(function (${eventIdentifier}, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this${root})"`;
             }
 
             if (expression.type === 'AssignmentExpression') {
@@ -241,7 +248,13 @@ function parseJsxElement(element, moduleContents = '', inferredObservability) {
 
       if (element.children.length > 0) {
         element.children.forEach((child) =>
-          parseJsxElement(child, moduleContents, inferredObservability),
+          parseJsxElement(
+            child,
+            moduleContents,
+            inferredObservability,
+            hasShadowRoot,
+            currentDepth + 1,
+          ),
         );
       }
 
@@ -692,7 +705,13 @@ export function parseJsx(moduleURL) {
                   const n = n1.value.body.body[n2];
 
                   if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                    const html = parseJsxElement(n.argument, moduleContents, inferredObservability);
+                    const html = parseJsxElement(
+                      n.argument,
+                      moduleContents,
+                      inferredObservability,
+                      hasShadowRoot,
+                      1,
+                    );
                     const elementTree = getParse(html)(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 

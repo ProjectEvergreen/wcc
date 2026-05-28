@@ -210,8 +210,6 @@ describe('Run WCC For ', function () {
         const actual = meta['wcc-greeting-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
         const expected = fixtureAttributeChangedCallback.replace(/ /g, '').replace(/\n/g, '');
 
-        console.log('actual', meta['wcc-greeting-jsx'].source);
-        console.log('expected', fixtureAttributeChangedCallback);
         expect(actual).to.contain(expected);
       });
 
