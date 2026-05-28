@@ -14,11 +14,9 @@
  *     prop-receiver.js
  */
 
-import chai from 'chai';
+import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
 import { renderToString } from '../../../src/wcc.js';
-
-const expect = chai.expect;
 
 describe('Run WCC For ', function () {
   const LABEL = 'Custom Element w/ Element Properties';

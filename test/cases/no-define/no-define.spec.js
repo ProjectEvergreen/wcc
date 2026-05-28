@@ -12,10 +12,8 @@
  *   header.js
  */
 
-import chai from 'chai';
+import { expect } from 'chai';
 import { renderToString, renderFromHTML } from '../../../src/wcc.js';
-
-const expect = chai.expect;
 
 describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element with no customElements.define';

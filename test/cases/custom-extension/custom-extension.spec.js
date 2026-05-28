@@ -11,11 +11,9 @@
  *   banner.js
  *   footer.js
  */
-import chai from 'chai';
+import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
 import { renderFromHTML } from '../../../src/wcc.js';
-
-const expect = chai.expect;
 
 describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element w/ a custom extension reference (CSS)';

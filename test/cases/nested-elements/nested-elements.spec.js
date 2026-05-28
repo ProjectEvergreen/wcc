@@ -16,11 +16,9 @@
  *     index.js
  */
 
-import chai from 'chai';
+import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
 import { renderToString } from '../../../src/wcc.js';
-
-const expect = chai.expect;
 
 describe('Run WCC For ', function () {
   const LABEL = 'Nested Custom Element w/ Declarative Shadow DOM';
