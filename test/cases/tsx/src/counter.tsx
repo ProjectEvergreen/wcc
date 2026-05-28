@@ -34,7 +34,6 @@ export default class Counter extends HTMLElement {
           {' '}
           - (function reference)
         </button>
-        {/* TODO: https://github.com/ProjectEvergreen/wcc/issues/88 */}
         {/* @ts-expect-error - onclick should be a function, but we coerce to an assignment */}
         <button id="evt-assignment" onclick={(this.count -= 1)}>{' '} - (inline state update)</button>
         <button
@@ -45,7 +44,6 @@ export default class Counter extends HTMLElement {
         >
           Click Me
         </button>
-        {/* TODO: https://github.com/ProjectEvergreen/wcc/issues/88 */}
         {/* @ts-expect-error - onclick should be a function, but we coerce to an assignment */}
         <button id="evt-assignment" onclick={(this.count -= 1)}>{' '} - (inline state update)</button>
         <span>
@@ -55,7 +53,6 @@ export default class Counter extends HTMLElement {
           </span>{' '}
           times
         </span>
-        {/* TODO: https://github.com/ProjectEvergreen/wcc/issues/88 */}
         {/* @ts-expect-error - onclick should be a function, but we coerce to an assignment */}
         <button onclick={(this.count += 1)}> + (inline state update)</button>
         <button onclick={this.increment}> + (function reference)</button>
