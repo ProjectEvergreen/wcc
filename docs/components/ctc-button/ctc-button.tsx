@@ -8,20 +8,35 @@ template.innerHTML = `
 `;
 
 export default class CopyToClipboardButton extends HTMLElement {
+  root: ShadowRoot | null;
+
+  constructor() {
+    super();
+    this.root = null;
+  }
+
   connectedCallback() {
     // bail of out of SSR entirely
     if (!this.shadowRoot && typeof window !== 'undefined') {
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.appendChild(template.content.cloneNode(true));
+      this.root = this.attachShadow({ mode: 'open' });
 
-      this.shadowRoot.adoptedStyleSheets = [sheet];
+      if (this.root) {
+        this.root.appendChild(template.content.cloneNode(true));
 
-      this.shadowRoot.getElementById('icon')?.addEventListener('click', () => {
-        const contents = this.getAttribute('content') ?? undefined;
+        this.root.adoptedStyleSheets = [sheet];
 
-        navigator.clipboard.writeText(contents);
-        console.log('copying the following contents to your clipboard =>', contents);
-      });
+        this.root.getElementById('icon')?.addEventListener('click', () => {
+          const contents = this.getAttribute('content');
+
+          if (!contents) {
+            console.warn('No content provided to copy to clipboard');
+            return;
+          }
+
+          navigator.clipboard.writeText(contents);
+          console.log('copying the following contents to your clipboard =>', contents);
+        });
+      }
     }
   }
 }

@@ -89,7 +89,7 @@ describe('Components/Side Nav', () => {
     nav.setAttribute('route', ROUTE);
     nav.setAttribute('heading', HEADING);
 
-    expectedDocsContent = GRAPH.find((page) => page.route === ROUTE);
+    expectedDocsContent = GRAPH.find((page) => page.route === ROUTE) as DocsPage;
 
     document.body.appendChild(nav);
 
@@ -101,7 +101,7 @@ describe('Components/Side Nav', () => {
     let fullMenu: HTMLElement;
 
     beforeEach(async () => {
-      fullMenu = nav.querySelector('#main-menu');
+      fullMenu = nav.querySelector('#main-menu') as HTMLElement;
     });
 
     it('should not be null', () => {
@@ -118,18 +118,21 @@ describe('Components/Side Nav', () => {
     it('should have the expected number of section heading links', () => {
       const links = fullMenu.querySelectorAll('ul li a');
 
-      expect(links.length).to.equal(expectedDocsContent.data.tableOfContents.length);
+      expect(links.length).to.equal(expectedDocsContent.data?.tableOfContents?.length);
     });
 
     it('should have the expected content for section headings links', () => {
       const links = fullMenu.querySelectorAll('ul li a');
 
       links.forEach((link, index) => {
-        expect(link.textContent).to.equal(expectedDocsContent.data.tableOfContents[index].content);
+        expect(link.textContent).to.equal(
+          expectedDocsContent.data?.tableOfContents?.[index]?.content,
+        );
       });
     });
 
     afterAll(() => {
+      // @ts-expect-error
       fullMenu = null;
     });
   });
@@ -139,7 +142,7 @@ describe('Components/Side Nav', () => {
     let popoverSelector = 'compact-menu';
 
     beforeEach(async () => {
-      compactMenu = nav.querySelector(`#mobile-menu`);
+      compactMenu = nav.querySelector(`#mobile-menu`) as HTMLElement;
     });
 
     it('should not be null', () => {
@@ -179,24 +182,28 @@ describe('Components/Side Nav', () => {
     it('should have the expected number of section heading links', () => {
       const links = compactMenu.querySelectorAll('ul li a');
 
-      expect(links.length).to.equal(expectedDocsContent.data.tableOfContents.length);
+      expect(links.length).to.equal(expectedDocsContent.data?.tableOfContents?.length);
     });
 
     it('should have the expected content for section headings links', () => {
       const links = compactMenu.querySelectorAll('ul li a');
 
       links.forEach((link, index) => {
-        expect(link.textContent).to.equal(expectedDocsContent.data.tableOfContents[index].content);
+        expect(link.textContent).to.equal(
+          expectedDocsContent.data?.tableOfContents?.[index]?.content,
+        );
       });
     });
 
     afterEach(() => {
+      // @ts-expect-error
       compactMenu = null;
     });
   });
 
   afterEach(() => {
     nav.remove();
+    // @ts-expect-error
     nav = undefined;
   });
 

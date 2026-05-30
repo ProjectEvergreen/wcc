@@ -68,6 +68,7 @@ describe('Components/Feature Box', () => {
 
   afterEach(() => {
     featureBox.remove();
+    // @ts-expect-error
     featureBox = undefined;
   });
 });
