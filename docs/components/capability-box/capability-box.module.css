@@ -1,6 +1,8 @@
 .container {
   background-color: var(--color-primary);
   border-radius: var(--radius-3);
+  box-sizing: border-box;
+  height: 100%;
   padding: var(--size-4);
   text-align: left;
   min-height: 150px;
@@ -30,6 +32,6 @@
 
 @media (min-width: 1200px) {
   .container {
-    min-height: 160px;
+    min-height: 200px;
   }
 }

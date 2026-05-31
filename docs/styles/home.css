@@ -124,6 +124,11 @@ wcc-capability-box {
   }
 
   .capabilities-container {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: var(--size-3);
+    align-items: stretch;
     width: 80%;
     margin: 0 auto;
     padding: 0;
@@ -136,15 +141,15 @@ wcc-capability-box {
   }
 
   wcc-capability-box {
-    display: inline-block;
-    width: 44%;
-    margin: var(--size-3);
-    vertical-align: top;
+    display: block;
+    width: 100%;
+    margin: 0;
   }
 }
 
 @media (min-width: 1200px) {
   .capabilities-container {
+    gap: var(--size-2);
     padding: var(--size-2);
   }
 
@@ -160,9 +165,8 @@ wcc-capability-box {
   }
 
   wcc-capability-box {
-    display: inline-block;
-    width: 47%;
-    margin: var(--size-2);
-    vertical-align: top;
+    display: block;
+    width: 100%;
+    margin: 0;
   }
 }
