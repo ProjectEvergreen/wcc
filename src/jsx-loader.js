@@ -432,7 +432,7 @@ export function parseJsx(moduleURL) {
           // TODO: (good first issue) find a more AST (visitor) based way to check for this
           // https://github.com/ProjectEvergreen/wcc/issues/258
           hasShadowRoot =
-            moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
+            result.code.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
@@ -773,6 +773,7 @@ export function parseJsx(moduleURL) {
           ) {
             // TODO: do we even need this filter?
             const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
+            // TODO: should we append cleanup functions if user has their own disconnected callback?
             const disconnectedCallbackContents = hasDisconnectedCallback
               ? ''
               : `
