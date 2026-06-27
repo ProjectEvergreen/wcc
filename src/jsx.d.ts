@@ -7,6 +7,21 @@ type ElementAttributes<E extends HTMLElement> = {
   [A in keyof E]?: E[A] extends (...args: any) => any ? any : IsCSSStyleDeclaration<E[A]>;
 } & {
   class?: string;
+  children?: any;
+};
+
+// creates a utility type for SVG attributes, allowing string values for SVG-specific attributes
+type SVGElementAttributes<E extends SVGElement> = {
+  [A in keyof E]?: string | undefined;
+} & {
+  class?: string;
+  fill?: string;
+  stroke?: string;
+  d?: string;
+  viewBox?: string;
+  xmlns?: string;
+  preserveAspectRatio?: string;
+  [key: string]: any;
 };
 
 type PopoverState = 'auto' | 'manual' | 'hint';
@@ -25,9 +40,15 @@ type PopoverAttributes = {
 // map each HTML tag to its attributes
 type IntrinsicElementsFromDom = {
   [E in keyof HTMLElementTagNameMap]: ElementAttributes<HTMLElementTagNameMap[E]> &
-    (E extends 'button' | 'input' ? PopoverAttributes : {});
+    (E extends 'button' | 'input' ? PopoverAttributes : {}) &
+    (E extends 'button' ? { tabindex?: number | string } : {});
+};
+
+// map each SVG tag to its attributes
+type IntrinsicElementsFromSVG = {
+  [E in keyof SVGElementTagNameMap]: SVGElementAttributes<SVGElementTagNameMap[E]>;
 };
 
 declare namespace JSX {
-  interface IntrinsicElements extends IntrinsicElementsFromDom {}
+  interface IntrinsicElements extends IntrinsicElementsFromDom, IntrinsicElementsFromSVG {}
 }
