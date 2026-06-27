@@ -773,7 +773,7 @@ export function parseJsx(moduleURL) {
           ) {
             // TODO: do we even need this filter?
             const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
-            // TODO: should we append cleanup functions if user has their own disconnected callback?
+            // create a disconnectedCallback function if not present to append effect cleanup functions
             const disconnectedCallbackContents = hasDisconnectedCallback
               ? ''
               : `
@@ -817,13 +817,13 @@ export function parseJsx(moduleURL) {
           }
         },
         MethodDefinition(node) {
+          // append DOM references and effect functions for signals
           if (node.key.name === 'connectedCallback') {
             const root = hasShadowRoot ? 'this.shadowRoot' : 'this';
             const effectElements = reactiveElements
               .map((el, idx) => `this.$el${idx} = ${root}.querySelector('${el.selector}');`)
               .join('\n');
             const effectContents = generateEffectsForReactiveElements(reactiveElements);
-
             const effectElementsTree = acorn.parse(effectElements, acornParseOptions);
             const effectContentsTree = acorn.parse(effectContents, acornParseOptions);
 
@@ -834,6 +834,7 @@ export function parseJsx(moduleURL) {
             ];
           }
 
+          // append cleanup functions.if component already has a disconnectedCallback
           if (node.key.name === 'disconnectedCallback' && hasDisconnectedCallback) {
             const effectCleanupContents =
               generateEffectsCleanupForReactiveElements(reactiveElements);
