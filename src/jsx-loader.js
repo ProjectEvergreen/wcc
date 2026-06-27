@@ -432,7 +432,7 @@ export function parseJsx(moduleURL) {
           // TODO: (good first issue) find a more AST (visitor) based way to check for this
           // https://github.com/ProjectEvergreen/wcc/issues/258
           hasShadowRoot =
-            moduleContents.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
+            result.code.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
 
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
@@ -773,6 +773,7 @@ export function parseJsx(moduleURL) {
           ) {
             // TODO: do we even need this filter?
             const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
+            // create a disconnectedCallback function if not present to append effect cleanup functions
             const disconnectedCallbackContents = hasDisconnectedCallback
               ? ''
               : `
@@ -816,13 +817,13 @@ export function parseJsx(moduleURL) {
           }
         },
         MethodDefinition(node) {
+          // append DOM references and effect functions for signals
           if (node.key.name === 'connectedCallback') {
             const root = hasShadowRoot ? 'this.shadowRoot' : 'this';
             const effectElements = reactiveElements
               .map((el, idx) => `this.$el${idx} = ${root}.querySelector('${el.selector}');`)
               .join('\n');
             const effectContents = generateEffectsForReactiveElements(reactiveElements);
-
             const effectElementsTree = acorn.parse(effectElements, acornParseOptions);
             const effectContentsTree = acorn.parse(effectContents, acornParseOptions);
 
@@ -833,6 +834,7 @@ export function parseJsx(moduleURL) {
             ];
           }
 
+          // append cleanup functions.if component already has a disconnectedCallback
           if (node.key.name === 'disconnectedCallback' && hasDisconnectedCallback) {
             const effectCleanupContents =
               generateEffectsCleanupForReactiveElements(reactiveElements);
