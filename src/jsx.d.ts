@@ -49,6 +49,17 @@ type IntrinsicElementsFromSVG = {
   [E in keyof SVGElementTagNameMap]: SVGElementAttributes<SVGElementTagNameMap[E]>;
 };
 
+type IntrinsicElementAttributes<E extends string> = (E extends keyof HTMLElementTagNameMap
+  ? ElementAttributes<HTMLElementTagNameMap[E]> &
+      (E extends 'button' | 'input' ? PopoverAttributes : {}) &
+      (E extends 'button' ? { tabindex?: number | string } : {})
+  : {}) &
+  (E extends keyof SVGElementTagNameMap ? SVGElementAttributes<SVGElementTagNameMap[E]> : {});
+
+type IntrinsicElementsMap = {
+  [E in keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap]: IntrinsicElementAttributes<E>;
+};
+
 declare namespace JSX {
-  interface IntrinsicElements extends IntrinsicElementsFromDom, IntrinsicElementsFromSVG {}
+  interface IntrinsicElements extends IntrinsicElementsMap {}
 }
