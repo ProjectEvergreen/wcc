@@ -422,7 +422,7 @@ Below is an example of what is possible right now demonstrated through a [Counte
             You have clicked <span class="red">{count}</span> times
           </span>
           <button onclick={this.increment}> +</button>
-          <button onclick={this.decrement}> +</button>
+          <button onclick={this.decrement}> -</button>
         </div>
       );
     }
