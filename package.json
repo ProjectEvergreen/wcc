@@ -45,6 +45,9 @@
     "lint:js": "eslint",
     "lint:ls": "ls-lint",
     "lint:css": "stylelint \"./docs/**/*.css\"",
+    "commit": "cz",
+    "commit:lint": "commitlint --last --verbose",
+    "commit:edit": "commitlint --edit $1",
     "check:types": "tsc",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
@@ -66,6 +69,7 @@
     "sucrase": "^3.35.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
     "@double-great/stylelint-a11y": "^3.0.2",
     "@eslint/js": "^9.39.1",
     "@greenwood/cli": "^0.34.0-alpha.4",
@@ -81,6 +85,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "c8": "^7.11.2",
     "chai": "^6.2.2",
+    "commitizen": "^4.3.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-no-only-tests": "^3.3.0",

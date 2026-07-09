@@ -59,3 +59,9 @@ After starting the dev server, visit the `/sandbox/` route in your browser. All 
 ### Playground
 
 The website also hosts a Playground (REPL) for seeing WCC output in the browser in real time. Development happens in [this repo](https://github.com/ProjectEvergreen/playground.wcc.dev).
+
+## Pull Requests
+
+Generally, it's best to open an issue first before submitting a Pull Request. This is a good opportunity to validate the work first, and ask any questions.
+
+This project uses conventional commits when submitting pull requests in combination with Husky pre-commit hooks that runs linting and formatting scripts. When ready to commit code to submit a PR, run `npm run commit` and follow the prompts.
