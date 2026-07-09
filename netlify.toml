@@ -1,9 +1,9 @@
 [build]
   publish = "public/"
-  command = "npx patch-package && npm run docs:build"
+  command = "npm run docs:build"
 
 [build.processing]
   skip_processing = true
 
 [build.environment]
-  NODE_VERSION = "22.18.0"
+  NODE_VERSION = "24.4.0"
