@@ -285,6 +285,7 @@ function parseJsxElement(
 
     if (type === 'JSXExpressionContainer') {
       const { type } = element.expression;
+      const emittedBefore = string;
 
       if (
         inferredObservability &&
@@ -305,6 +306,9 @@ function parseJsxElement(
         } else {
           string += `$\{${object.name}.${property.name}()}`;
         }
+      } else if (type === 'Literal') {
+        // literal text/whitespace, e.g. the {' '} spacing idiom or {'hello'} / {42}
+        string += element.expression.value;
       } else if (type === 'Identifier') {
         // You have {count} TODOs left to complete
         string += `$\{${element.expression.name}}`;
@@ -322,6 +326,25 @@ function parseJsxElement(
           // You have {todos.length} Todos left to complete
           string += `$\{${element.expression.object.name}.${element.expression.property.name}}`;
         }
+      }
+
+      // if none of the branches above emitted anything, this expression node type is not supported
+      // and would be silently dropped from the output — warn so the developer sees why content is
+      // missing. Supported child expressions: {identifier}, {object.property}, literals, and (with
+      // inferredObservability) {signal.get()}. `JSXEmptyExpression` ({} and {/* comments */})
+      // renders nothing by design. https://github.com/ProjectEvergreen/wcc/issues/282
+      if (string === emittedBefore && type !== 'JSXEmptyExpression') {
+        let source;
+
+        try {
+          source = generate(element.expression);
+        } catch {
+          source = type;
+        }
+
+        console.warn(
+          `wcc: unsupported JSX expression \`${source}\` (${type}) was dropped from the rendered output.`,
+        );
       }
     }
   } catch (e) {
