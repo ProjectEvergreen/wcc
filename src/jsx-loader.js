@@ -427,8 +427,10 @@ export function parseJsx(moduleURL) {
         }
       },
       ClassDeclaration(node) {
+        // a class without `extends` has a null superClass (e.g. a plain helper class) — guard it
+        // https://github.com/ProjectEvergreen/wcc/issues/282
         // @ts-ignore
-        if (node.superClass.name === 'HTMLElement') {
+        if (node.superClass?.name === 'HTMLElement') {
           // TODO: (good first issue) find a more AST (visitor) based way to check for this
           // https://github.com/ProjectEvergreen/wcc/issues/258
           hasShadowRoot =
@@ -694,8 +696,10 @@ export function parseJsx(moduleURL) {
     tree,
     {
       ClassDeclaration(node) {
+        // a class without `extends` has a null superClass (e.g. a plain helper class) — guard it
+        // https://github.com/ProjectEvergreen/wcc/issues/282
         // @ts-ignore
-        if (node.superClass.name === 'HTMLElement') {
+        if (node.superClass?.name === 'HTMLElement') {
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
               // @ts-ignore
