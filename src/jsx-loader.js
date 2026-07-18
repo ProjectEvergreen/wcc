@@ -296,7 +296,15 @@ function parseJsxElement(
         // TODO: handle this references
         // https://github.com/ProjectEvergreen/wcc/issues/88
         const { object, property } = element.expression.callee;
-        string += `$\{${object.name}.${property.name}()}`;
+
+        if (object.type === 'MemberExpression' && object.object?.type === 'ThisExpression') {
+          // read a signal directly off `this` in JSX, e.g. {this.count.get()},
+          // mirroring the destructure-first form {count.get()} handled below
+          // https://github.com/ProjectEvergreen/wcc/issues/282
+          string += `$\{this.${object.property.name}.${property.name}()}`;
+        } else {
+          string += `$\{${object.name}.${property.name}()}`;
+        }
       } else if (type === 'Identifier') {
         // You have {count} TODOs left to complete
         string += `$\{${element.expression.name}}`;
