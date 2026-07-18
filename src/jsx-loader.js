@@ -712,12 +712,25 @@ export function parseJsx(moduleURL) {
                       hasShadowRoot,
                       1,
                     );
-                    const elementTree = getParse(html)(html);
+                    const parser = getParse(html);
+                    const elementTree = parser(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
                     applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
-                    const serializedHtml = serialize(elementTree);
+                    // when the render output contains document-level tags (<html>/<head>/<body>),
+                    // parse5's full-document `parse` wraps it in a complete
+                    // <html><head></head><body>...</body></html> document; serialize only the <body>
+                    // fragment so a <body>-rooted "page" component contributes just its children,
+                    // instead of a nested document inlined into the outer page.
+                    // https://github.com/ProjectEvergreen/wcc/issues/282
+                    const bodyFragment =
+                      parser === parse
+                        ? elementTree.childNodes
+                            .find((node) => node.tagName === 'html')
+                            ?.childNodes.find((node) => node.tagName === 'body')
+                        : null;
+                    const serializedHtml = serialize(bodyFragment ?? elementTree);
                     // we have to Shadow DOM use cases here
                     // 1. No shadowRoot, so we attachShadow and append the template
                     // 2. If there is root from the attachShadow signal, so we just need to inject innerHTML, say in an htmx
