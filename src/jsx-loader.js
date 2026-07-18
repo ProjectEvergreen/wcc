@@ -167,14 +167,32 @@ function parseJsxElement(
 
             // <button onclick={(e: Event) => this.count.set(this.count.get() * 2)}>Double (++)</button>
             if (expression.type === 'ArrowFunctionExpression' && expression.body) {
-              // quick hack to get expression contents until we can properly build this all up from an AST
-              const contents = generate(expression.body);
+              // rewrite `this` -> `self` on the AST so only real ThisExpressions are scoped
+              // to the custom element, leaving `this` inside string literals untouched
+              // https://github.com/ProjectEvergreen/wcc/issues/282
+              walk.simple(
+                expression.body,
+                {
+                  ThisExpression(node) {
+                    // @ts-ignore
+                    node.type = 'Identifier';
+                    // @ts-ignore
+                    node.name = 'self';
+                  },
+                },
+                walk.base,
+              );
+              // escape `"` so a double-quoted string in the handler can't terminate the attribute
+              // https://github.com/ProjectEvergreen/wcc/issues/282
+              const contents = generate(expression.body)
+                .replace('() => ', '')
+                .replace(/"/g, '&quot;');
               const eventIdentifier = expression?.params[0]?.name || 'event';
               const root = hasShadowRoot
                 ? '.getRootNode().host'
                 : `${'.parentElement'.repeat(currentDepth)}`;
 
-              string += ` ${name}="(function (${eventIdentifier}, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this${root})"`;
+              string += ` ${name}="(function (${eventIdentifier}, self) { ${contents} })(event, this${root})"`;
             }
 
             if (expression.type === 'AssignmentExpression') {
