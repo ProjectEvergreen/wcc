@@ -395,7 +395,10 @@ export function parseJsx(moduleURL) {
   // would be nice if we could do this instead, so we could know ahead of time
   // const { inferredObservability } = await import(moduleURL);
   // however, this requires making parseJsx async, but WCC acorn walking is done sync
-  const hasOwnObservedAttributes = undefined;
+  // track whether the component brings its own `observedAttributes` / `attributeChangedCallback` so
+  // the guards below don't inject a duplicate second copy (which would silently win over the user's)
+  // https://github.com/ProjectEvergreen/wcc/issues/282
+  let hasOwnObservedAttributes = false;
   let inferredObservability = false;
   // TODO: "merge" observedAttributes tracking with constructor tracking
   let observedAttributes = [];
@@ -477,6 +480,16 @@ export function parseJsx(moduleURL) {
       MethodDefinition(node) {
         if (node.kind === 'method' && node?.key.name === 'disconnectedCallback') {
           hasDisconnectedCallback = true;
+        }
+
+        // the component already handles attributes itself, so honor its own definitions instead of
+        // injecting a duplicate `observedAttributes` / `attributeChangedCallback`
+        // https://github.com/ProjectEvergreen/wcc/issues/282
+        if (
+          (node.static && node.kind === 'get' && node?.key.name === 'observedAttributes') ||
+          (node.kind === 'method' && node?.key.name === 'attributeChangedCallback')
+        ) {
+          hasOwnObservedAttributes = true;
         }
 
         // @ts-ignore
