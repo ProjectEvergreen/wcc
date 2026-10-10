@@ -9,6 +9,25 @@ import { serialize } from 'parse5';
 import { transform } from 'sucrase';
 import fs from 'fs';
 
+function transformModule(moduleURL, moduleContents) {
+  const extension = moduleURL.pathname.split('.').pop();
+
+  // `.js`, `.mjs`, and `.cjs` modules do not need to be transformed by Sucrase,
+  // and in fact doing so can break valid JavaScript syntax.
+  // https://github.com/ProjectEvergreen/wcc/issues/284
+  // Note: this introduces a dis-connect between what WCC can parse vs what it can execute
+  // https://github.com/ProjectEvergreen/wcc/discussions/226
+  if (!['jsx', 'ts', 'tsx'].includes(extension)) {
+    return moduleContents;
+  }
+
+  return transform(moduleContents, {
+    transforms: ['typescript', 'jsx'],
+    jsxRuntime: 'automatic',
+    production: true,
+  }).code;
+}
+
 function isCustomElementDefinitionNode(node) {
   const { expression } = node;
 
@@ -79,11 +98,7 @@ async function renderComponentRoots(tree, definitions) {
 
 function registerDependencies(moduleURL, definitions, depth = 0) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
-  const result = transform(moduleContents, {
-    transforms: ['typescript', 'jsx'],
-    jsxRuntime: 'automatic',
-    production: true,
-  });
+  const moduleCode = transformModule(moduleURL, moduleContents);
   const nextDepth = (depth += 1);
   const customParser = getParser(moduleURL);
   const parser = customParser ? customParser.parser : acorn.Parser;
@@ -94,7 +109,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
       };
 
   walk.simple(
-    parser.parse(result.code, {
+    parser.parse(moduleCode, {
       ecmaVersion: 'latest',
       sourceType: 'module',
     }),
@@ -142,11 +157,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
 
 async function getTagName(moduleURL) {
   const moduleContents = await fs.promises.readFile(moduleURL, 'utf-8');
-  const result = transform(moduleContents, {
-    transforms: ['typescript', 'jsx'],
-    jsxRuntime: 'automatic',
-    production: true,
-  });
+  const moduleCode = transformModule(moduleURL, moduleContents);
   const customParser = getParser(moduleURL);
   const parser = customParser ? customParser.parser : acorn.Parser;
   const config = customParser
@@ -157,7 +168,7 @@ async function getTagName(moduleURL) {
   let tagName;
 
   walk.simple(
-    parser.parse(result.code, {
+    parser.parse(moduleCode, {
       ecmaVersion: 'latest',
       sourceType: 'module',
     }),
