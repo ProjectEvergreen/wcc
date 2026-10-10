@@ -12,10 +12,12 @@ import fs from 'fs';
 function transformModule(moduleURL, moduleContents) {
   const extension = moduleURL.pathname.split('.').pop();
 
-  // Plain JavaScript files (`.js`, `.mjs`, and `.cjs`) do not need to be transformed by Sucrase,
+  // `.js`, `.mjs`, and `.cjs` modules do not need to be transformed by Sucrase,
   // and in fact doing so can break valid JavaScript syntax.
   // https://github.com/ProjectEvergreen/wcc/issues/284
-  if (['js', 'mjs', 'cjs'].includes(extension)) {
+  // Note: this introduces a dis-connect between what WCC can parse vs what it can execute
+  // https://github.com/ProjectEvergreen/wcc/discussions/226
+  if (!['jsx', 'ts', 'tsx'].includes(extension)) {
     return moduleContents;
   }
 
