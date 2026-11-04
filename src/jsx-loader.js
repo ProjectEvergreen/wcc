@@ -167,14 +167,32 @@ function parseJsxElement(
 
             // <button onclick={(e: Event) => this.count.set(this.count.get() * 2)}>Double (++)</button>
             if (expression.type === 'ArrowFunctionExpression' && expression.body) {
-              // quick hack to get expression contents until we can properly build this all up from an AST
-              const contents = generate(expression.body);
+              // rewrite `this` -> `self` on the AST so only real ThisExpressions are scoped
+              // to the custom element, leaving `this` inside string literals untouched
+              // https://github.com/ProjectEvergreen/wcc/issues/282
+              walk.simple(
+                expression.body,
+                {
+                  ThisExpression(node) {
+                    // @ts-ignore
+                    node.type = 'Identifier';
+                    // @ts-ignore
+                    node.name = 'self';
+                  },
+                },
+                walk.base,
+              );
+              // escape `"` so a double-quoted string in the handler can't terminate the attribute
+              // https://github.com/ProjectEvergreen/wcc/issues/282
+              const contents = generate(expression.body)
+                .replace('() => ', '')
+                .replace(/"/g, '&quot;');
               const eventIdentifier = expression?.params[0]?.name || 'event';
               const root = hasShadowRoot
                 ? '.getRootNode().host'
                 : `${'.parentElement'.repeat(currentDepth)}`;
 
-              string += ` ${name}="(function (${eventIdentifier}, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this${root})"`;
+              string += ` ${name}="(function (${eventIdentifier}, self) { ${contents} })(event, this${root})"`;
             }
 
             if (expression.type === 'AssignmentExpression') {
@@ -267,6 +285,7 @@ function parseJsxElement(
 
     if (type === 'JSXExpressionContainer') {
       const { type } = element.expression;
+      const emittedBefore = string;
 
       if (
         inferredObservability &&
@@ -278,7 +297,18 @@ function parseJsxElement(
         // TODO: handle this references
         // https://github.com/ProjectEvergreen/wcc/issues/88
         const { object, property } = element.expression.callee;
-        string += `$\{${object.name}.${property.name}()}`;
+
+        if (object.type === 'MemberExpression' && object.object?.type === 'ThisExpression') {
+          // read a signal directly off `this` in JSX, e.g. {this.count.get()},
+          // mirroring the destructure-first form {count.get()} handled below
+          // https://github.com/ProjectEvergreen/wcc/issues/282
+          string += `$\{this.${object.property.name}.${property.name}()}`;
+        } else {
+          string += `$\{${object.name}.${property.name}()}`;
+        }
+      } else if (type === 'Literal') {
+        // literal text/whitespace, e.g. the {' '} spacing idiom or {'hello'} / {42}
+        string += element.expression.value;
       } else if (type === 'Identifier') {
         // You have {count} TODOs left to complete
         string += `$\{${element.expression.name}}`;
@@ -296,6 +326,25 @@ function parseJsxElement(
           // You have {todos.length} Todos left to complete
           string += `$\{${element.expression.object.name}.${element.expression.property.name}}`;
         }
+      }
+
+      // if none of the branches above emitted anything, this expression node type is not supported
+      // and would be silently dropped from the output — warn so the developer sees why content is
+      // missing. Supported child expressions: {identifier}, {object.property}, literals, and (with
+      // inferredObservability) {signal.get()}. `JSXEmptyExpression` ({} and {/* comments */})
+      // renders nothing by design. https://github.com/ProjectEvergreen/wcc/issues/282
+      if (string === emittedBefore && type !== 'JSXEmptyExpression') {
+        let source;
+
+        try {
+          source = generate(element.expression);
+        } catch {
+          source = type;
+        }
+
+        console.warn(
+          `wcc: unsupported JSX expression \`${source}\` (${type}) was dropped from the rendered output.`,
+        );
       }
     }
   } catch (e) {
@@ -377,7 +426,10 @@ export function parseJsx(moduleURL) {
   // would be nice if we could do this instead, so we could know ahead of time
   // const { inferredObservability } = await import(moduleURL);
   // however, this requires making parseJsx async, but WCC acorn walking is done sync
-  const hasOwnObservedAttributes = undefined;
+  // track whether the component brings its own `observedAttributes` / `attributeChangedCallback` so
+  // the guards below don't inject a duplicate second copy (which would silently win over the user's)
+  // https://github.com/ProjectEvergreen/wcc/issues/282
+  let hasOwnObservedAttributes = false;
   let inferredObservability = false;
   // TODO: "merge" observedAttributes tracking with constructor tracking
   let observedAttributes = [];
@@ -409,8 +461,10 @@ export function parseJsx(moduleURL) {
         ) {
           // @ts-ignore
           if (declaration.declarations[0].id.name === 'inferredObservability') {
+            // use the parsed literal value, not its raw source text, so `= false` / `0` / `null` opt out
+            // https://github.com/ProjectEvergreen/wcc/issues/282
             // @ts-ignore
-            inferredObservability = Boolean(node.declaration.declarations[0].init.raw);
+            inferredObservability = node.declaration.declarations[0].init.value === true;
           }
         }
       },
@@ -424,11 +478,18 @@ export function parseJsx(moduleURL) {
           declaration.id.name
         ) {
           componentName = declaration.id.name;
+        } else if (declaration && declaration.type === 'Identifier' && declaration.name) {
+          // also resolve the class name for the `class X {}; export default X;` form so the
+          // static-injection gate and the effect-append pass share one name (avoids `undefined.$$tmpl0`)
+          // https://github.com/ProjectEvergreen/wcc/issues/282
+          componentName = declaration.name;
         }
       },
       ClassDeclaration(node) {
+        // a class without `extends` has a null superClass (e.g. a plain helper class) — guard it
+        // https://github.com/ProjectEvergreen/wcc/issues/282
         // @ts-ignore
-        if (node.superClass.name === 'HTMLElement') {
+        if (node.superClass?.name === 'HTMLElement') {
           // TODO: (good first issue) find a more AST (visitor) based way to check for this
           // https://github.com/ProjectEvergreen/wcc/issues/258
           hasShadowRoot =
@@ -457,6 +518,16 @@ export function parseJsx(moduleURL) {
       MethodDefinition(node) {
         if (node.kind === 'method' && node?.key.name === 'disconnectedCallback') {
           hasDisconnectedCallback = true;
+        }
+
+        // the component already handles attributes itself, so honor its own definitions instead of
+        // injecting a duplicate `observedAttributes` / `attributeChangedCallback`
+        // https://github.com/ProjectEvergreen/wcc/issues/282
+        if (
+          (node.static && node.kind === 'get' && node?.key.name === 'observedAttributes') ||
+          (node.kind === 'method' && node?.key.name === 'attributeChangedCallback')
+        ) {
+          hasOwnObservedAttributes = true;
         }
 
         // @ts-ignore
@@ -694,8 +765,10 @@ export function parseJsx(moduleURL) {
     tree,
     {
       ClassDeclaration(node) {
+        // a class without `extends` has a null superClass (e.g. a plain helper class) — guard it
+        // https://github.com/ProjectEvergreen/wcc/issues/282
         // @ts-ignore
-        if (node.superClass.name === 'HTMLElement') {
+        if (node.superClass?.name === 'HTMLElement') {
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
               // @ts-ignore
@@ -712,12 +785,25 @@ export function parseJsx(moduleURL) {
                       hasShadowRoot,
                       1,
                     );
-                    const elementTree = getParse(html)(html);
+                    const parser = getParse(html);
+                    const elementTree = parser(html);
                     const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
 
                     applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
 
-                    const serializedHtml = serialize(elementTree);
+                    // when the render output contains document-level tags (<html>/<head>/<body>),
+                    // parse5's full-document `parse` wraps it in a complete
+                    // <html><head></head><body>...</body></html> document; serialize only the <body>
+                    // fragment so a <body>-rooted "page" component contributes just its children,
+                    // instead of a nested document inlined into the outer page.
+                    // https://github.com/ProjectEvergreen/wcc/issues/282
+                    const bodyFragment =
+                      parser === parse
+                        ? elementTree.childNodes
+                            .find((node) => node.tagName === 'html')
+                            ?.childNodes.find((node) => node.tagName === 'body')
+                        : null;
+                    const serializedHtml = serialize(bodyFragment ?? elementTree);
                     // we have to Shadow DOM use cases here
                     // 1. No shadowRoot, so we attachShadow and append the template
                     // 2. If there is root from the attachShadow signal, so we just need to inject innerHTML, say in an htmx
