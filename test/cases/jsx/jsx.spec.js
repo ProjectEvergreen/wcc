@@ -81,6 +81,13 @@ describe('Run WCC For ', function () {
       });
 
       describe('Expressions', () => {
+        it('should preserve HTML entities in static text and attribute values', () => {
+          const element = dom.window.document.querySelector('#html-entities');
+
+          expect(element.textContent.trim()).to.equal('$ & <template>');
+          expect(element.getAttribute('title')).to.equal('$ &');
+        });
+
         // <span>You have clicked {count} times</span>
         it('should handle an expression', () => {
           const element = dom.window.document.querySelectorAll('span#expression')[0];

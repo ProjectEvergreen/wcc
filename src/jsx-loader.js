@@ -8,8 +8,8 @@ import fs from 'fs';
 // @ts-ignore
 // but it does have a default export?
 import jsx from '@projectevergreen/acorn-jsx-esm';
-import { parse, parseFragment, serialize } from 'parse5';
 import { transform } from 'sucrase';
+import * as ast from './jsx-ast-utils.js';
 
 // expose global Signal polyfill to SSR environment
 import { Signal } from 'signal-polyfill';
@@ -22,18 +22,7 @@ const acornParseOptions = {
   sourceType: 'module',
 };
 
-// TODO: same hack as definitions
-// https://github.com/ProjectEvergreen/wcc/discussions/74
-let string;
-
-// TODO: move to a util
-// https://github.com/ProjectEvergreen/wcc/discussions/74
-function getParse(html) {
-  return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
-    ? parse
-    : parseFragment;
-}
-
+// Provide the parser and walker configuration for `.jsx` and `.tsx` modules.
 export function getParser(moduleURL) {
   const ext = moduleURL.pathname.split('.').pop();
   const isJSX = ext === 'jsx' || ext === 'tsx';
@@ -52,44 +41,9 @@ export function getParser(moduleURL) {
   };
 }
 
-// replace all instances of __this__ marker with relative reference to the custom element parent node
-function applyDomDepthSubstitutions(tree, currentDepth = 1, hasShadowRoot = false) {
-  try {
-    for (const node of tree.childNodes) {
-      const attrs = node.attrs;
-
-      // check for attributes
-      // and swap out __this__ with depthful parentElement chain
-      if (attrs && attrs.length > 0) {
-        for (const attr in attrs) {
-          const { value } = attrs[attr];
-
-          if (value.indexOf('__this__.') >= 0) {
-            const root = hasShadowRoot
-              ? '.getRootNode().host'
-              : `${'.parentElement'.repeat(currentDepth)}`;
-
-            node.attrs[attr].value = value.replace(/__this__/g, `this${root}`);
-          }
-        }
-      }
-
-      // TODO: handle text nodes for __this__ references
-      // https://github.com/ProjectEvergreen/wcc/issues/88
-
-      if (node.childNodes && node.childNodes.length > 0) {
-        applyDomDepthSubstitutions(node, currentDepth + 1, hasShadowRoot);
-      }
-    }
-  } catch (e) {
-    console.error(e);
-  }
-
-  return tree;
-}
-
-// TODO handle if / else statements
+// TODO: handle if / else statements
 // https://github.com/ProjectEvergreen/wcc/issues/88
+// Track component properties, e.g. `this.count = 0` or `const { count } = this`.
 function findThisReferences(context, statement) {
   const references = [];
   const isRenderFunctionContext = context === 'render';
@@ -128,246 +82,199 @@ function findThisReferences(context, statement) {
   return references;
 }
 
-function parseJsxElement(
+// Create HTML nodes from JSX, e.g. `<p>{count}</p>` becomes an element with an interpolation marker.
+function createHtmlTreeFromJsx(
   element,
-  moduleContents = '',
+  template,
   inferredObservability,
   hasShadowRoot = false,
   currentDepth = 1,
+  parent = ast.createHtmlFragment(),
 ) {
   try {
     const { type } = element;
 
     if (type === 'JSXElement') {
       const { openingElement } = element;
-      const { attributes } = openingElement;
-      const tagName = openingElement.name.name;
+      const node = ast.createHtmlElement(openingElement.name.name);
 
-      string += `<${tagName}`;
+      ast.appendHtmlChild(parent, node);
 
-      for (const attribute of attributes) {
+      for (const attribute of openingElement.attributes) {
         const { name } = attribute.name;
 
-        // handle events
         if (name.startsWith('on')) {
           const { value } = attribute;
-          const { expression } = value;
 
-          // onclick={this.increment}
           if (value.type === 'JSXExpressionContainer') {
-            if (expression.type === 'MemberExpression') {
-              if (expression.object.type === 'ThisExpression') {
-                if (expression.property.type === 'Identifier') {
-                  // we leave markers for `this` so we can replace it later while also NOT accidentally replacing
-                  // legitimate uses of this that might be actual content / markup of the custom element
-                  string += ` ${name}="__this__.${expression.property.name}(event)"`;
-                }
-              }
-            }
+            const { expression } = value;
 
-            // <button onclick={(e: Event) => this.count.set(this.count.get() * 2)}>Double (++)</button>
             if (expression.type === 'ArrowFunctionExpression' && expression.body) {
-              // quick hack to get expression contents until we can properly build this all up from an AST
-              const contents = generate(expression.body);
-              const eventIdentifier = expression?.params[0]?.name || 'event';
-              const root = hasShadowRoot
-                ? '.getRootNode().host'
-                : `${'.parentElement'.repeat(currentDepth)}`;
-
-              string += ` ${name}="(function (${eventIdentifier}, self) { ${contents.replace(/this./g, 'self.').replace('() => ', '')} })(event, this${root})"`;
-            }
-
-            if (expression.type === 'AssignmentExpression') {
-              const { left, right } = expression;
-
-              if (left.object.type === 'ThisExpression') {
-                if (left.property.type === 'Identifier') {
-                  // implicit reactivity using this.render
-                  string += ` ${name}="__this__.${left.property.name}${expression.operator}${right.raw}; __this__.render();"`;
-                }
-              }
+              node.attrs.push(
+                ast.createHtmlAttribute(
+                  name,
+                  template.handler(() =>
+                    ast.generateInlineEventHandler(expression, currentDepth, hasShadowRoot),
+                  ),
+                ),
+              );
+            } else if (
+              ast.generateEventHandler(expression, currentDepth, hasShadowRoot) !== undefined
+            ) {
+              node.attrs.push(
+                ast.createHtmlAttribute(
+                  name,
+                  template.handler((depth) =>
+                    ast.generateEventHandler(expression, depth, hasShadowRoot),
+                  ),
+                ),
+              );
             }
           }
         } else if (attribute.name.type === 'JSXIdentifier') {
-          if (attribute.value) {
-            const expression = attribute?.value?.expression;
-            if (attribute.value.type === 'Literal') {
-              // xxx="yyy" >
-              string += ` ${name}="${attribute.value.value}"`;
-            } else if (
-              expression &&
-              inferredObservability &&
-              attribute.value.type === 'JSXExpressionContainer' &&
-              expression?.type === 'CallExpression' &&
-              expression?.callee.type === 'MemberExpression' &&
-              expression?.arguments &&
-              expression?.callee?.property?.name === 'get'
-            ) {
-              // xxx={products.get().length} >
-              const { object, property } = expression.callee;
+          if (!attribute.value) {
+            node.attrs.push(ast.createHtmlAttribute(name));
+            continue;
+          }
+          const expression = attribute.value.expression;
 
-              if (object.type === 'MemberExpression' && object?.object.type === 'ThisExpression') {
-                // The count is counter={this.count.get()}
-                string += ` ${name}=$\{${object.property.name}.${property.name}()}`;
-              } else if (object.type === 'Identifier') {
-                // xxx={products.get().length} >
-                string += ` ${name}=$\{${object.name}.${property.name}()}`;
-              }
-            } else if (attribute.value.type === 'JSXExpressionContainer') {
-              // xxx={allTodos.length} >
-              const { value } = attribute;
-              const { expression } = value;
-              const expressionType = expression.type;
-
-              switch (expressionType) {
-                case 'Literal':
-                  string += ` ${name}=${expression.raw}`;
-                  break;
-                case 'Identifier':
-                  string += ` ${name}=$\{${expression.name}}`;
-                  break;
-                case 'MemberExpression':
-                  if (expression.object.type === 'Identifier') {
-                    if (expression.property.type === 'Identifier') {
-                      string += ` ${name}=$\{${expression.object.name}.${expression.property.name}}`;
-                    }
-                  }
-                  break;
-                default:
-                  break;
-              }
+          if (attribute.value.type === 'Literal') {
+            node.attrs.push(...ast.createHtmlLiteralAttributes(name, attribute.value, true));
+          } else if (
+            expression &&
+            inferredObservability &&
+            attribute.value.type === 'JSXExpressionContainer' &&
+            expression.type === 'CallExpression' &&
+            expression.callee.type === 'MemberExpression' &&
+            expression.arguments &&
+            expression.callee.property?.name === 'get'
+          ) {
+            const { object, property } = expression.callee;
+            if (object.type === 'MemberExpression' && object.object?.type === 'ThisExpression') {
+              node.attrs.push(
+                ast.createHtmlAttribute(
+                  name,
+                  template.expression(
+                    ast.createCallExpression(
+                      ast.createMemberExpression(
+                        ast.createIdentifier(object.property.name),
+                        property.name,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            } else if (object.type === 'Identifier') {
+              node.attrs.push(
+                ast.createHtmlAttribute(
+                  name,
+                  template.expression(
+                    ast.createCallExpression(ast.createMemberExpression(object, property.name)),
+                  ),
+                ),
+              );
             }
-          } else {
-            // xxx >
-            string += ` ${name}`;
+          } else if (attribute.value.type === 'JSXExpressionContainer') {
+            switch (expression.type) {
+              case 'Literal':
+                node.attrs.push(...ast.createHtmlLiteralAttributes(name, expression));
+                break;
+              case 'Identifier':
+                node.attrs.push(ast.createHtmlAttribute(name, template.expression(expression)));
+                break;
+              case 'MemberExpression':
+                if (
+                  expression.object.type === 'Identifier' &&
+                  expression.property.type === 'Identifier'
+                ) {
+                  node.attrs.push(
+                    ast.createHtmlAttribute(
+                      name,
+                      template.expression(
+                        ast.createMemberExpression(expression.object, expression.property),
+                      ),
+                    ),
+                  );
+                }
+                break;
+              default:
+                break;
+            }
           }
         }
       }
 
-      string += openingElement.selfClosing ? ' />' : '>';
-
-      if (element.children.length > 0) {
-        element.children.forEach((child) =>
-          parseJsxElement(
-            child,
-            moduleContents,
-            inferredObservability,
-            hasShadowRoot,
-            currentDepth + 1,
-          ),
+      for (const child of element.children) {
+        createHtmlTreeFromJsx(
+          child,
+          template,
+          inferredObservability,
+          hasShadowRoot,
+          currentDepth + 1,
+          node,
         );
       }
 
-      string += `</${tagName}>`;
+      // HTML treats </br> as another <br>; JSX br output includes both line-break nodes.
+      // TODO: emit one break for JSX <br />; the extra node preserves the current compiler output.
+      if (node.tagName === 'br') {
+        ast.appendHtmlChild(parent, ast.createHtmlElement('br'));
+      }
     }
 
     if (type === 'JSXText') {
-      string += element.raw;
+      ast.appendHtmlChild(parent, ast.createHtmlTextNode(element.raw, parent.tagName));
     }
 
     if (type === 'JSXExpressionContainer') {
-      const { type } = element.expression;
+      const expression = element.expression;
+      let value;
 
       if (
         inferredObservability &&
-        type === 'CallExpression' &&
-        element.expression.arguments &&
-        element.expression?.callee?.type === 'MemberExpression' &&
-        element.expression?.callee?.property?.name === 'get'
+        expression.type === 'CallExpression' &&
+        expression.arguments &&
+        expression.callee?.type === 'MemberExpression' &&
+        expression.callee.property?.name === 'get'
       ) {
         // TODO: handle this references
         // https://github.com/ProjectEvergreen/wcc/issues/88
-        const { object, property } = element.expression.callee;
-        string += `$\{${object.name}.${property.name}()}`;
-      } else if (type === 'Identifier') {
+        const { object, property } = expression.callee;
+        // Direct component this references are unsupported.
+        value = ast.createCallExpression(
+          ast.createMemberExpression(
+            ast.createIdentifier(object.name ?? 'undefined'),
+            property.name,
+          ),
+        );
+      } else if (expression.type === 'Identifier') {
         // You have {count} TODOs left to complete
-        string += `$\{${element.expression.name}}`;
-      } else if (type === 'MemberExpression') {
-        const { object } = element.expression.object;
-
+        value = expression;
+      } else if (expression.type === 'MemberExpression') {
         // You have {this.todos.length} Todos left to complete
         // https://github.com/ProjectEvergreen/wcc/issues/88
-        if (object && object.type === 'ThisExpression') {
-          // TODO ReferenceError: __this__ is not defined
-          // string += `\$\{__this__.${element.expression.object.property.name}.${element.expression.property.name}\}`;
-        } else {
-          // const { todos } = this;
-          // ....
-          // You have {todos.length} Todos left to complete
-          string += `$\{${element.expression.object.name}.${element.expression.property.name}}`;
+        // TODO: support component this references in JSX text member expressions
+        if (expression.object.object?.type !== 'ThisExpression') {
+          value = ast.createMemberExpression(
+            ast.createIdentifier(expression.object.name ?? 'undefined'),
+            ast.createIdentifier(expression.property.name ?? 'undefined'),
+          );
         }
+      }
+      if (value) {
+        ast.appendHtmlChild(
+          parent,
+          ast.createHtmlTextNode(template.expression(value), parent.tagName),
+        );
       }
     }
   } catch (e) {
     console.error(e);
   }
-
-  return string;
+  return parent;
 }
 
-function generateEffectsForReactiveElements(reactiveElements) {
-  let effectsCount = 0;
-  let contents = '';
-
-  reactiveElements.forEach((element, idx) => {
-    const { effect, attributes } = element;
-
-    if (effect?.expression) {
-      contents += `
-        this.$eff${effectsCount} = effect(() => {
-          this.$el${idx}.textContent = ${effect.expression}
-        });\n
-      `;
-
-      effectsCount++;
-    }
-
-    if (attributes.length > 0) {
-      const attributeUpdates = attributes
-        .map((attr) => {
-          return `this.$el${idx}.setAttribute('${attr.name}', this.${attr.value}.get())`;
-        })
-        .join('\n');
-
-      contents += `
-        this.$eff${effectsCount} = effect(() => {
-          ${attributeUpdates}
-        });\n
-      `;
-
-      effectsCount++;
-    }
-  });
-
-  return contents;
-}
-
-function generateEffectsCleanupForReactiveElements(reactiveElements) {
-  let contents = '';
-  let effectCount = 0;
-
-  reactiveElements.forEach((element) => {
-    const { effect, attributes } = element;
-
-    if (effect?.expression) {
-      contents += `
-        this.$eff${effectCount}()\n;
-      `;
-
-      effectCount++;
-    }
-
-    if (attributes.length > 0) {
-      contents += `
-        this.$eff${effectCount}();
-      `;
-      effectCount += 1;
-    }
-  });
-
-  return contents;
-}
-
+// Compile a JSX/TSX module into a JavaScript AST with render statements and inferred effects.
 export function parseJsx(moduleURL) {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
   const result = transform(moduleContents, {
@@ -387,7 +294,6 @@ export function parseJsx(moduleURL) {
   let hasShadowRoot;
   let hasDisconnectedCallback;
   let tree = acorn.Parser.extend(jsx()).parse(result.code, acornParseOptions);
-  string = '';
 
   // initial pass to get certain information before running JSX transformations (could we do this in one pass?)
   // 1. if `inferredObservability` is set
@@ -429,10 +335,24 @@ export function parseJsx(moduleURL) {
       ClassDeclaration(node) {
         // @ts-ignore
         if (node.superClass.name === 'HTMLElement') {
-          // TODO: (good first issue) find a more AST (visitor) based way to check for this
-          // https://github.com/ProjectEvergreen/wcc/issues/258
-          hasShadowRoot =
-            result.code.slice(node.body.start, node.body.end).indexOf('this.attachShadow(') > 0;
+          hasShadowRoot = false;
+
+          walk.simple(
+            node.body,
+            {
+              CallExpression(call) {
+                if (
+                  call.callee.type === 'MemberExpression' &&
+                  !call.callee.computed &&
+                  call.callee.object.type === 'ThisExpression' &&
+                  call.callee.property.name === 'attachShadow'
+                ) {
+                  hasShadowRoot = true;
+                }
+              },
+            },
+            { ...walk.base, JSXElement: () => {} },
+          );
 
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
@@ -504,7 +424,6 @@ export function parseJsx(moduleURL) {
   // we do this first to track reactivity usage before we transform the template and re-write its contents
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
     // this scans for signals usage within the template and builds up a reactive list of templates + effects
-    // (could this be done during the transformation pass instead of having to generate and re-parse the module again?)
     // TODO: recursive scanning for nested components
     // https://github.com/ProjectEvergreen/wcc/issues/256
     walk.simple(
@@ -514,11 +433,12 @@ export function parseJsx(moduleURL) {
           if (node.key.name === 'render') {
             for (const n2 in node.value.body.body) {
               const n = node.value.body.body[n2];
+
               if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
                 const rootNode = n.argument;
                 const parentTag = rootNode.openingElement.name.name;
                 const children = [];
-                let parentTemplate = '';
+                const parentTemplate = ast.createTemplateLiteralParts();
                 let parentHasReactiveTemplate;
                 let parentHasReactiveAttributes;
                 let parentSignals = [];
@@ -527,7 +447,7 @@ export function parseJsx(moduleURL) {
                   if (child.type === 'JSXText') {
                     // TODO: track top level reactivity for text nodes?
                     // https://github.com/ProjectEvergreen/wcc/issues/256
-                    parentTemplate += child.raw;
+                    parentTemplate.text(child.raw);
                   } else if (child.type === 'JSXExpressionContainer') {
                     if (
                       child.expression?.type === 'CallExpression' &&
@@ -535,7 +455,7 @@ export function parseJsx(moduleURL) {
                       child.expression?.callee?.property?.name === 'get'
                     ) {
                       const { object } = child.expression.callee || {};
-                      parentTemplate += `$\{${object.name}}`;
+                      parentTemplate.expression(ast.createIdentifier(object.name));
                       parentSignals.push(object.name);
                       parentHasReactiveTemplate = true;
                     }
@@ -584,31 +504,30 @@ export function parseJsx(moduleURL) {
 
                     if (hasReactiveTemplate) {
                       const signals = [];
-                      let template = '';
+                      const template = ast.createTemplateLiteralParts();
 
                       for (const c of child.children) {
                         if (c.type === 'JSXText') {
-                          template += c.value;
+                          template.text(c.value);
                         } else if (c.type === 'JSXExpressionContainer') {
                           // TODO: handle this references?
                           // https://github.com/ProjectEvergreen/wcc/issues/88
                           const { object } = c.expression.callee || {};
-                          template += `$\{${object.name}}`;
+                          template.expression(ast.createIdentifier(object.name));
                           signals.push(object.name);
                         }
                       }
 
-                      if (template !== '' && signals.length > 0) {
-                        const $$templ = `$$tmpl${reactiveElements.length - 1}`;
-                        const staticTemplate = `static ${$$templ} = (${signals.join(',')}) => \`${template.trim()}\`;`;
+                      if (signals.length > 0) {
                         // TODO: handle this references?
                         // https://www.github.com/ProjectEvergreen/wcc/issues/88
-                        const expression = `${componentName}.${$$templ}(${signals.map((s) => `this.${s}.get()`).join(', ')});`;
-
-                        reactiveElements[reactiveElements.length - 1].effect = {
-                          template: staticTemplate,
-                          expression,
-                        };
+                        reactiveElements[reactiveElements.length - 1].effect =
+                          ast.createReactiveTemplate(
+                            `$$tmpl${reactiveElements.length - 1}`,
+                            signals,
+                            template,
+                            componentName,
+                          );
                       }
                     }
 
@@ -638,18 +557,16 @@ export function parseJsx(moduleURL) {
                 }
 
                 if (parentHasReactiveTemplate) {
-                  const $$templ = `$$tmpl${reactiveElements.length}`;
-                  const staticTemplate = `static ${$$templ} = (${parentSignals.join(',')}) => \`${parentTemplate.trim()}\`;`;
                   // TODO: handle this references?
                   // https://www.github.com/ProjectEvergreen/wcc/issues/88
-                  const expression = `${componentName}.${$$templ}(${parentSignals.map((s) => `this.${s}.get()`).join(', ')});`;
-
                   reactiveElements.push({
                     selector: `${parentTag}:nth-of-type(1)`,
-                    effect: {
-                      template: staticTemplate,
-                      expression,
-                    },
+                    effect: ast.createReactiveTemplate(
+                      `$$tmpl${reactiveElements.length}`,
+                      parentSignals,
+                      parentTemplate,
+                      componentName,
+                    ),
                     attributes: [],
                   });
 
@@ -701,47 +618,22 @@ export function parseJsx(moduleURL) {
               // @ts-ignore
               const nodeName = n1.key.name;
               if (nodeName === 'render') {
-                for (const n2 in n1.value.body.body) {
-                  const n = n1.value.body.body[n2];
-
-                  if (n.type === 'ReturnStatement' && n.argument.type === 'JSXElement') {
-                    const html = parseJsxElement(
-                      n.argument,
-                      moduleContents,
-                      inferredObservability,
-                      hasShadowRoot,
-                      1,
-                    );
-                    const elementTree = getParse(html)(html);
-                    const elementRoot = hasShadowRoot ? 'this.shadowRoot' : 'this';
-
-                    applyDomDepthSubstitutions(elementTree, undefined, hasShadowRoot);
-
-                    const serializedHtml = serialize(elementTree);
-                    // we have to Shadow DOM use cases here
-                    // 1. No shadowRoot, so we attachShadow and append the template
-                    // 2. If there is root from the attachShadow signal, so we just need to inject innerHTML, say in an htmx
-                    // could / should we do something else instead of .innerHTML
-                    // https://github.com/ProjectEvergreen/wcc/issues/138
-                    const renderHandler = hasShadowRoot
-                      ? `
-                        const template = document.createElement('template');
-                        template.innerHTML = \`${serializedHtml}\`;
-
-                        if(!${elementRoot}) {
-                          this.attachShadow({ mode: 'open' });
-                          this.shadowRoot.appendChild(template.content.cloneNode(true));
-                        } else {
-                          this.shadowRoot.innerHTML = template.innerHTML;
-                        }
-                      `
-                      : `${elementRoot}.innerHTML = \`${serializedHtml}\`;`;
-                    const transformed = acorn.parse(renderHandler, acornParseOptions);
-
-                    // @ts-ignore
-                    n1.value.body.body[n2] = transformed;
+                n1.value.body.body = n1.value.body.body.flatMap((statement) => {
+                  if (
+                    statement.type !== 'ReturnStatement' ||
+                    statement.argument.type !== 'JSXElement'
+                  ) {
+                    return [statement];
                   }
-                }
+                  const template = ast.createHtmlTemplateLiteralBuilder(moduleContents);
+                  const htmlTree = createHtmlTreeFromJsx(
+                    statement.argument,
+                    template,
+                    inferredObservability,
+                    hasShadowRoot,
+                  );
+                  return ast.createRenderStatements(template.build(htmlTree), hasShadowRoot);
+                });
               }
             }
           }
@@ -773,74 +665,31 @@ export function parseJsx(moduleURL) {
           ) {
             // TODO: do we even need this filter?
             const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
-            // create a disconnectedCallback function if not present to append effect cleanup functions
-            const disconnectedCallbackContents = hasDisconnectedCallback
-              ? ''
-              : `
-                disconnectedCallback() {
-                  ${generateEffectsCleanupForReactiveElements(reactiveElements)}
-                }
-              `;
-
-            // TODO: better way to determine value type, e,g. array, number, object, etc for `parseAttribute`?
-            // have to wrap these `static` calls in a class here, otherwise we can't parse them standalone w/ acorn
-            const staticContents = `
-              class Stub {
-                ${reactiveElements.map((el, idx) => `$el${idx};`).join('')}
-                ${reactiveElements
-                  .filter((el) => el.effect?.template)
-                  .map((el) => el.effect.template)
-                  .join('\n')}
-                static get observedAttributes() {
-                  return [${[...trackingAttrs]
-                    .filter((attr) => constructorMembersSignals.get(attr)?.isState)
-                    .map((attr) => `'${attr}'`)
-                    .join()}]
-                }
-                static parseAttribute = (value) => value.charAt(0) === '{' || value.charAt(0) === '['
-                  ? JSON.parse(value)
-                  : value !== '' && !isNaN(+value)
-                    ? parseInt(value, 10)
-                    : value === 'true' || value === 'false'
-                      ? value === 'true' ? true : false
-                      : value;
-                attributeChangedCallback(name, oldValue, newValue) {
-                  this[name].set(${componentName}.parseAttribute(newValue));
-                }
-                ${disconnectedCallbackContents}
-              }
-            `;
-
-            const staticContentsTree = acorn.parse(staticContents, acornParseOptions);
-
-            node.body.body.unshift(...staticContentsTree.body[0].body.body);
+            const stateAttrs = trackingAttrs.filter(
+              (attr) => constructorMembersSignals.get(attr)?.isState,
+            );
+            node.body.body.unshift(
+              ...ast.createReactiveClassMembers(
+                componentName,
+                reactiveElements,
+                stateAttrs,
+                hasDisconnectedCallback,
+              ),
+            );
           }
         },
         MethodDefinition(node) {
           // append DOM references and effect functions for signals
           if (node.key.name === 'connectedCallback') {
-            const root = hasShadowRoot ? 'this.shadowRoot' : 'this';
-            const effectElements = reactiveElements
-              .map((el, idx) => `this.$el${idx} = ${root}.querySelector('${el.selector}');`)
-              .join('\n');
-            const effectContents = generateEffectsForReactiveElements(reactiveElements);
-            const effectElementsTree = acorn.parse(effectElements, acornParseOptions);
-            const effectContentsTree = acorn.parse(effectContents, acornParseOptions);
-
-            node.value.body.body = [
-              ...node.value.body.body,
-              ...effectElementsTree.body,
-              ...effectContentsTree.body,
-            ];
+            node.value.body.body.push(
+              ...ast.createElementReferenceStatements(reactiveElements, hasShadowRoot),
+              ...ast.createEffectStatements(reactiveElements),
+            );
           }
 
           // append cleanup functions.if component already has a disconnectedCallback
           if (node.key.name === 'disconnectedCallback' && hasDisconnectedCallback) {
-            const effectCleanupContents =
-              generateEffectsCleanupForReactiveElements(reactiveElements);
-            const effectCleanupElementsTree = acorn.parse(effectCleanupContents, acornParseOptions);
-
-            node.value.body.body = [...node.value.body.body, ...effectCleanupElementsTree.body];
+            node.value.body.body.push(...ast.createEffectCleanupStatements(reactiveElements));
           }
         },
       },
@@ -853,10 +702,7 @@ export function parseJsx(moduleURL) {
     );
 
     // inject WCC's effect function
-    const effectImportContents = `import { effect } from 'wc-compiler/effect'`;
-    const effectImportTree = acorn.parse(effectImportContents, acornParseOptions);
-
-    tree.body = [...effectImportTree.body, ...tree.body];
+    tree.body.unshift(ast.createEffectImportDeclaration());
   }
 
   return tree;
