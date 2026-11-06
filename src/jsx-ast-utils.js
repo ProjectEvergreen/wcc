@@ -3,6 +3,7 @@ import { generate, GENERATOR } from 'astring';
 import { defaultTreeAdapter, html, parse, parseFragment, serialize } from 'parse5';
 
 // HTML elements whose children are omitted by the serializer, including obsolete void tags.
+// TODO: we should figure out how to properly handle void elements in SSR, e.g. `<img src="..." />` should not be `<img src="..."></img>`.
 const voidElements = new Set([
   'area',
   'base',
@@ -209,8 +210,8 @@ export function createHtmlAttribute(name, value = '') {
 export function createHtmlLiteralAttributes(name, literal, isJsxAttribute = false) {
   const value = isJsxAttribute ? `"${literal.value}"` : literal.raw;
   // Required markup string: parse5's public parser needs HTML to interpret attribute quoting/entities.
+  // TODO: review replacing this markup wrapper while preserving attribute quoting and entity handling.
   // TODO: escape decoded JSX quotes; `title="&quot;Hello&quot;"` currently creates malformed attributes.
-  // Keep this parsing boundary until that output change is addressed separately.
   const fragment = parseFragment(`<span ${name}=${value}></span>`);
   return fragment.childNodes[0].attrs;
 }
@@ -350,6 +351,7 @@ export function createHtmlTemplateLiteralBuilder(moduleContents) {
     build(htmlTree) {
       // String boundary: parse5 applies HTML tree rules (e.g. inserting tbody) when parsing text.
       // Serialize the constructed nodes so parse5 can normalize them before final serialization.
+      // TODO: review removing this round trip while retaining HTML normalization and event-handler depths.
       const html = serialize(htmlTree);
       const tree = getHtmlParser(html)(html);
       // Fill event attributes with component references at the correct depth.

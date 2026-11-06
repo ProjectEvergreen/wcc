@@ -93,6 +93,7 @@ function createHtmlTreeFromJsx(
 ) {
   try {
     const { type } = element;
+
     if (type === 'JSXElement') {
       const { openingElement } = element;
       const node = ast.createHtmlElement(openingElement.name.name);
@@ -215,6 +216,7 @@ function createHtmlTreeFromJsx(
       }
 
       // HTML treats </br> as another <br>; JSX br output includes both line-break nodes.
+      // TODO: emit one break for JSX <br />; the extra node preserves the current compiler output.
       if (node.tagName === 'br') {
         ast.appendHtmlChild(parent, ast.createHtmlElement('br'));
       }
@@ -708,7 +710,6 @@ export function parseJsx(moduleURL) {
 
 // --------------
 
-// Resolve JSX/TSX imports to module URLs, e.g. `./counter.jsx` relative to its importer.
 export function resolve(specifier, context, defaultResolve) {
   const { parentURL } = context;
 
@@ -722,7 +723,6 @@ export function resolve(specifier, context, defaultResolve) {
   return defaultResolve(specifier, context, defaultResolve);
 }
 
-// Return compiled JavaScript source for JSX/TSX imports through Node's module loader.
 export async function load(url, context, defaultLoad) {
   if (jsxRegex.test(url) || tsxRegex.test(url)) {
     const jsFromJsx = parseJsx(new URL(url));
