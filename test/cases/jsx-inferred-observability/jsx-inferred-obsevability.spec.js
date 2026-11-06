@@ -206,6 +206,12 @@ describe('Run WCC For ', function () {
         expect(actual).to.contain(expected);
       });
 
+      it('should generate a disconnectedCallback with effect cleanup', () => {
+        const actual = meta['wcc-greeting-jsx'].source.replace(/\s+/g, '');
+
+        expect(actual).to.contain('disconnectedCallback(){this.$eff0();this.$eff1();}');
+      });
+
       it('should infer observability by generating an attributeChangedCallback method', () => {
         const actual = meta['wcc-greeting-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
         const expected = fixtureAttributeChangedCallback.replace(/ /g, '').replace(/\n/g, '');

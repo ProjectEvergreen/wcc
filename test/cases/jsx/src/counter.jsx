@@ -46,6 +46,9 @@ export default class Counter extends HTMLElement {
         </span>
         <button onclick={(this.count += 1)}> + (inline state update)</button>
         <button onclick={this.increment}> + (function reference)</button>
+        <span id="html-entities" title="&dollar; &amp;">
+          &dollar; &amp; &lt;template&gt;
+        </span>
       </div>
     );
   }

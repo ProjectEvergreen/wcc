@@ -43,6 +43,14 @@ describe('Run WCC For ', function () {
       });
 
       describe('Attributes', () => {
+        it('should preserve SVG namespaces and attribute casing', () => {
+          const svg = dom.window.document.querySelector('wcc-counter-jsx svg');
+
+          expect(svg.namespaceURI).to.equal('http://www.w3.org/2000/svg');
+          expect(svg.getAttribute('viewBox')).to.equal('0 0 448 512');
+          expect(svg.querySelector('path').getAttribute('fill')).to.equal('currentColor');
+        });
+
         // <wcc-badge count={completedTodos.length}></wcc-badge>
         it('should handle a member expression', () => {
           const badge = dom.window.document.querySelectorAll('wcc-badge')[0];

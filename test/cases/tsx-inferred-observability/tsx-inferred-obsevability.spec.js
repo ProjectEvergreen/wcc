@@ -88,6 +88,15 @@ describe('Run WCC For ', function () {
         expect(actual).to.contain(effectImport);
       });
 
+      it('should generate an inline handler that references the component', () => {
+        const button = dom.window.document.querySelector('wcc-counter-tsx #evt-assignment');
+        const actual = button.getAttribute('onclick').replace(/\s+/g, '');
+
+        expect(actual).to.equal(
+          '(function(event,self){self.count.set(self.count.get()-1);})(event,this.parentElement.parentElement)',
+        );
+      });
+
       // <span id="one-deep" data-count={count.get()}>Top level count is {count.get()}</span>
       it('should have the expected value for the nested count signal', () => {
         const span = dom.window.document.querySelector('wcc-counter-tsx span#one-deep');
