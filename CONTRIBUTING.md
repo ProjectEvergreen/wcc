@@ -84,39 +84,66 @@ Below are the workflows steps for publishing WCC.
 
 ### Local Testing
 
-For local testing and generating an initial tarball, set the intended version before packing. For example, to prepare the next minor version's first release candidate without creating a Git commit or tag:
+For local testing and generating an initial tarball.
+
+For example, to prepare the next minor version's first release candidate without creating a Git commit or tag:
 
 ```sh
-npm version preminor --preid rc --no-git-tag-version
-npm pack
+$ npm version preminor --preid rc --no-git-tag-version
+v0.2.0-rc.0
+
+$ npm pack
 ```
 
-`npm pack` runs the `prepack` build automatically and creates `wc-compiler-<version>.tgz`. Check that the archive contains the built JavaScript, declarations, source maps, etc. You can install the tarball in a separate consumer project with `npm install /absolute/path/wc-compiler-<version>.tgz`.
+> _`npm pack` runs the `prepack` build automatically and creates `wc-compiler-<version>.tgz`. You can check that the archive contains the correct files. You can also install the tarball in a separate project with `npm install /absolute/path/wc-compiler-<version>.tgz`._
 
 ### Release Candidate
 
-After local testing, publish the tested archive with the `rc` tag. For the `0.23.0-rc.0` example above:
+After local testing and wanting to publish to npm. This create an **rc** tag.
+
+For the `0.23.0-rc.0` example above:
 
 ```sh
-npm publish ./wc-compiler-0.23.0-rc.0.tgz --tag rc
+$ npm publish ./wc-compiler-0.23.0-rc.0.tgz --tag rc
 ```
 
-For another candidate, increment the existing RC version and pack again:
+To publish another candidate, increment the existing RC version and pack again:
 
 ```sh
-npm version prerelease --preid rc --no-git-tag-version
-npm pack
+$ npm version prerelease --preid rc --no-git-tag-version
+v0.23.0-rc.1
+
+$ npm pack
+```
+
+---
+
+Make sure to bump and tag the version for all RC releases:
+
+```sh
+$ git commit -m "chore: bump to next release version 0.23.0-rc.0"
+$ git tag -a 0.23.0-rc.0 -m "chore: tagging 0.23.0-rc.0 release"
+$ git push origin <branch> --tags
 ```
 
 ### Stable Release
 
-From the final RC, set the stable version and create its archive. For the minor release above, this changes `0.23.0-rc.N` to `0.23.0`:
+To publish to **latest** on npm.
+
+Using the minor release above, this drops the `-rc.N`:
 
 ```sh
-npm version minor --no-git-tag-version
-npm pack
+$ npm version minor --no-git-tag-version
+v0.23.0
+
+$ npm pack
+$ npm publish ./wc-compiler-0.23.0.tgz --tag latest
 ```
 
+After publishing a stable release, make sure to bump and tag the version:
+
 ```sh
-npm publish ./wc-compiler-0.23.0.tgz --tag latest
+$ git commit -m "chore: bump to next release version 0.23.0"
+$ git tag -a 0.23.0 -m "chore: tagging 0.23.0 release"
+$ git push origin main --tags
 ```
