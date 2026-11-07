@@ -1,4 +1,5 @@
 *.log
+*.tgz
 .vscode/
 coverage/
 dist/
