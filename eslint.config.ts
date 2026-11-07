@@ -1,8 +1,10 @@
 import js from '@eslint/js';
 import globals from 'globals';
+// @ts-expect-error - This plugin does not publish TypeScript declarations.
 import noOnlyTests from 'eslint-plugin-no-only-tests';
 import tslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import type { Linter } from 'eslint';
 
 export default [
   {
@@ -52,4 +54,4 @@ export default [
     },
   },
   eslintConfigPrettier,
-];
+] satisfies Linter.Config[];

@@ -32,8 +32,6 @@ $ nvm use
 
 The local development workflows for WCC are:
 
-Tests and the website load WCC through its package entry points in `dist/`. Run `npm run build` before using those commands, and rebuild after changing `src/`.
-
 - `npm run build` - Build the library into `dist/`
 - `npm run build:watch` - Rebuild the library as source files change
 - `npm test` - Run the standard JavaScript integration tests
@@ -46,6 +44,16 @@ Tests and the website load WCC through its package entry points in `dist/`. Run 
 - `npm run format` - Auto-format all files
 
 > _While developing, keep `npm run build:watch` running alongside test watchers to keep the compiled output current._
+
+For VSCode users, add this TypeScript ESLint config compatibility flag in your _.vscode/settings.json_.
+
+```json
+{
+  "eslint.options": {
+    "flags": ["unstable_native_nodejs_ts_config"]
+  }
+}
+```
 
 ## Website
 
