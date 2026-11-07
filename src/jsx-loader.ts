@@ -20,7 +20,8 @@ import type { base as acornWalkBase } from 'acorn-walk';
 
 const jsxRegex = /\.(jsx)$/;
 const tsxRegex = /\.(tsx)$/;
-// Provide the parser and walker configuration for `.jsx` and `.tsx` modules.
+
+// Provide the JSX parser and walker, e.g. `getParser(new URL('./counter.tsx', import.meta.url))`.
 export function getParser(moduleURL: URL):
   | {
       parser: typeof acorn.Parser;
@@ -44,13 +45,12 @@ export function getParser(moduleURL: URL):
   };
 }
 
-// TODO: handle if / else statements
-// https://github.com/ProjectEvergreen/wcc/issues/88
-// Track component properties, e.g. `this.count = 0` or `const { count } = this`.
+// Read an identifier's name, e.g. the AST for `count` or the JSX tag `span` yields its name.
 function identifierName(node: E.Node | null | undefined): string | undefined {
   return node?.type === 'Identifier' || node?.type === 'JSXIdentifier' ? node.name : undefined;
 }
 
+// signal-style reads, e.g. `count.get()` or `this.count.get()`.
 function isSignalRead(node: E.Node | null | undefined): node is E.CallExpression & {
   callee: E.MemberExpression & { property: E.Identifier };
 } {
@@ -69,6 +69,7 @@ type ReactiveAttribute = E.JSXAttribute & {
   };
 };
 
+// signal-backed JSX attribute, e.g. `<span title={label.get()} />`.
 function isReactiveAttribute(
   attribute: E.JSXAttribute | E.JSXSpreadAttribute,
 ): attribute is ReactiveAttribute {
@@ -80,7 +81,10 @@ function isReactiveAttribute(
   );
 }
 
-function signalName(node: E.CallExpression & { callee: E.MemberExpression }): string | undefined {
+// Extract the signal name, e.g. `count.get()` and `this.count.get()` both yield `count`.
+function getSignalName(
+  node: E.CallExpression & { callee: E.MemberExpression },
+): string | undefined {
   const object = node.callee.object;
   if (object.type === 'MemberExpression' && object.object.type === 'ThisExpression') {
     return identifierName(object.property);
@@ -88,31 +92,40 @@ function signalName(node: E.CallExpression & { callee: E.MemberExpression }): st
   return identifierName(object);
 }
 
+// Track component properties, e.g. `this.count = 0`, `const count = this.count`, or `const { count } = this`.
+// TODO: handle if / else statements
+// https://github.com/ProjectEvergreen/wcc/issues/88
 function findThisReferences(
   context: 'render' | 'constructor',
   statement: E.Statement,
 ): Array<string | E.VariableDeclarator> {
   const references: Array<string | E.VariableDeclarator> = [];
+
   if (context === 'constructor' && statement.type === 'ExpressionStatement') {
     const expression = statement.expression;
+
     if (
       expression.type === 'AssignmentExpression' &&
       expression.left.type === 'MemberExpression' &&
       expression.left.object.type === 'ThisExpression'
     ) {
       const name = identifierName(expression.left.property);
+
       if (name) references.push(name);
     }
   } else if (context === 'render' && statement.type === 'VariableDeclaration') {
     for (const declaration of statement.declarations) {
       const { init, id } = declaration;
+
       if (init?.type === 'MemberExpression' && init.object.type === 'ThisExpression') {
         const name = identifierName(init.property);
+
         if (name) references.push(name);
       } else if (init?.type === 'ThisExpression' && id.type === 'ObjectPattern') {
         for (const property of id.properties) {
           if (property.type === 'Property') {
             const name = identifierName(property.key);
+
             if (name) references.push(name);
           }
         }
@@ -322,6 +335,7 @@ function createHtmlTreeFromJsx(
 }
 
 // Compile a JSX/TSX module into a JavaScript AST with render statements and inferred effects.
+// E.g. JSX `<p>{count}</p>` in render() becomes an assignment to `this.innerHTML`.
 export function parseJsx(
   moduleURL: PathOrFileDescriptor,
 ): E.Program & { start: number; end: number } {
@@ -579,7 +593,7 @@ export function parseJsx(
                     if (hasReactiveAttributes) {
                       for (const attr of child.openingElement.attributes) {
                         if (isReactiveAttribute(attr)) {
-                          const value = signalName(attr.value.expression) ?? 'undefined';
+                          const value = getSignalName(attr.value.expression) ?? 'undefined';
 
                           reactiveElements[reactiveElements.length - 1].attributes.push({
                             name: attr.name.name,
@@ -608,7 +622,7 @@ export function parseJsx(
                   if (parentHasReactiveAttributes) {
                     for (const attr of rootNode.openingElement.attributes) {
                       if (isReactiveAttribute(attr)) {
-                        const value = signalName(attr.value.expression) ?? 'undefined';
+                        const value = getSignalName(attr.value.expression) ?? 'undefined';
 
                         reactiveElements[reactiveElements.length - 1].attributes.push({
                           name: attr.name.name,
