@@ -55,7 +55,7 @@ In the talk [_"Web Components at the Edge"_](https://sched.co/11loQ) for OpenJS 
 <wcc-ctc-block variant="snippet" heading=".function/greeting.js">
 
   ```js
-  import '../../node_modules/wc-compiler/src/dom-shim.js';
+  import 'wc-compiler/dom-shim';
 
   import Greeting from './components/greeting.js';
 

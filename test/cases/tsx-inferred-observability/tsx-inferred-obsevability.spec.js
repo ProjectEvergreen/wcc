@@ -13,7 +13,7 @@
 import { expect } from 'chai';
 import fs from 'fs/promises';
 import { JSDOM } from 'jsdom';
-import { renderToString } from '../../../src/wcc.js';
+import { renderToString } from 'wc-compiler';
 
 describe('Run WCC For ', function () {
   const LABEL = 'Custom Elements using TSX and Inferred Observability';

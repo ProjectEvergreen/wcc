@@ -4,7 +4,7 @@ index a7367ac..570f2f7 100644
 +++ b/node_modules/@greenwood/cli/src/lib/execute-route-module.js
 @@ -1,4 +1,4 @@
 -import { renderToString, renderFromHTML } from "wc-compiler";
-+import { renderToString, renderFromHTML } from "../../../../../src/wcc.js";
++import { renderToString, renderFromHTML } from "../../../../../dist/wcc.js";
  
  async function executeRouteModule({
    moduleUrl,

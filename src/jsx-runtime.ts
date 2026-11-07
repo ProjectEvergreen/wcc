@@ -1,1 +1,1 @@
-import './jsx.d.ts';
+export type * from './jsx.js';

@@ -1,6 +1,64 @@
-import * as walk from 'acorn-walk';
+import { Parser } from 'acorn';
+import * as acornWalk from 'acorn-walk';
 import { generate, GENERATOR } from 'astring';
 import { defaultTreeAdapter, html, parse, parseFragment, serialize } from 'parse5';
+import type * as E from 'estree-jsx';
+import type { Generator, State } from 'astring';
+import type { DefaultTreeAdapterTypes as H, Token } from 'parse5';
+
+type Visitors = {
+  [K in E.Node['type']]?: (node: Extract<E.Node, { type: K }>) => void;
+};
+type WalkerBase = typeof acornWalk.base & { JSXElement?: () => void };
+
+// Only the node/visitor assertions adapt generated ESTree nodes to Acorn's types.
+export const baseWalker = acornWalk.base;
+
+export function walkSimple(
+  node: E.Node,
+  visitors: Visitors,
+  walker: WalkerBase = baseWalker,
+): void {
+  acornWalk.simple(
+    node as unknown as import('acorn').Node,
+    visitors as unknown as acornWalk.SimpleVisitors<undefined>,
+    walker,
+  );
+}
+
+export function parseModule(
+  contents: string,
+  parser = Parser,
+): E.Program & { start: number; end: number } {
+  // The JSX parser extends Acorn's runtime grammar, but not its bundled types.
+  return parser.parse(contents, {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+  }) as unknown as E.Program & { start: number; end: number };
+}
+
+export interface TemplateLiteralParts {
+  text(value: string): void;
+  expression(node: E.Expression): void;
+  build(trim?: boolean): E.TemplateLiteral;
+}
+
+export interface HtmlTemplateLiteralBuilder {
+  expression(node: E.Expression): string;
+  handler(create: (depth: number) => string | undefined): string;
+  build(tree: H.ParentNode): E.TemplateLiteral;
+}
+
+export interface ReactiveTemplate {
+  template: E.PropertyDefinition;
+  expression: E.CallExpression;
+}
+
+export interface ReactiveElement {
+  selector: string;
+  effect?: ReactiveTemplate;
+  attributes: Array<{ name: string; value: string }>;
+}
 
 // HTML elements whose children are omitted by the serializer, including obsolete void tags.
 // TODO: we should figure out how to properly handle void elements in SSR, e.g. `<img src="..." />` should not be `<img src="..."></img>`.
@@ -26,13 +84,13 @@ const voidElements = new Set([
 ]);
 
 // Reference a variable or property name, e.g. `count`.
-export const createIdentifier = (name) => ({ type: 'Identifier', name });
+export const createIdentifier = (name: string): E.Identifier => ({ type: 'Identifier', name });
 
 // Reference the current instance: `this`.
-const createThisExpression = () => ({ type: 'ThisExpression' });
+const createThisExpression = (): E.ThisExpression => ({ type: 'ThisExpression' });
 
 // Embed a primitive value, e.g. `'template'`, `42`, or `true`.
-const createLiteral = (value) => ({
+const createLiteral = (value: string | number | boolean | null): E.SimpleLiteral => ({
   type: 'Literal',
   value,
   // Print string literals with single quotes.
@@ -43,7 +101,11 @@ const createLiteral = (value) => ({
 });
 
 // Access a property, e.g. `this.count` or `this[name]` when computed is true.
-export const createMemberExpression = (object, property, computed = false) => ({
+export const createMemberExpression = (
+  object: E.Expression | E.Super,
+  property: string | E.Expression,
+  computed = false,
+): E.MemberExpression => ({
   type: 'MemberExpression',
   object,
   property: typeof property === 'string' ? createIdentifier(property) : property,
@@ -52,7 +114,10 @@ export const createMemberExpression = (object, property, computed = false) => ({
 });
 
 // Invoke a function or method, e.g. `count.get()`.
-export const createCallExpression = (callee, args = []) => ({
+export const createCallExpression = (
+  callee: E.Expression | E.Super,
+  args: Array<E.Expression | E.SpreadElement> = [],
+): E.CallExpression => ({
   type: 'CallExpression',
   callee,
   arguments: args,
@@ -60,13 +125,17 @@ export const createCallExpression = (callee, args = []) => ({
 });
 
 // Turn an expression into a statement, e.g. `this.render();`.
-const createExpressionStatement = (expression) => ({
+const createExpressionStatement = (expression: E.Expression): E.ExpressionStatement => ({
   type: 'ExpressionStatement',
   expression,
 });
 
 // Assign or update a value, e.g. `this.count = 0` or `this.count += 1`.
-const createAssignmentExpression = (left, right, operator = '=') => ({
+const createAssignmentExpression = (
+  left: E.Pattern,
+  right: E.Expression,
+  operator: E.AssignmentOperator = '=',
+): E.AssignmentExpression => ({
   type: 'AssignmentExpression',
   operator,
   left,
@@ -74,10 +143,16 @@ const createAssignmentExpression = (left, right, operator = '=') => ({
 });
 
 // Group statements in braces, e.g. `{ this.render(); }`.
-const createBlockStatement = (body) => ({ type: 'BlockStatement', body });
+const createBlockStatement = (body: E.Statement[]): E.BlockStatement => ({
+  type: 'BlockStatement',
+  body,
+});
 
 // Create an arrow function with an expression or block body, e.g. `value => value`.
-const createArrowFunctionExpression = (params, body) => ({
+const createArrowFunctionExpression = (
+  params: string[],
+  body: E.Expression | E.BlockStatement,
+): E.ArrowFunctionExpression => ({
   type: 'ArrowFunctionExpression',
   params: params.map((param) => createIdentifier(param)),
   body,
@@ -86,7 +161,11 @@ const createArrowFunctionExpression = (params, body) => ({
 });
 
 // Declare a class field, e.g. `$el0;` or `static count = 0;`.
-const createPropertyDefinition = (name, value = null, isStatic = false) => ({
+const createPropertyDefinition = (
+  name: string,
+  value: E.Expression | null = null,
+  isStatic = false,
+): E.PropertyDefinition => ({
   type: 'PropertyDefinition',
   key: createIdentifier(name),
   value,
@@ -95,7 +174,13 @@ const createPropertyDefinition = (name, value = null, isStatic = false) => ({
 });
 
 // Declare a class method or getter, e.g. `render() {}` or `static get observedAttributes() {}`.
-const createMethodDefinition = (name, params, body, kind = 'method', isStatic = false) => ({
+const createMethodDefinition = (
+  name: string,
+  params: string[],
+  body: E.Statement[],
+  kind: E.MethodDefinition['kind'] = 'method',
+  isStatic = false,
+): E.MethodDefinition => ({
   type: 'MethodDefinition',
   key: createIdentifier(name),
   kind,
@@ -108,20 +193,26 @@ const createMethodDefinition = (name, params, body, kind = 'method', isStatic = 
     body: createBlockStatement(body),
     generator: false,
     async: false,
-    expression: false,
   },
 });
 
 // Combine operands with a binary or logical operator, e.g. `count + 1` or `a && b`.
-const createBinaryExpression = (operator, left, right) => ({
-  type: operator === '||' || operator === '&&' ? 'LogicalExpression' : 'BinaryExpression',
-  operator,
-  left,
-  right,
-});
+const createBinaryExpression = (
+  operator: E.BinaryOperator | E.LogicalOperator,
+  left: E.Expression,
+  right: E.Expression,
+): E.BinaryExpression | E.LogicalExpression => {
+  if (operator === '||' || operator === '&&' || operator === '??') {
+    return { type: 'LogicalExpression', operator, left, right };
+  }
+  return { type: 'BinaryExpression', operator, left, right };
+};
 
 // Apply a prefix operator, e.g. `!this.shadowRoot` or `+value`.
-const createUnaryExpression = (operator, argument) => ({
+const createUnaryExpression = (
+  operator: E.UnaryOperator,
+  argument: E.Expression,
+): E.UnaryExpression => ({
   type: 'UnaryExpression',
   operator,
   argument,
@@ -129,7 +220,11 @@ const createUnaryExpression = (operator, argument) => ({
 });
 
 // Choose between expressions, e.g. `ready ? 'yes' : 'no'`.
-const createConditionalExpression = (test, consequent, alternate) => ({
+const createConditionalExpression = (
+  test: E.Expression,
+  consequent: E.Expression,
+  alternate: E.Expression,
+): E.ConditionalExpression => ({
   type: 'ConditionalExpression',
   test,
   consequent,
@@ -137,7 +232,7 @@ const createConditionalExpression = (test, consequent, alternate) => ({
 });
 
 // Build a template literal from static strings and expression nodes, e.g. `Hello ${name}!`.
-function createTemplateLiteral(strings, expressions) {
+function createTemplateLiteral(strings: string[], expressions: E.Expression[]): E.TemplateLiteral {
   return {
     type: 'TemplateLiteral',
     expressions,
@@ -153,9 +248,9 @@ function createTemplateLiteral(strings, expressions) {
 }
 
 // Collect template text and expressions incrementally, e.g. `Hello `, `${name}`, then `!`.
-export function createTemplateLiteralParts() {
+export function createTemplateLiteralParts(): TemplateLiteralParts {
   const strings = [''];
-  const expressions = [];
+  const expressions: E.Expression[] = [];
   return {
     // Append static text to the current segment, e.g. `Hello `.
     text(value) {
@@ -179,51 +274,57 @@ export function createTemplateLiteralParts() {
 }
 
 // Create a container for HTML nodes, e.g. the root of `<p>{count}</p>`.
-export function createHtmlFragment() {
+export function createHtmlFragment(): H.DocumentFragment {
   return defaultTreeAdapter.createDocumentFragment();
 }
 
 // Create an HTML element with attributes, e.g. `<button disabled>`.
-export function createHtmlElement(tagName, attributes = []) {
+export function createHtmlElement(tagName: string, attributes: Token.Attribute[] = []): H.Element {
   const element = defaultTreeAdapter.createElement(tagName.toLowerCase(), html.NS.HTML, attributes);
   if (element.tagName === 'template') {
-    defaultTreeAdapter.setTemplateContent(element, createHtmlFragment());
+    defaultTreeAdapter.setTemplateContent(element as H.Template, createHtmlFragment());
   }
   return element;
 }
 
 // Decode source text into a text node, e.g. `&dollar;` becomes `$` outside raw-text elements.
-export function createHtmlTextNode(value, parentTagName) {
-  if (!html.hasUnescapedText(parentTagName, true) && value.includes('&')) {
+export function createHtmlTextNode(value: string, parentTagName?: string): H.TextNode {
+  if (!html.hasUnescapedText(parentTagName ?? '', true) && value.includes('&')) {
     const fragment = parseFragment(value);
-    value = fragment.childNodes.map((node) => node.value).join('');
+    value = fragment.childNodes.map((node) => ('value' in node ? node.value : '')).join('');
   }
   return defaultTreeAdapter.createTextNode(value);
 }
 
 // Create attribute data for a boolean attribute or placeholder, e.g. `disabled` or `title={name}`.
-export function createHtmlAttribute(name, value = '') {
+export function createHtmlAttribute(name: string, value = ''): Token.Attribute {
   return { name, value };
 }
 
 // Parse source attributes in their quoting context, e.g. `{0x10}` keeps `0x10` as its value.
-export function createHtmlLiteralAttributes(name, literal, isJsxAttribute = false) {
+export function createHtmlLiteralAttributes(
+  name: string,
+  literal: E.Literal,
+  isJsxAttribute = false,
+): Token.Attribute[] {
   const value = isJsxAttribute ? `"${literal.value}"` : literal.raw;
   // Required markup string: parse5's public parser needs HTML to interpret attribute quoting/entities.
   // TODO: review replacing this markup wrapper while preserving attribute quoting and entity handling.
   // TODO: escape decoded JSX quotes; `title="&quot;Hello&quot;"` currently creates malformed attributes.
   const fragment = parseFragment(`<span ${name}=${value}></span>`);
-  return fragment.childNodes[0].attrs;
+  const node = fragment.childNodes[0];
+  return 'attrs' in node ? node.attrs : [];
 }
 
 // Attach children to template content, or after void elements, e.g. `<img>hello</img>` becomes `<img>hello`.
-export function appendHtmlChild(parent, child) {
-  if (voidElements.has(parent.tagName)) parent = parent.parentNode;
-  defaultTreeAdapter.appendChild(parent.content || parent, child);
+export function appendHtmlChild(parent: H.ParentNode, child: H.ChildNode): void {
+  if ('tagName' in parent && voidElements.has(parent.tagName) && parent.parentNode)
+    parent = parent.parentNode;
+  defaultTreeAdapter.appendChild('content' in parent ? parent.content : parent, child);
 }
 
 // Choose document or fragment parsing, e.g. `<html>...</html>` uses `parse`.
-function getHtmlParser(html) {
+function getHtmlParser(html: string) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
     ? parse
     : parseFragment;
@@ -231,24 +332,29 @@ function getHtmlParser(html) {
 
 // Print assignments without spaces, e.g. `this.count-=1`, for onclick attributes.
 // Output tests expect this compact format in the generated SSR markup.
-const eventGenerator = {
+function printNode(generator: Generator, node: E.Node, state: State): void {
+  const print = generator[node.type] as (node: E.Node, state: State) => void;
+  print.call(generator, node, state);
+}
+
+const eventGenerator: Generator = {
   ...GENERATOR,
   AssignmentExpression(node, state) {
-    this[node.left.type](node.left, state);
+    printNode(this, node.left, state);
     state.write(node.operator);
-    this[node.right.type](node.right, state);
+    printNode(this, node.right, state);
   },
 };
 
 // Reference the component from an event target, e.g. `this.parentElement` or `this.getRootNode().host`.
-function createComponentReference(depth, hasShadowRoot) {
+function createComponentReference(depth: number, hasShadowRoot: boolean): E.Expression {
   if (hasShadowRoot) {
     return createMemberExpression(
       createCallExpression(createThisMemberExpression('getRootNode')),
       'host',
     );
   }
-  let reference = createThisExpression();
+  let reference: E.Expression = createThisExpression();
   for (let i = 0; i < depth; i++) {
     reference = createMemberExpression(reference, 'parentElement');
   }
@@ -256,7 +362,11 @@ function createComponentReference(depth, hasShadowRoot) {
 }
 
 // Generate a method or assignment handler string, e.g. `this.parentElement.increment(event)`.
-export function generateEventHandler(expression, depth, hasShadowRoot) {
+export function generateEventHandler(
+  expression: E.Expression | E.JSXEmptyExpression,
+  depth: number,
+  hasShadowRoot: boolean,
+): string | undefined {
   const root = createComponentReference(depth, hasShadowRoot);
   if (
     expression.type === 'MemberExpression' &&
@@ -271,7 +381,8 @@ export function generateEventHandler(expression, depth, hasShadowRoot) {
   }
   if (
     expression.type === 'AssignmentExpression' &&
-    expression.left.object?.type === 'ThisExpression' &&
+    expression.left.type === 'MemberExpression' &&
+    expression.left.object.type === 'ThisExpression' &&
     expression.left.property.type === 'Identifier'
   ) {
     const body = [
@@ -279,41 +390,50 @@ export function generateEventHandler(expression, depth, hasShadowRoot) {
         createAssignmentExpression(
           createMemberExpression(root, expression.left.property.name),
           // Only literal right-hand sides are supported; other expressions emit undefined.
-          expression.right.raw === undefined ? createIdentifier('undefined') : expression.right,
+          !('raw' in expression.right) || expression.right.raw === undefined
+            ? createIdentifier('undefined')
+            : expression.right,
           expression.operator,
         ),
       ),
       createExpressionStatement(createCallExpression(createMemberExpression(root, 'render'))),
     ];
-    return generate(
-      { type: 'Program', sourceType: 'module', body },
-      { generator: eventGenerator, indent: '', lineEnd: ' ' },
-    ).trim();
+    const program: E.Program = { type: 'Program', sourceType: 'module', body };
+    return generate(program, { generator: eventGenerator, indent: '', lineEnd: ' ' }).trim();
   }
   return undefined;
 }
 
 // Generate an arrow-handler wrapper that receives the component as `self`, e.g. `self.count.set(1)`.
-export function generateInlineEventHandler(expression, depth, hasShadowRoot) {
+export function generateInlineEventHandler(
+  expression: E.ArrowFunctionExpression,
+  depth: number,
+  hasShadowRoot: boolean,
+): string {
   const body = structuredClone(expression.body);
-  walk.simple(body, {
+  walkSimple(body, {
     MemberExpression(node) {
       if (node.object.type === 'ThisExpression') {
         node.object = createIdentifier('self');
       }
     },
   });
-  const fn = {
+  const fn: E.FunctionExpression = {
     type: 'FunctionExpression',
     id: null,
-    params: [createIdentifier(expression.params[0]?.name || 'event'), createIdentifier('self')],
+    params: [
+      createIdentifier(
+        (expression.params[0]?.type === 'Identifier' ? expression.params[0].name : undefined) ||
+          'event',
+      ),
+      createIdentifier('self'),
+    ],
     // Block handlers stay inside the wrapper: `function (event, self) { { ... } }`.
     body: createBlockStatement([
       body.type === 'BlockStatement' ? body : createExpressionStatement(body),
     ]),
     generator: false,
     async: false,
-    expression: false,
   };
   return generate(
     createCallExpression(fn, [
@@ -325,11 +445,13 @@ export function generateInlineEventHandler(expression, depth, hasShadowRoot) {
 
 // Use parse5 to normalize HTML while keeping JavaScript expressions as AST nodes.
 // Placeholders such as `wcc-expression-0-end` mark where `${count}` belongs in the template literal.
-export function createHtmlTemplateLiteralBuilder(moduleContents) {
+export function createHtmlTemplateLiteralBuilder(
+  moduleContents: string,
+): HtmlTemplateLiteralBuilder {
   let prefix = 'wcc-expression-';
   while (moduleContents.includes(prefix)) prefix += '-';
-  const expressions = new Map();
-  const handlers = new Map();
+  const expressions = new Map<string, E.Expression>();
+  const handlers = new Map<string, (depth: number) => string | undefined>();
   // Give each expression or handler a distinct placeholder, e.g. `wcc-expression-0-end`.
   const token = () => `${prefix}${expressions.size + handlers.size}-end`;
   return {
@@ -355,10 +477,11 @@ export function createHtmlTemplateLiteralBuilder(moduleContents) {
       const html = serialize(htmlTree);
       const tree = getHtmlParser(html)(html);
       // Fill event attributes with component references at the correct depth.
-      function applyEventHandlers(parent, depth = 1) {
-        for (const node of parent.childNodes || []) {
-          for (const attr of node.attrs || []) {
-            if (handlers.has(attr.value)) attr.value = handlers.get(attr.value)(depth);
+      function applyEventHandlers(parent: H.Node, depth = 1): void {
+        for (const node of 'childNodes' in parent ? parent.childNodes : []) {
+          for (const attr of 'attrs' in node ? node.attrs : []) {
+            const handler = handlers.get(attr.value);
+            if (handler) attr.value = handler(depth) ?? '';
           }
           applyEventHandlers(node, depth + 1);
         }
@@ -366,7 +489,8 @@ export function createHtmlTemplateLiteralBuilder(moduleContents) {
       applyEventHandlers(tree);
       const template = createTemplateLiteralParts();
       for (const part of serialize(tree).split(new RegExp(`(${prefix}\\d+-end)`, 'g'))) {
-        if (expressions.has(part)) template.expression(expressions.get(part));
+        const expression = expressions.get(part);
+        if (expression) template.expression(expression);
         else template.text(part);
       }
       return template.build();
@@ -375,7 +499,10 @@ export function createHtmlTemplateLiteralBuilder(moduleContents) {
 }
 
 // Create render statements, e.g. `this.innerHTML = ...`, with Shadow DOM setup when needed.
-export function createRenderStatements(template, hasShadowRoot) {
+export function createRenderStatements(
+  template: E.TemplateLiteral,
+  hasShadowRoot: boolean,
+): E.Statement[] {
   // TODO: could / should we do something else instead of .innerHTML
   // https://github.com/ProjectEvergreen/wcc/issues/138
   if (!hasShadowRoot) {
@@ -454,17 +581,22 @@ export function createRenderStatements(template, hasShadowRoot) {
 }
 
 // Create an instance property access, e.g. `this.count`.
-function createThisMemberExpression(name) {
+function createThisMemberExpression(name: string): E.MemberExpression {
   return createMemberExpression(createThisExpression(), name);
 }
 
 // Create a signal read, e.g. `this.count.get()`.
-function createSignalValueExpression(name) {
+function createSignalValueExpression(name: string): E.CallExpression {
   return createCallExpression(createMemberExpression(createThisMemberExpression(name), 'get'));
 }
 
 // Create a static text template and its call, e.g. `Counter.$$tmpl0(this.count.get())`.
-export function createReactiveTemplate(name, signals, template, componentName) {
+export function createReactiveTemplate(
+  name: string,
+  signals: string[],
+  template: TemplateLiteralParts,
+  componentName: string,
+): ReactiveTemplate {
   return {
     template: createPropertyDefinition(
       name,
@@ -479,11 +611,11 @@ export function createReactiveTemplate(name, signals, template, componentName) {
 }
 
 // Create effect registrations, e.g. `this.$eff0 = effect(() => { ... });`.
-export function createEffectStatements(reactiveElements) {
-  const statements = [];
+export function createEffectStatements(reactiveElements: ReactiveElement[]): E.Statement[] {
+  const statements: E.Statement[] = [];
   let effectsCount = 0;
   // Append a registration that saves the effect's disposer in `this.$eff0`, `this.$eff1`, etc.
-  const addEffect = (body) => {
+  const addEffect = (body: E.Statement[]) => {
     statements.push(
       createExpressionStatement(
         createAssignmentExpression(
@@ -524,8 +656,8 @@ export function createEffectStatements(reactiveElements) {
 }
 
 // Create disposer calls for generated effects, e.g. `this.$eff0();`.
-export function createEffectCleanupStatements(reactiveElements) {
-  const statements = [];
+export function createEffectCleanupStatements(reactiveElements: ReactiveElement[]): E.Statement[] {
+  const statements: E.Statement[] = [];
   for (const { effect, attributes } of reactiveElements) {
     if (effect?.expression) {
       statements.push(
@@ -546,15 +678,17 @@ export function createEffectCleanupStatements(reactiveElements) {
 }
 
 // Create attribute conversion and change-handler methods, e.g. `this[name].set(Counter.parseAttribute(newValue))`.
-function createAttributeMethods(componentName) {
+function createAttributeMethods(
+  componentName: string,
+): Array<E.PropertyDefinition | E.MethodDefinition> {
   // TODO: better way to determine value type, e,g. array, number, object, etc for `parseAttribute`?
   // Reference the attribute value parameter: `value`.
   const createValueReference = () => createIdentifier('value');
   // Compare the attribute value with a literal, e.g. `value === 'true'`.
-  const createValueComparison = (text) =>
+  const createValueComparison = (text: string) =>
     createBinaryExpression('===', createValueReference(), createLiteral(text));
   // Check the first character to recognize JSON, e.g. `value.charAt(0) === '{'`.
-  const createFirstCharacterComparison = (text) =>
+  const createFirstCharacterComparison = (text: string) =>
     createBinaryExpression(
       '===',
       createCallExpression(createMemberExpression(createValueReference(), 'charAt'), [
@@ -635,14 +769,14 @@ function createAttributeMethods(componentName) {
 
 // Create reactive fields and lifecycle methods, e.g. `$el0;` and `static get observedAttributes() { ... }`.
 export function createReactiveClassMembers(
-  componentName,
-  reactiveElements,
-  observedAttributes,
-  hasDisconnectedCallback,
-) {
-  const members = [
+  componentName: string,
+  reactiveElements: ReactiveElement[],
+  observedAttributes: string[],
+  hasDisconnectedCallback: boolean,
+): Array<E.PropertyDefinition | E.MethodDefinition> {
+  const members: Array<E.PropertyDefinition | E.MethodDefinition> = [
     ...reactiveElements.map((el, idx) => createPropertyDefinition(`$el${idx}`)),
-    ...reactiveElements.filter((el) => el.effect?.template).map((el) => el.effect.template),
+    ...reactiveElements.flatMap((el) => (el.effect ? [el.effect.template] : [])),
     createMethodDefinition(
       'observedAttributes',
       [],
@@ -673,7 +807,10 @@ export function createReactiveClassMembers(
 }
 
 // Cache reactive DOM nodes, e.g. `this.$el0 = this.shadowRoot.querySelector('span');`.
-export function createElementReferenceStatements(reactiveElements, hasShadowRoot) {
+export function createElementReferenceStatements(
+  reactiveElements: ReactiveElement[],
+  hasShadowRoot: boolean,
+): E.Statement[] {
   const root = hasShadowRoot ? createThisMemberExpression('shadowRoot') : createThisExpression();
   return reactiveElements.map((el, idx) =>
     createExpressionStatement(
@@ -688,7 +825,7 @@ export function createElementReferenceStatements(reactiveElements, hasShadowRoot
 }
 
 // Import the effect helper: `import { effect } from 'wc-compiler/effect'`.
-export function createEffectImportDeclaration() {
+export function createEffectImportDeclaration(): E.ImportDeclaration {
   return {
     type: 'ImportDeclaration',
     specifiers: [
@@ -699,5 +836,6 @@ export function createEffectImportDeclaration() {
       },
     ],
     source: createLiteral('wc-compiler/effect'),
+    attributes: [],
   };
 }

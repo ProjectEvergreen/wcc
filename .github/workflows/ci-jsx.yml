@@ -12,13 +12,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      - name: Use Node.js ${{ matrix.node }}
+      - name: Use Node.js for the build
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 22
       - name: Installing project dependencies
         run: |
           npm ci
+      - name: Build
+        run: |
+          npm run build
+      - name: Use Node.js ${{ matrix.node }} for tests
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
       - name: Test
         run: |
           npm run test:jsx

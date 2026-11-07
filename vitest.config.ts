@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
-import { parseJsx } from './src/jsx-loader.js';
+import { parseJsx } from 'wc-compiler/jsx-loader';
 import { generate } from 'astring'; // comes from @greenwood/plugin-import-jsx
 import { greenwoodPluginImportRaw } from '@greenwood/plugin-import-raw';
 // @ts-expect-error

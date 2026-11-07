@@ -1,24 +1,39 @@
 {
   "name": "wc-compiler",
-  "version": "0.22.3",
+  "version": "0.23.0-rc.0",
   "description": "WCC supports server-rendering of standard Web Components, generating HTML directly from your custom element definitions.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ProjectEvergreen/wcc.git"
   },
   "type": "module",
-  "main": "src/wcc.js",
-  "types": "./src/index.d.ts",
+  "main": "./dist/wcc.js",
+  "types": "./dist/wcc.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
-      "import": "./src/wcc.js"
+      "types": "./dist/wcc.d.ts",
+      "default": "./dist/wcc.js"
     },
-    "./register": "./src/register.js",
-    "./dom-shim": "./src/dom-shim.js",
-    "./jsx-loader": "./src/jsx-loader.js",
-    "./jsx-runtime": "./src/jsx-runtime.ts",
-    "./effect": "./src/effect.js"
+    "./register": {
+      "types": "./dist/register.d.ts",
+      "default": "./dist/register.js"
+    },
+    "./dom-shim": {
+      "types": "./dist/dom-shim.d.ts",
+      "default": "./dist/dom-shim.js"
+    },
+    "./jsx-loader": {
+      "types": "./dist/jsx-loader.d.ts",
+      "default": "./dist/jsx-loader.js"
+    },
+    "./jsx-runtime": {
+      "types": "./dist/jsx-runtime.d.ts",
+      "default": "./dist/jsx-runtime.js"
+    },
+    "./effect": {
+      "types": "./dist/effect.d.ts",
+      "default": "./dist/effect.js"
+    }
   },
   "author": "Owen Buckley <owen@thegreenhouse.io>",
   "keywords": [
@@ -32,29 +47,33 @@
     "node": ">=18"
   },
   "files": [
-    "src/"
+    "dist/"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
     "docs:dev": "greenwood develop",
     "docs:build": "NODE_OPTIONS='--import @greenwood/cli/register' greenwood build",
     "docs:serve": "greenwood serve",
     "lint": "npm run lint:js && npm run lint:ls && npm run lint:css",
-    "lint:js": "eslint",
+    "lint:js": "eslint --flag unstable_native_nodejs_ts_config",
     "lint:ls": "ls-lint",
     "lint:css": "stylelint \"./docs/**/*.css\"",
     "check:types": "tsc",
+    "check:types:src": "tsc --project tsconfig.build.json",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "test": "mocha --exclude \"./test/cases/jsx*/**\" --exclude \"./test/cases/ts*/**\" --exclude \"./test/cases/custom-extension/**\" \"./test/**/**/*.spec.js\"",
-    "test:jsx": "c8 node --import ./test-register.js --experimental-strip-types ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
+    "test:jsx": "c8 node --import ./test-register.ts --experimental-strip-types ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
     "test:tdd": "npm run test -- --watch",
     "test:tdd:jsx": "npm run test:jsx -- --watch",
     "test:docs": "vitest run --coverage",
     "test:docs:tdd": "vitest",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@projectevergreen/acorn-jsx-esm": "~0.1.0",
@@ -75,6 +94,7 @@
     "@greenwood/plugin-markdown": "^0.34.0-alpha.4",
     "@ls-lint/ls-lint": "^2.3.1",
     "@mapbox/rehype-prism": "^0.8.0",
+    "@types/estree-jsx": "^1.0.5",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.13.4",
     "@vitest/browser-playwright": "^4.0.18",
@@ -103,8 +123,9 @@
     "remark-github": "^10.0.1",
     "stylelint": "^17.4.0",
     "stylelint-config-recommended": "^18.0.0",
+    "tsdown": "^0.23.7",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.46.2",
+    "typescript-eslint": "^8.72.1",
     "vite": "^7.3.1",
     "vitest": "^4.0.18"
   }

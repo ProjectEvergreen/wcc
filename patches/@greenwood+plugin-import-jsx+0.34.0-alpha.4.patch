@@ -7,7 +7,7 @@ index 5fe6e11..5975de3 100644
   */
  import { generate } from "astring";
 -import { parseJsx } from "wc-compiler/src/jsx-loader.js";
-+import { parseJsx } from "../../../../src/jsx-loader.js";
++import { parseJsx } from "../../../../dist/jsx-loader.js";
  
  class ImportJsxResource {
    constructor(compilation, options) {

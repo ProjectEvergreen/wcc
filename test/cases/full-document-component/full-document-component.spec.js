@@ -11,7 +11,7 @@
  */
 
 import { expect } from 'chai';
-import { renderToString } from '../../../src/wcc.js';
+import { renderToString } from 'wc-compiler';
 
 describe('Run WCC For ', function () {
   const LABEL = 'Custom Element w/ Document Fragments';

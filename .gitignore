@@ -1,7 +1,9 @@
 *.log
+*.tgz
 .vscode/
 coverage/
 dist/
 node_modules/
 .greenwood/
+package/
 public/

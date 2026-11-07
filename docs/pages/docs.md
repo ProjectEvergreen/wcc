@@ -633,7 +633,7 @@ It is required to setup `Signal` as a global in the browser, and add import maps
     {
       "imports": {
         "signal-polyfill": "../path/to/node_modules/signal-polyfill/dist/index.js",
-        "wc-compiler/effect": "../path/to/node_modules/wc-compiler/src/effect.js"
+        "wc-compiler/effect": "../path/to/node_modules/wc-compiler/dist/effect.js"
       }
     }
   </script>

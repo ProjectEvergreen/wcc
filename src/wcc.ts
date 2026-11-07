@@ -1,15 +1,59 @@
 // this must come first
 import { getParse } from './dom-shim.js';
-
 import * as acorn from 'acorn';
-import * as walk from 'acorn-walk';
+import { baseWalker, walkSimple, parseModule } from './jsx-ast-utils.js';
 import { generate } from 'astring';
-import { getParser, parseJsx } from './jsx-loader.js';
 import { serialize } from 'parse5';
+import { getParser, parseJsx } from './jsx-loader.js';
 import { transform } from 'sucrase';
 import fs from 'fs';
+import type { SsrNode, CustomElementConstructor, SsrElement } from './dom-shim.js';
+import type { DefaultTreeAdapterTypes as H } from 'parse5';
+import type * as E from 'estree-jsx';
 
-function transformModule(moduleURL, moduleContents) {
+export type Metadata = {
+  [key: string]: {
+    instanceName: string;
+    moduleURL: URL;
+    isEntry: boolean;
+    source: string;
+  };
+};
+
+// Rendering tracks additional implementation details without adding public types.
+type ComponentDefinition = Metadata[string] & {
+  url: URL;
+  hydrate?: string;
+};
+type Definitions = Record<string, ComponentDefinition>;
+
+interface RenderResult {
+  html: string | undefined;
+  metadata: Metadata;
+}
+
+interface HtmlRenderResult extends RenderResult {
+  html: string;
+}
+
+interface ComponentModule {
+  default?: CustomElementConstructor;
+  getData?: (props: unknown) => unknown | Promise<unknown>;
+}
+
+// Preserve the existing public function-type names alongside the functions.
+export type renderToString = typeof renderToString;
+export type renderFromHTML = typeof renderFromHTML;
+
+function definitionTagName(
+  node: E.CallExpression['arguments'][number] | undefined,
+): string | undefined {
+  if (node?.type === 'Literal' && typeof node.value === 'string') return node.value;
+  if (node?.type === 'TemplateLiteral') return node.quasis[0]?.value.raw;
+  return undefined;
+}
+
+function transformModule(moduleURL: URL, moduleContents: string): string {
   const extension = moduleURL.pathname.split('.').pop();
 
   // `.js`, `.mjs`, and `.cjs` modules do not need to be transformed by Sucrase,
@@ -17,7 +61,7 @@ function transformModule(moduleURL, moduleContents) {
   // https://github.com/ProjectEvergreen/wcc/issues/284
   // Note: this introduces a dis-connect between what WCC can parse vs what it can execute
   // https://github.com/ProjectEvergreen/wcc/discussions/226
-  if (!['jsx', 'ts', 'tsx'].includes(extension)) {
+  if (!['jsx', 'ts', 'tsx'].includes(extension ?? '')) {
     return moduleContents;
   }
 
@@ -28,23 +72,28 @@ function transformModule(moduleURL, moduleContents) {
   }).code;
 }
 
-function isCustomElementDefinitionNode(node) {
+function isCustomElementDefinitionNode(
+  node: E.ExpressionStatement,
+): node is E.ExpressionStatement & { expression: E.CallExpression } {
   const { expression } = node;
-
   return (
     expression.type === 'CallExpression' &&
-    expression.callee &&
-    expression.callee.object &&
-    expression.callee.property &&
+    expression.callee.type === 'MemberExpression' &&
+    expression.callee.object.type === 'Identifier' &&
     expression.callee.object.name === 'customElements' &&
+    expression.callee.property.type === 'Identifier' &&
     expression.callee.property.name === 'define'
   );
 }
 
-async function renderComponentRoots(tree, definitions) {
-  for (const node of tree.childNodes) {
+async function renderComponentRoots<T extends SsrNode>(
+  tree: T,
+  definitions: Definitions,
+): Promise<T> {
+  for (const node of tree.childNodes ?? []) {
     if (node.tagName && node.tagName.indexOf('-') > 0) {
-      const { attrs, tagName } = node;
+      const { tagName } = node;
+      const attrs = node.attrs ?? [];
 
       if (definitions[tagName]) {
         const { moduleURL } = definitions[tagName];
@@ -59,7 +108,7 @@ async function renderComponentRoots(tree, definitions) {
           const hasShadow = elementInstance.shadowRoot;
 
           node.childNodes = hasShadow
-            ? [...elementInstance.shadowRoot.childNodes, ...node.childNodes]
+            ? [...hasShadow.childNodes, ...(node.childNodes ?? [])]
             : elementInstance.childNodes;
         } else {
           console.warn(
@@ -96,7 +145,7 @@ async function renderComponentRoots(tree, definitions) {
   return tree;
 }
 
-function registerDependencies(moduleURL, definitions, depth = 0) {
+function registerDependencies(moduleURL: URL, definitions: Definitions, depth = 0): void {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
   const moduleCode = transformModule(moduleURL, moduleContents);
   const nextDepth = (depth += 1);
@@ -105,14 +154,11 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
   const config = customParser
     ? customParser.config
     : {
-        ...walk.base,
+        ...baseWalker,
       };
 
-  walk.simple(
-    parser.parse(moduleCode, {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-    }),
+  walkSimple(
+    parseModule(moduleCode, parser),
     {
       ImportDeclaration(node) {
         const specifier = node.source.value;
@@ -123,7 +169,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
 
           // would like to decouple .jsx from the core, ideally
           // https://github.com/ProjectEvergreen/wcc/issues/122
-          if (!isBareSpecifier && ['js', 'jsx', 'ts', 'tsx'].includes(extension)) {
+          if (!isBareSpecifier && ['js', 'jsx', 'ts', 'tsx'].includes(extension ?? '')) {
             const dependencyModuleURL = new URL(specifier, moduleURL);
 
             registerDependencies(dependencyModuleURL, definitions, nextDepth);
@@ -132,17 +178,15 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
       },
       ExpressionStatement(node) {
         if (isCustomElementDefinitionNode(node)) {
-          // @ts-ignore
           const { arguments: args } = node.expression;
-          const tagName =
-            args[0].type === 'Literal'
-              ? args[0].value // single and double quotes
-              : args[0].quasis[0].value.raw; // template literal
+          const tagName = definitionTagName(args[0]);
+          const component = args[1];
+          if (!tagName || component?.type !== 'Identifier') return;
           const tree = parseJsx(moduleURL);
           const isEntry = nextDepth - 1 === 1;
 
           definitions[tagName] = {
-            instanceName: args[1].name,
+            instanceName: component.name,
             moduleURL,
             source: generate(tree),
             url: moduleURL,
@@ -155,7 +199,7 @@ function registerDependencies(moduleURL, definitions, depth = 0) {
   );
 }
 
-async function getTagName(moduleURL) {
+async function getTagName(moduleURL: URL): Promise<string | undefined> {
   const moduleContents = await fs.promises.readFile(moduleURL, 'utf-8');
   const moduleCode = transformModule(moduleURL, moduleContents);
   const customParser = getParser(moduleURL);
@@ -163,20 +207,20 @@ async function getTagName(moduleURL) {
   const config = customParser
     ? customParser.config
     : {
-        ...walk.base,
+        ...baseWalker,
       };
-  let tagName;
+  let tagName: string | undefined;
 
-  walk.simple(
-    parser.parse(moduleCode, {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-    }),
+  walkSimple(
+    parseModule(moduleCode, parser),
     {
       ExpressionStatement(node) {
         if (isCustomElementDefinitionNode(node)) {
-          // @ts-ignore
-          tagName = node.expression.arguments[0].value;
+          const argument = node.expression.arguments[0];
+          tagName =
+            argument?.type === 'Literal' && typeof argument.value === 'string'
+              ? argument.value
+              : undefined;
         }
       },
     },
@@ -187,20 +231,25 @@ async function getTagName(moduleURL) {
 }
 
 async function initializeCustomElement(
-  elementURL,
-  tagName,
-  node = {},
-  definitions = {},
-  isEntry,
-  props = {},
-) {
+  elementURL: URL,
+  tagName?: string,
+  node: Partial<SsrNode> = {},
+  definitions: Definitions = {},
+  isEntry?: boolean,
+  props: unknown = {},
+): Promise<SsrElement | undefined> {
   if (!tagName) {
     const depth = isEntry ? 1 : 0;
     registerDependencies(elementURL, definitions, depth);
   }
 
-  const element = customElements.get(tagName) ?? (await import(elementURL)).default;
-  const dataLoader = (await import(elementURL)).getData;
+  const registry = customElements as unknown as {
+    get(name?: string): CustomElementConstructor | undefined;
+  };
+  const registered = registry.get(tagName);
+  const component = (await import(elementURL.href)) as ComponentModule;
+  const element = registered ?? component.default;
+  const dataLoader = component.getData;
   const data = props ? props : dataLoader ? await dataLoader(props) : {};
 
   if (element) {
@@ -214,9 +263,20 @@ async function initializeCustomElement(
   }
 }
 
-async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
-  const definitions = {};
-  const elementTagName = wrappingEntryTag && (await getTagName(elementURL));
+// Keep the existing public props contract while checking the implementation as unknown.
+function renderToString(
+  elementURL: URL,
+  wrappingEntryTag?: boolean,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Preserve the existing public props type.
+  props?: any,
+): Promise<RenderResult>;
+async function renderToString(
+  elementURL: URL,
+  wrappingEntryTag = true,
+  props: unknown = {},
+): Promise<RenderResult> {
+  const definitions: Definitions = {};
+  const elementTagName = wrappingEntryTag ? await getTagName(elementURL) : undefined;
   const isEntry = !!elementTagName;
   const elementInstance = await initializeCustomElement(
     elementURL,
@@ -248,10 +308,10 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
       wrappingEntryTag && elementTagName
         ? `
         <${elementTagName}>
-          ${serialize(elementInstance)}
+          ${serialize(elementInstance as unknown as H.ParentNode)}
         </${elementTagName}>
       `
-        : serialize(elementInstance);
+        : serialize(elementInstance as unknown as H.ParentNode);
   } else {
     console.warn('WARNING: No custom element class found for this entry point.');
   }
@@ -262,8 +322,9 @@ async function renderToString(elementURL, wrappingEntryTag = true, props = {}) {
   };
 }
 
-async function renderFromHTML(html, elements = []) {
-  const definitions = {};
+function renderFromHTML(html: string, elementURLs: URL[]): Promise<HtmlRenderResult>;
+async function renderFromHTML(html: string, elements: URL[] = []): Promise<HtmlRenderResult> {
+  const definitions: Definitions = {};
 
   for (const url of elements) {
     registerDependencies(url, definitions, 1);
@@ -273,7 +334,7 @@ async function renderFromHTML(html, elements = []) {
   const finalTree = await renderComponentRoots(elementTree, definitions);
 
   return {
-    html: serialize(finalTree),
+    html: serialize(finalTree as unknown as H.ParentNode),
     metadata: definitions,
   };
 }

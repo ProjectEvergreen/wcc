@@ -1,7 +1,9 @@
 {
   "all": true,
 
-  "include": ["src/**/**/*.js"],
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.d.ts"],
+  "excludeAfterRemap": true,
 
   "reporter": ["cobertura", "html", "text", "text-summary"],
 

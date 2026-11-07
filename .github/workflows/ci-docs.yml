@@ -19,6 +19,9 @@ jobs:
       - name: Installing project dependencies
         run: |
           npm ci
+      - name: Build
+        run: |
+          npm run build
       # Greenwood specific patches
       - name: Run patch-package
         run: |
@@ -38,6 +41,7 @@ jobs:
       - name: Check Types
         run: |
           npm run check:types
+          npm run check:types:src
       - name: Test Docs
         run: |
           npm run test:docs

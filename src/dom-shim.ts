@@ -1,43 +1,56 @@
-// @ts-nocheck
 import { parse, parseFragment, serialize } from 'parse5';
+import type { DefaultTreeAdapterTypes as H, Token } from 'parse5';
 
-export function getParse(html) {
+/** @internal Shared parse5/shim shape; this is not a complete browser Node. */
+export interface SsrNode {
+  nodeName: string | undefined;
+  tagName?: string;
+  value?: string;
+  attrs?: Token.Attribute[];
+  parentNode?: SsrNode | null;
+  childNodes?: SsrNode[];
+  content?: SsrParent;
+  shadowRoot?: SsrParent;
+  textContent?: string;
+  removeChild?(node: SsrNode): SsrNode | null;
+}
+
+/** A node that can contain children. */
+interface SsrParent extends SsrNode {
+  childNodes: SsrNode[];
+}
+
+/** @internal The partial element implementation used during rendering. */
+export type SsrElement = HTMLElement;
+/** @internal A component constructor loaded by the renderer. */
+export type CustomElementConstructor = new (props?: unknown) => SsrElement;
+
+export function getParse(html: string) {
   return html.indexOf('<html>') >= 0 || html.indexOf('<body>') >= 0 || html.indexOf('<head>') >= 0
     ? parse
     : parseFragment;
 }
 
-function isShadowRoot(element) {
+function isShadowRoot(element: SsrNode): element is ShadowRoot {
   return Object.getPrototypeOf(element).constructor.name === 'ShadowRoot';
 }
 
-function deepClone(obj, map = new WeakMap()) {
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
-  }
-
-  if (typeof obj === 'function') {
-    const clonedFn = obj.bind({});
-    Object.assign(clonedFn, obj);
-    return clonedFn;
-  }
-
-  if (map.has(obj)) {
-    return map.get(obj);
-  }
-
-  const result = Array.isArray(obj) ? [] : {};
+function deepClone<T>(obj: T, map = new WeakMap<object, unknown>()): T {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (map.has(obj)) return map.get(obj) as T;
+  const result: Record<string, unknown> | unknown[] = Array.isArray(obj) ? [] : {};
   map.set(obj, result);
-
   for (const key of Object.keys(obj)) {
-    result[key] = deepClone(obj[key], map);
+    (result as Record<string, unknown>)[key] = deepClone(
+      (obj as Record<string, unknown>)[key],
+      map,
+    );
   }
-
-  return result;
+  return result as T;
 }
 
 // Creates an empty parse5 element without the parse5 overhead resulting in better performance
-function getParse5ElementDefaults(element, tagName) {
+function getParse5ElementDefaults(element: Node, tagName?: string) {
   return {
     addEventListener: noop,
     attrs: [],
@@ -64,6 +77,7 @@ class CSSStyleSheet {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget
 class EventTarget {
+  declare addEventListener: () => void;
   constructor() {
     this.addEventListener = noop;
   }
@@ -72,7 +86,17 @@ class EventTarget {
 // https://developer.mozilla.org/en-US/docs/Web/API/Node
 // EventTarget <- Node
 // TODO should be an interface?
-class Node extends EventTarget {
+class Node extends EventTarget implements SsrParent {
+  declare attrs: Token.Attribute[];
+  declare parentNode: SsrNode | null;
+  declare childNodes: SsrNode[];
+  declare nodeName: string | undefined;
+  declare tagName: string;
+  declare namespaceURI: string;
+  declare value?: string;
+  declare content: SsrParent & { cloneNode(deep?: boolean): SsrNode };
+  declare shadowRoot?: ShadowRoot;
+
   constructor() {
     super();
     // Parse5 properties
@@ -82,11 +106,11 @@ class Node extends EventTarget {
     this.nodeName = '';
   }
 
-  cloneNode(deep) {
+  cloneNode(deep?: boolean): this {
     return deep ? deepClone(this) : Object.assign({}, this);
   }
 
-  appendChild(node) {
+  appendChild(node: SsrNode): SsrNode {
     const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
 
     if (node.parentNode) {
@@ -99,7 +123,7 @@ class Node extends EventTarget {
         childNodes.push(node);
         node.parentNode = this;
       } else {
-        this.childNodes = [...this.childNodes, ...node.content.childNodes];
+        this.childNodes = [...this.childNodes, ...node.content!.childNodes];
       }
     } else if (node instanceof DocumentFragment) {
       this.childNodes = [...this.childNodes, ...node.childNodes];
@@ -111,7 +135,7 @@ class Node extends EventTarget {
     return node;
   }
 
-  removeChild(node) {
+  removeChild(node: SsrNode): SsrNode | null {
     const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
     if (!childNodes || !childNodes.length) {
       return null;
@@ -128,7 +152,7 @@ class Node extends EventTarget {
     return node;
   }
 
-  get textContent() {
+  get textContent(): string {
     if (this.nodeName === '#text') {
       return this.value || '';
     }
@@ -138,7 +162,7 @@ class Node extends EventTarget {
       .join('');
   }
 
-  set textContent(value) {
+  set textContent(value: string) {
     this.childNodes = [];
 
     if (value) {
@@ -162,38 +186,38 @@ class Element extends Node {
     super();
   }
 
-  attachShadow(options) {
+  attachShadow(options: ShadowRootInit): ShadowRoot {
     this.shadowRoot = new ShadowRoot(options);
     this.shadowRoot.parentNode = this;
     return this.shadowRoot;
   }
 
-  getHTML({ serializableShadowRoots = false }) {
+  getHTML({ serializableShadowRoots = false }: { serializableShadowRoots?: boolean }): string {
     return this.shadowRoot && serializableShadowRoots && this.shadowRoot.serializable
       ? this.shadowRoot.innerHTML
       : '';
   }
 
-  get innerHTML() {
+  get innerHTML(): string {
     const childNodes = (this.nodeName === 'template' ? this.content : this).childNodes;
-    return childNodes ? serialize({ childNodes }) : '';
+    return childNodes ? serialize({ childNodes } as unknown as H.ParentNode) : '';
   }
 
-  set innerHTML(html) {
+  set innerHTML(html: string) {
     (this.nodeName === 'template' ? this.content : this).childNodes =
       getParse(html)(html).childNodes;
   }
 
-  hasAttribute(name) {
+  hasAttribute(name: string): boolean {
     return this.attrs.some((attr) => attr.name === name);
   }
 
-  getAttribute(name) {
+  getAttribute(name: string): string | null {
     const attr = this.attrs.find((attr) => attr.name === name);
     return attr ? attr.value : null;
   }
 
-  setAttribute(name, value) {
+  setAttribute(name: string, value: string): void {
     const attr = this.attrs?.find((attr) => attr.name === name);
 
     if (attr) {
@@ -207,7 +231,7 @@ class Element extends Node {
 // https://developer.mozilla.org/en-US/docs/Web/API/Document
 // EventTarget <- Node <- Document
 class Document extends Node {
-  createElement(tagName) {
+  createElement(tagName: string): HTMLElement {
     switch (tagName) {
       case 'template':
         return new HTMLTemplateElement();
@@ -217,15 +241,16 @@ class Document extends Node {
     }
   }
 
-  createDocumentFragment(html) {
-    return new DocumentFragment(html);
+  createDocumentFragment(html?: unknown): DocumentFragment {
+    void html; // The original shim accepted this argument but did not consume it.
+    return new DocumentFragment();
   }
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement
 // EventTarget <- Node <- Element <- HTMLElement
 class HTMLElement extends Element {
-  constructor(tagName) {
+  constructor(tagName?: string) {
     super();
     Object.assign(this, getParse5ElementDefaults(this, tagName));
   }
@@ -239,20 +264,24 @@ class DocumentFragment extends Node {}
 // https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot
 // EventTarget <- Node <- DocumentFragment <- ShadowRoot
 class ShadowRoot extends DocumentFragment {
-  constructor(options) {
+  declare mode: ShadowRootMode;
+  declare serializable: boolean;
+  declare adoptedStyleSheets: CSSStyleSheet[];
+
+  constructor(options: ShadowRootInit) {
     super();
     this.mode = options.mode ?? 'closed';
     this.serializable = options.serializable ?? false;
     this.adoptedStyleSheets = [];
   }
 
-  get innerHTML() {
+  get innerHTML(): string {
     return this.childNodes?.[0]?.content?.childNodes
-      ? serialize({ childNodes: this.childNodes[0].content.childNodes })
+      ? serialize({ childNodes: this.childNodes[0].content!.childNodes } as unknown as H.ParentNode)
       : '';
   }
 
-  set innerHTML(html) {
+  set innerHTML(html: string) {
     this.childNodes = getParse(html)(
       `<template shadowrootmode="${this.mode}">${html}</template>`,
     ).childNodes;
@@ -274,20 +303,21 @@ class HTMLTemplateElement extends HTMLElement {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry
 class CustomElementsRegistry {
+  declare customElementsRegistry: Map<string | undefined, CustomElementConstructor>;
   constructor() {
     // TODO this should probably be a set or otherwise follow the spec?
     // https://github.com/ProjectEvergreen/wcc/discussions/145
     this.customElementsRegistry = new Map();
   }
 
-  define(tagName, BaseClass) {
+  define(tagName: string, BaseClass: CustomElementConstructor): void {
     // TODO this should probably fail as per the spec...
     // e.g. if(this.customElementsRegistry.get(tagName))
     // https://github.com/ProjectEvergreen/wcc/discussions/145
     this.customElementsRegistry.set(tagName, BaseClass);
   }
 
-  get(tagName) {
+  get(tagName: string | undefined): CustomElementConstructor | undefined {
     return this.customElementsRegistry.get(tagName);
   }
 }
@@ -295,9 +325,19 @@ class CustomElementsRegistry {
 // mock top level aliases (globalThis === window)
 // https://developer.mozilla.org/en-US/docs/Web/API/Window
 // make this "idempotent" for now until a better idea comes along - https://github.com/ProjectEvergreen/wcc/discussions/145
-globalThis.addEventListener = globalThis.addEventListener ?? noop;
-globalThis.document = globalThis.document ?? new Document();
-globalThis.customElements = globalThis.customElements ?? new CustomElementsRegistry();
-globalThis.HTMLElement = globalThis.HTMLElement ?? HTMLElement;
-globalThis.DocumentFragment = globalThis.DocumentFragment ?? DocumentFragment;
-globalThis.CSSStyleSheet = globalThis.CSSStyleSheet ?? CSSStyleSheet;
+// The shim intentionally implements only the DOM features needed for SSR.
+// Do not claim these objects implement the complete browser DOM interfaces.
+const globals = globalThis as unknown as {
+  addEventListener?: typeof noop;
+  document?: Document;
+  customElements?: CustomElementsRegistry;
+  HTMLElement?: typeof HTMLElement;
+  DocumentFragment?: typeof DocumentFragment;
+  CSSStyleSheet?: typeof CSSStyleSheet;
+};
+globals.addEventListener = globals.addEventListener ?? noop;
+globals.document = globals.document ?? new Document();
+globals.customElements = globals.customElements ?? new CustomElementsRegistry();
+globals.HTMLElement = globals.HTMLElement ?? HTMLElement;
+globals.DocumentFragment = globals.DocumentFragment ?? DocumentFragment;
+globals.CSSStyleSheet = globals.CSSStyleSheet ?? CSSStyleSheet;
