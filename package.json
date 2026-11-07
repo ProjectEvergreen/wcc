@@ -1,6 +1,6 @@
 {
   "name": "wc-compiler",
-  "version": "0.22.3",
+  "version": "0.23.0-rc.0",
   "description": "WCC supports server-rendering of standard Web Components, generating HTML directly from your custom element definitions.",
   "repository": {
     "type": "git",
