@@ -8,7 +8,11 @@ describe('Published TypeScript declarations', function () {
 
     // Compile a virtual consumer beside the tests so package self-resolution
     // exercises the same exports and declaration files as an installed package.
-    const filename = fileURLToPath(new URL('./consumer.mts', import.meta.url));
+    // TypeScript uses forward slashes for filenames on Windows too.
+    const filename = fileURLToPath(new URL('./consumer.mts', import.meta.url)).replaceAll(
+      '\\',
+      '/',
+    );
     const source = `
       import { renderToString, renderFromHTML } from 'wc-compiler';
       import { getParse } from 'wc-compiler/dom-shim';
