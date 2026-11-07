@@ -11,6 +11,7 @@ To develop for the project, you'll want to follow these steps:
 1. Clone the repository
 1. Have [NodeJS LTS](https://nodejs.org) installed and / or use `nvm` (see below)
 1. Run `npm ci`
+1. Run `npm run build`
 1. Run `npx patch-package`
 1. Run `npx playwright install`
 
@@ -31,21 +32,28 @@ $ nvm use
 
 The local development workflows for WCC are:
 
-- `npm test` - Run all the tests
-- `npm test:tdd` - Run all the tests in watch mode
+- `npm run build` - Build the library into `dist/`
+- `npm run build:watch` - Rebuild the library as source files change
+- `npm test` - Run the standard JavaScript integration tests
+- `npm run test:jsx` - Run the full integration suite, including JSX and TSX, with coverage
+- `npm run test:tdd` - Run the standard tests in watch mode
+- `npm run test:tdd:jsx` - Run the full integration suite in watch mode
 - `npm run lint` - Run all linters
-- `npm run check:types` - Run `tsc` to validate TypeScript types
-- `npm run format` - Auto-format all file
+- `npm run check:types` - Validate TypeScript types across the project, including docs, test fixtures, and configuration files
+- `npm run check:types:src` - Validate TypeScript types in `src/` with strict checking
+- `npm run format` - Auto-format all files
+
+> _While developing, keep `npm run build:watch` running alongside test watchers to keep the compiled output current._
 
 ## Website
 
 The website is built with [**Greenwood**](https://www.greenwoodjs.dev). To run the website locally, use one of the following commands:
 
-- `npm run docs:dev` - Start the dev server
-- `npm run docs:build` - Generate a production build
+- `npm run docs:dev` - Start the dev server (requires a build)
+- `npm run docs:build` - Generate a production build (requires build)
 - `npm run docs:serve` - Serve a production build
 
-To run tests for the website, first make sure you have at least run `npm run docs:build`, then:
+To run tests for the website, first run `npm run build` followed by `npm run docs:build`, then:
 
 - `npm run test:docs` - Run a single suite of tests with Vitest
 - `npm run test:docs:tdd` - Run the test suite with Vitest in watch mode

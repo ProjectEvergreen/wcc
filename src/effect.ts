@@ -20,16 +20,16 @@ function processPending() {
   w.watch();
 }
 
-export function effect(callback) {
+export function effect(callback: () => unknown): () => void {
   // export effect function as a no-op for SSR environments
   if (typeof window === 'undefined') {
     return () => {};
   }
 
-  let cleanup;
+  let cleanup: unknown;
 
   const computed = new Signal.Computed(() => {
-    typeof cleanup === 'function' && cleanup();
+    if (typeof cleanup === 'function') cleanup();
     cleanup = callback();
   });
 
@@ -38,7 +38,7 @@ export function effect(callback) {
 
   return () => {
     w.unwatch(computed);
-    typeof cleanup === 'function' && cleanup();
+    if (typeof cleanup === 'function') cleanup();
     cleanup = undefined;
   };
 }

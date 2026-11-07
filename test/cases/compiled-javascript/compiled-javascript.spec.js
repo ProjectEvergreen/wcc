@@ -11,7 +11,7 @@
  *   index.js
  */
 import { expect } from 'chai';
-import { renderToString } from '../../../src/wcc.js';
+import { renderToString } from 'wc-compiler';
 
 // https://github.com/ProjectEvergreen/wcc/issues/284
 describe('Run WCC For ', function () {

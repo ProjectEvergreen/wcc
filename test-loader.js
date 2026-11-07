@@ -5,7 +5,7 @@ import path from 'path';
 import {
   load as experimentalLoadJsx,
   resolve as experimentalResolveJsx,
-} from './src/jsx-loader.js';
+} from 'wc-compiler/jsx-loader';
 
 export async function load(url, context, defaultLoad) {
   const ext = path.extname(url);

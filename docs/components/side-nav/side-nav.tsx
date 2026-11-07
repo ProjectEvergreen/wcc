@@ -1,6 +1,6 @@
-import type { Page, Graph } from '@greenwood/cli';
 import { getContent } from '@greenwood/cli/src/data/client.js';
 import styles from './side-nav.module.css';
+import type { Page } from '@greenwood/cli';
 
 export type TableOfContents = Array<{
   content: string;

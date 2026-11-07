@@ -1,8 +1,8 @@
 import { getContentByCollection } from '@greenwood/cli/src/data/client.js';
-import type { Page } from '@greenwood/cli';
 import wccLogo from '../../assets/wcc-logo.svg?type=raw';
 import mobileMenuIcon from '../../assets/tile.svg?type=raw';
 import styles from './header.module.css';
+import type { Page } from '@greenwood/cli';
 
 type NavItem = Page & {
   data: {

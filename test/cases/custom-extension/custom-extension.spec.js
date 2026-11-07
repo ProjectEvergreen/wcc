@@ -13,7 +13,7 @@
  */
 import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
-import { renderFromHTML } from '../../../src/wcc.js';
+import { renderFromHTML } from 'wc-compiler';
 
 describe('Run WCC For ', function () {
   const LABEL = 'Single Custom Element w/ a custom extension reference (CSS)';

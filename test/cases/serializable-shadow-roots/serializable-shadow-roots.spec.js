@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
-import { renderToString } from '../../../src/wcc.js';
+import { renderToString } from 'wc-compiler';
 
 describe('Run WCC For ', function () {
   const LABEL = 'Custom Elements w/ Serializable Shadow Roots';

@@ -1,3 +1,5 @@
+declare const Signal: typeof import('signal-polyfill').Signal;
+
 declare module '*.module.css' {
   const styles: Readonly<Record<string, string>>;
   export default styles;

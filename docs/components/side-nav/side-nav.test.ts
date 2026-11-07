@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
-import type { DocsPage } from './side-nav.tsx';
 import './side-nav.tsx';
+import type { DocsPage } from './side-nav.tsx';
 
 const ROUTE = '/docs/';
 const HEADING = 'Docs';

@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
 import fs from 'fs/promises';
-import { renderToString } from '../../../src/wcc.js';
+import { renderToString } from 'wc-compiler';
 import { parseFragment, serialize } from 'parse5';
 
 describe('Run WCC For ', function () {
