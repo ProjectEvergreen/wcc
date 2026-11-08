@@ -21,6 +21,19 @@ describe('Components/Capability Box', () => {
       expect(heading.length).equal(1);
       expect(heading[0].textContent).equal('');
     });
+
+    it('should display an escaped HTML element heading', () => {
+      capabilityBox.innerHTML =
+        '<wcc-capability-box heading="&lt;template&gt;"><p>Template element support (createElement)</p></wcc-capability-box>';
+
+      const heading = capabilityBox.querySelector('h4');
+
+      expect(heading?.textContent).equal('<template>');
+      expect(heading?.childElementCount).equal(0);
+      expect(capabilityBox.querySelector('p')?.textContent).equal(
+        'Template element support (createElement)',
+      );
+    });
   });
 
   describe('Custom Text and Heading', () => {

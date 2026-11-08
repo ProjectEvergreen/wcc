@@ -14,14 +14,14 @@ export default class SocialTray extends HTMLElement {
       <ul class={styles.socialTray}>
         <li class={styles.socialIcon}>
           <a href="https://github.com/ProjectEvergreen/wcc" title="GitHub" target="_blank">
-            {githubIcon}
+            <span innerHTML={githubIcon}></span>
             <span class="no-show-screen-reader"> (opens in a new window)</span>
           </a>
         </li>
 
         <li class={styles.socialIcon}>
           <a href="https://www.greenwoodjs.dev/discord/" title="Discord" target="_blank">
-            {discordIcon}
+            <span innerHTML={discordIcon}></span>
             <span class="no-show-screen-reader"> (opens in a new window)</span>
           </a>
         </li>
@@ -32,14 +32,14 @@ export default class SocialTray extends HTMLElement {
             title="BlueSky"
             target="_blank"
           >
-            {blueskyIcon}
+            <span innerHTML={blueskyIcon}></span>
             <span class="no-show-screen-reader"> (opens in a new window)</span>
           </a>
         </li>
 
         <li class={styles.socialIcon}>
           <a href="https://twitter.com/PrjEvergreen" title="Twitter" target="_blank">
-            {twitterIcon}
+            <span innerHTML={twitterIcon}></span>
             <span class="no-show-screen-reader"> (opens in a new window)</span>
           </a>
         </li>

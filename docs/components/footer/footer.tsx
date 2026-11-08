@@ -10,9 +10,7 @@ export default class Footer extends HTMLElement {
   render() {
     return (
       <footer class={styles.container}>
-        <a href="/" title="WCC Home Page" class={styles.logoLink}>
-          {wccLogo}
-        </a>
+        <a href="/" title="WCC Home Page" class={styles.logoLink} innerHTML={wccLogo}></a>
 
         <div class={styles.socialTray}>
           <wcc-social-tray></wcc-social-tray>

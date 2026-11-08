@@ -41,7 +41,7 @@ export default class SideNav extends HTMLElement {
       <nav>
         <div id="main-menu" class={styles.fullMenu}>
           <p class={styles.tableOfContentHeader}>Table of Contents</p>
-          <ul>{tocList}</ul>
+          <ul innerHTML={tocList}></ul>
         </div>
 
         <div id="mobile-menu" class={styles.compactMenu}>
@@ -63,7 +63,7 @@ export default class SideNav extends HTMLElement {
               &times;
             </button>
             <p class={styles.tableOfContentHeader}>Table of Contents</p>
-            <ul>{tocList}</ul>
+            <ul innerHTML={tocList}></ul>
           </div>
         </div>
       </nav>
