@@ -521,6 +521,92 @@ To render HTML or SVG from a string, use WCC’s `innerHTML` JSX prop. WCC inter
 
 <!-- prettier-ignore-end -->
 
+### Lists
+
+You can render lists in loops using `.map()`.
+
+> Reactive loops are not supported yet; changing a Signal containing an array does not automatically update the list.
+
+```jsx
+openComment(event) {
+  console.log('Opening comment:', event.currentTarget.href);
+}
+
+render() {
+  const replies = [
+    { author: 'Alex', text: 'First reply', url: '/comments/1/' },
+    { author: 'Sam', text: 'Thanks for sharing!', url: '/comments/2/' },
+  ];
+
+  return (
+    <ul>
+      {replies.map(({ author, text, url }, index) => (
+        <li data-index={index}>
+          <h4>{author}</h4>
+          <p>{text}</p>
+          <a href={url} onclick={this.openComment}>Open comment</a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+- Use nested maps for nested lists, or `.flatMap()` to return several elements per item.
+- JSX can also be assigned to local variables or returned by helper functions.
+- Interpolated text and attributes follow the escaping rules described above.
+
+Chain array methods and use block callbacks for additional JavaScript logic:
+
+```jsx
+<ul>
+  {replies
+    .filter((reply) => reply.text.length > 0)
+    .map((reply) => {
+      const author = reply.author.toUpperCase();
+      return (
+        <li>
+          <strong>{author}</strong>: {reply.text}
+        </li>
+      );
+    })}
+</ul>
+```
+
+- Return JSX explicitly from block callbacks.
+- Use `.forEach()` to collect JSX in an array; `.forEach()` itself returns `undefined`.
+- Wrap mapped table rows in an explicit `<tbody>`.
+
+#### Event handlers in Light DOM
+
+In Light DOM, event handlers in JSX saved to a variable or returned by a helper can target the wrong element when that JSX is inserted inside another element.
+
+This works:
+
+```jsx
+return (
+  <div>
+    {replies.map((reply) => (
+      <a href={reply.url} onclick={this.openComment}>
+        Open comment
+      </a>
+    ))}
+  </div>
+);
+```
+
+But this would not work:
+
+```jsx
+const links = replies.map((reply) => (
+  <a href={reply.url} onclick={this.openComment}>
+    Open comment
+  </a>
+));
+
+return <div>{links}</div>;
+```
+
 ### TSX
 
 TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You'll need to configure JSX in your _tsconfig.json_ by adding these required (and recommend) entries into to your `compilerOptions` settings:

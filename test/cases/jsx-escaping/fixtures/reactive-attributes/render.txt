@@ -6,7 +6,7 @@ render() {
   const {count} = this;
   this.innerHTML = `<section class="${ReactiveAttributes.$$escapeHtml(`${styles.container}`, true)}">
         <p class="${ReactiveAttributes.$$escapeHtml(`${styles.label}`, true)}" data-count="${ReactiveAttributes.$$escapeHtml(`${count.get()}`, true)}">
-          Count: ${ReactiveAttributes.$$escapeHtml(`${count.get()}`)}
+          Count: ${ReactiveAttributes.$$wccChild(count.get())}
         </p>
       </section>`;
 }

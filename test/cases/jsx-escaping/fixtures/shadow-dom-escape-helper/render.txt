@@ -4,7 +4,7 @@ render() {
   const $$template_ = document.createElement('template');
   $$template_.innerHTML = `<section title="${ShadowDomEscapeHelper.$$escapeHtml_(`${$$template}`, true)}">
         <p>
-          ${ShadowDomEscapeHelper.$$escapeHtml_(`${$$escapeHtml}`)} ${ShadowDomEscapeHelper.$$escapeHtml_(`${$$template}`)}
+          ${ShadowDomEscapeHelper.$$wccChild($$escapeHtml)} ${ShadowDomEscapeHelper.$$wccChild($$template)}
         </p>
       </section>`;
   if (!this.shadowRoot) {
