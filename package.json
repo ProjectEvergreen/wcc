@@ -79,7 +79,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@projectevergreen/acorn-jsx-esm": "~0.1.0",
+    "@projectevergreen/acorn-jsx-esm": "~0.1.1",
     "acorn": "^8.14.0",
     "acorn-walk": "^8.3.4",
     "astring": "^1.9.0",
