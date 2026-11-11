@@ -22,8 +22,9 @@ export default class SignalCounter extends HTMLElement {
       this.attachShadow({
         mode: 'open',
       });
-      this.render();
     }
+
+    this.render();
 
     if (this.shadowRoot) {
       this.shadowRoot.adoptedStyleSheets = [sheet];

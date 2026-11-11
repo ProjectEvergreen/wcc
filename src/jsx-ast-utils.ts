@@ -1,9 +1,9 @@
 import { Parser } from 'acorn';
 import * as acornWalk from 'acorn-walk';
 import { generate, GENERATOR } from 'astring';
+import type { Generator, State } from 'astring';
 import { defaultTreeAdapter, html, parse, parseFragment, serialize } from 'parse5';
 import type * as E from 'estree-jsx';
-import type { Generator, State } from 'astring';
 import type { DefaultTreeAdapterTypes as H, Token } from 'parse5';
 
 type Visitors = {
@@ -73,8 +73,16 @@ export interface TemplateLiteralParts {
  */
 export interface HtmlTemplateLiteralBuilder {
   expression(node: E.Expression, context?: 'text' | 'attribute' | 'raw'): string;
-  handler(create: (depth: number) => string | undefined): string;
+  handler(name: string, expression: E.Expression): string | undefined;
+  inlineHandler(create: (depth: number) => string | undefined): string;
+  listeners(hasShadowRoot: boolean): E.Statement[];
   build(tree: H.ParentNode, depthOffset?: number): E.TemplateLiteral;
+}
+
+export interface ReactiveSignal {
+  // Keep the template parameter separate from its read, e.g. `count` and `this.#count.get()`.
+  name: string;
+  expression?: E.Expression;
 }
 
 /**
@@ -111,7 +119,7 @@ export interface ReactiveTemplate {
 export interface ReactiveElement {
   selector: string;
   effect?: ReactiveTemplate;
-  attributes: Array<{ name: string; value: string }>;
+  attributes: Array<{ name: string; value: string; expression?: E.Expression }>;
 }
 
 // HTML elements whose children are omitted by the serializer, including obsolete void tags.
@@ -175,7 +183,7 @@ export const createMemberExpression = (
 export const createCallExpression = (
   callee: E.Expression | E.Super,
   args: Array<E.Expression | E.SpreadElement> = [],
-): E.CallExpression => ({
+): E.SimpleCallExpression => ({
   type: 'CallExpression',
   callee,
   arguments: args,
@@ -446,23 +454,45 @@ function getHtmlParser(html: string) {
     : parseFragment;
 }
 
-// Print assignments without spaces, e.g. `this.count-=1`, for onclick attributes.
-// Output tests expect this compact format in the generated SSR markup.
-function printNode(generator: Generator, node: E.Node, state: State): void {
-  const print = generator[node.type] as (node: E.Node, state: State) => void;
-  print.call(generator, node, state);
+// Keep callbacks in class scope so private names and render-local variables remain accessible.
+// e.g. `onclick={this.#increment}` becomes `event => this.#increment(event)` inside render().
+// An inline HTML handler such as `onclick="this.#increment(event)"` has no private class scope.
+function createEventCallback(expression: E.Expression): E.ArrowFunctionExpression | undefined {
+  // Preserve authored callbacks, e.g. `event => this.#count.set(count.get() + event.detail)`.
+  if (expression.type === 'ArrowFunctionExpression') return expression;
+
+  if (
+    expression.type === 'MemberExpression' &&
+    expression.object.type === 'ThisExpression' &&
+    !expression.computed
+  ) {
+    return createArrowFunctionExpression(
+      ['event'],
+      createCallExpression(expression, [createIdentifier('event')]),
+    );
+  }
+
+  if (
+    expression.type === 'AssignmentExpression' &&
+    expression.left.type === 'MemberExpression' &&
+    expression.left.object.type === 'ThisExpression' &&
+    !expression.left.computed
+  ) {
+    // `onclick={(this.#count += 1)}` becomes `() => { this.#count += 1; this.render(); }`.
+    return createArrowFunctionExpression(
+      [],
+      createBlockStatement([
+        createExpressionStatement(expression),
+        createExpressionStatement(createCallExpression(createThisMemberExpression('render'))),
+      ]),
+    );
+  }
+
+  return undefined;
 }
 
-const eventGenerator: Generator = {
-  ...GENERATOR,
-  AssignmentExpression(node, state) {
-    printNode(this, node.left, state);
-    state.write(node.operator);
-    printNode(this, node.right, state);
-  },
-};
-
-// Reference the component from an event target, e.g. `this.parentElement` or `this.getRootNode().host`.
+// Separately lowered JSX values retain master's inline handlers and DOM-depth accounting.
+// Root render templates use class-scoped listeners; dynamic list items need per-instance binding.
 function createComponentReference(depth: number, hasShadowRoot: boolean): E.Expression {
   if (hasShadowRoot) {
     return createMemberExpression(
@@ -471,13 +501,24 @@ function createComponentReference(depth: number, hasShadowRoot: boolean): E.Expr
     );
   }
   let reference: E.Expression = createThisExpression();
-  for (let i = 0; i < depth; i++) {
+  for (let index = 0; index < depth; index++)
     reference = createMemberExpression(reference, 'parentElement');
-  }
   return reference;
 }
 
-// Generate a method or assignment handler string, e.g. `this.parentElement.increment(event)`.
+const eventGenerator: Generator = {
+  ...GENERATOR,
+  AssignmentExpression(node, state: State) {
+    const print = (child: E.Node) => {
+      const generator = this[child.type] as (node: E.Node, state: State) => void;
+      generator.call(this, child, state);
+    };
+    print(node.left);
+    state.write(node.operator);
+    print(node.right);
+  },
+};
+
 export function generateEventHandler(
   expression: E.Expression | E.JSXEmptyExpression,
   depth: number,
@@ -501,20 +542,22 @@ export function generateEventHandler(
     expression.left.object.type === 'ThisExpression' &&
     expression.left.property.type === 'Identifier'
   ) {
-    const body = [
-      createExpressionStatement(
-        createAssignmentExpression(
-          createMemberExpression(root, expression.left.property.name),
-          // Only literal right-hand sides are supported; other expressions emit undefined.
-          !('raw' in expression.right) || expression.right.raw === undefined
-            ? createIdentifier('undefined')
-            : expression.right,
-          expression.operator,
+    const program: E.Program = {
+      type: 'Program',
+      sourceType: 'module',
+      body: [
+        createExpressionStatement(
+          createAssignmentExpression(
+            createMemberExpression(root, expression.left.property.name),
+            !('raw' in expression.right) || expression.right.raw === undefined
+              ? createIdentifier('undefined')
+              : expression.right,
+            expression.operator,
+          ),
         ),
-      ),
-      createExpressionStatement(createCallExpression(createMemberExpression(root, 'render'))),
-    ];
-    const program: E.Program = { type: 'Program', sourceType: 'module', body };
+        createExpressionStatement(createCallExpression(createMemberExpression(root, 'render'))),
+      ],
+    };
     return generate(program, { generator: eventGenerator, indent: '', lineEnd: ' ' }).trim();
   }
   return undefined;
@@ -571,6 +614,12 @@ export function generateInlineEventHandler(
  * `<p title="${Greeting.$$escapeHtml(`${label}`, true)}">${Greeting.$$escapeHtml(`${label}`)}</p>`
  * ```
  */
+// parse5 applies browser HTML parsing rules to the markup constructed from JSX. These rules can
+// insert elements or change nesting: `<table><tr><td>...</td></tr></table>` gains a `<tbody>` around `<tr>`.
+// Listener selectors must follow that resulting tree (`table > tbody > tr > td`) to match the rendered DOM.
+// parse5 accepts HTML strings, not JavaScript AST expressions, so markers such as `wcc-expression-0-end`
+// stand in for `{count}` or an event callback while it parses and serializes the markup. build() restores
+// expression AST nodes into the template literal and removes event markers after recording their targets.
 export function createHtmlTemplateLiteralBuilder(
   moduleContents: string,
   escape: (expression: E.Expression, context: 'text' | 'attribute') => E.Expression,
@@ -578,9 +627,20 @@ export function createHtmlTemplateLiteralBuilder(
   let prefix = 'wcc-expression-';
   while (moduleContents.includes(prefix)) prefix += '-';
   const expressions = new Map<string, E.Expression>();
-  const handlers = new Map<string, (depth: number) => string | undefined>();
+  const handlers = new Map<string, { name: string; callback: E.ArrowFunctionExpression }>();
+  const inlineHandlers = new Map<string, (depth: number) => string | undefined>();
+  const targets: Array<{
+    selector: string;
+    rootSelector: string;
+    handlers: Array<{ name: string; callback: E.ArrowFunctionExpression }>;
+  }> = [];
+  let referencePrefix = '$evEl';
+  // A local such as `const $evEl0 = 2` must remain visible inside an authored callback.
+  while (moduleContents.includes(referencePrefix)) referencePrefix += '_';
+  let rootPrefix = '$evRoot';
+  while (moduleContents.includes(rootPrefix)) rootPrefix += '_';
   // Give each expression or handler a distinct placeholder, e.g. `wcc-expression-0-end`.
-  const token = () => `${prefix}${expressions.size + handlers.size}-end`;
+  const token = () => `${prefix}${expressions.size + handlers.size + inlineHandlers.size}-end`;
 
   return {
     // Save an interpolation node and return its placeholder, e.g. the `count` in `{count}`.
@@ -595,45 +655,143 @@ export function createHtmlTemplateLiteralBuilder(
       );
       return marker;
     },
-    // Defer handler generation until the parsed HTML determines its DOM depth.
-    handler(create) {
+    // e.g. `<button onclick={this.#increment}>` temporarily carries `onclick="wcc-expression-0-end"`.
+    // The marker stays on its element if parse5 inserts a parent such as <tbody>; the callback stays as AST.
+    // build() records the element's path in the resulting tree, then removes the temporary event attribute.
+    handler(name, expression) {
+      const callback = createEventCallback(expression);
+      if (!callback) return undefined;
       const marker = token();
-      handlers.set(marker, create);
+      handlers.set(marker, { name: name.slice(2), callback });
       return marker;
+    },
+    // Preserve the existing dynamic-template path until per-instance loop listeners are implemented.
+    inlineHandler(create) {
+      const marker = token();
+      inlineHandlers.set(marker, create);
+      return marker;
+    },
+    // Emit bindings after mounting, e.g. `$evEl0?.addEventListener('click', event => this.#increment(event))`.
+    // Each render replaces the elements, so bindings belong in render() rather than only connectedCallback().
+    listeners(hasShadowRoot) {
+      const root = hasShadowRoot
+        ? createThisMemberExpression('shadowRoot')
+        : createThisExpression();
+      const rootSelectors = [...new Set(targets.map(({ rootSelector }) => rootSelector))];
+      // Cache each distinct template root once per render, e.g. `const $evRoot0 = this.querySelector('div:nth-of-type(1)')`.
+      // Number roots independently of targets: `$evEl0` and `$evEl1` can both query `$evRoot0`.
+      const statements: E.Statement[] = rootSelectors.map((selector, index) => ({
+        type: 'VariableDeclaration',
+        kind: 'const',
+        declarations: [
+          {
+            type: 'VariableDeclarator',
+            id: createIdentifier(`${rootPrefix}${index}`),
+            init: createCallExpression(createMemberExpression(root, 'querySelector'), [
+              createLiteral(selector),
+            ]),
+          },
+        ],
+      }));
+      targets.forEach(({ selector, rootSelector, handlers }, index) => {
+        // Scope descendant lookups to the cached root, e.g. `$evRoot0?.querySelector(':scope > button:nth-of-type(1)')`.
+        // Without :scope, a button in nested <section> markup could receive the outer button's listener.
+        const templateRoot = createIdentifier(
+          `${rootPrefix}${rootSelectors.indexOf(rootSelector)}`,
+        );
+        // For `<button onclick={this.#increment}>`, the target is the cached template root.
+        // A descendant such as `<div><button ... /></div>` needs the relative query instead.
+        const target: E.Expression = selector
+          ? {
+              type: 'ChainExpression',
+              expression: createCallExpression(
+                { ...createMemberExpression(templateRoot, 'querySelector'), optional: true },
+                [createLiteral(`:scope > ${selector}`)],
+              ),
+            }
+          : templateRoot;
+        const reference = createIdentifier(`${referencePrefix}${index}`);
+        statements.push(
+          {
+            type: 'VariableDeclaration',
+            kind: 'const',
+            declarations: [
+              {
+                type: 'VariableDeclarator',
+                id: reference,
+                init: target,
+              },
+            ],
+          },
+          ...handlers.map(({ name, callback }) =>
+            // SSR querySelector() returns undefined; `$evEl0?.addEventListener(...)` skips binding there.
+            createExpressionStatement({
+              type: 'ChainExpression',
+              expression: createCallExpression(
+                { ...createMemberExpression(reference, 'addEventListener'), optional: true },
+                [createLiteral(name), callback],
+              ),
+            }),
+          ),
+        );
+      });
+      // One block keeps generated references local without shadowing the authored render scope.
+      return statements.length ? [createBlockStatement(statements)] : [];
     },
     // Normalize HTML and restore its interpolations to produce a template literal node.
     build(htmlTree, depthOffset = 0) {
-      // String boundary: parse5 applies HTML tree rules (e.g. inserting tbody) when parsing text.
-      // Serialize the constructed nodes so parse5 can normalize them before final serialization.
-      // TODO: review removing this round trip while retaining HTML normalization and event-handler depths.
+      // Constructing parse5 nodes directly does not apply HTML parsing rules. Parse their serialized markup
+      // so implied parents such as <tbody> are present before computing selectors and emitting the template.
+      // TODO: review removing this round trip while retaining HTML normalization and event targets.
       const html = serialize(htmlTree);
       const tree = getHtmlParser(html)(html);
 
-      // Fill event attributes with component references at the correct depth.
-      function applyEventHandlers(parent: H.Node, depth = 1): void {
+      // Resolve paths after HTML normalization (for example, table rows acquire a tbody).
+      // e.g. `<table><tr><td onclick={this.#select}>` needs `table > tbody > tr > td` in its path.
+      function collectEventTargets(
+        parent: H.Node,
+        path: string[] = [],
+        depth = depthOffset + 1,
+      ): void {
+        const counts = new Map<string, number>();
         for (const node of 'childNodes' in parent ? parent.childNodes : []) {
-          for (const attr of 'attrs' in node ? node.attrs : []) {
+          if (!('tagName' in node)) continue;
+          const index = (counts.get(node.tagName) ?? 0) + 1;
+          counts.set(node.tagName, index);
+          const nodePath = [...path, `${node.tagName}:nth-of-type(${index})`];
+          const bindings: Array<{ name: string; callback: E.ArrowFunctionExpression }> = [];
+          node.attrs = node.attrs.filter((attr) => {
+            const inlineHandler = inlineHandlers.get(attr.value);
+            if (inlineHandler) {
+              attr.value = inlineHandler(depth) ?? '';
+              return true;
+            }
             const handler = handlers.get(attr.value);
-            if (handler) attr.value = handler(depth) ?? '';
-          }
-          applyEventHandlers(node, depth + 1);
+            if (!handler) return true;
+            // Multiple attributes, e.g. `onclick={...} onfocus={...}`, share one target lookup.
+            // Keep their callbacks in attribute order and remove each temporary marker attribute.
+            bindings.push(handler);
+            return false;
+          });
+          if (bindings.length)
+            targets.push({
+              rootSelector: nodePath[0],
+              selector: nodePath.slice(1).join(' > '),
+              handlers: bindings,
+            });
+          collectEventTargets(node, nodePath, depth + 1);
         }
       }
-
-      // JSX returned by a loop is compiled separately, e.g.
-      // `<div>{items.map(item => <button onclick={this.select}>{item}</button>)}</div>`.
-      // So we need to account for the outer <div> by tracking the <button> at a nested depth offset,
-      // so its handler reaches the component with this.parentElement.parentElement` instead of `this.parentElement`.
-      applyEventHandlers(tree, depthOffset + 1);
-
-      // Restore a slot such as `<!--wcc-expression-0-end-->` to its original AST interpolation,
-      // e.g. `${rows.map(...).join('')}`, without emitting the temporary comment in the template.
+      collectEventTargets(tree);
+      // Restore expression slots such as `<!--wcc-expression-0-end-->` without emitting their comments.
       const template = createTemplateLiteralParts();
 
       for (const part of serialize(tree)
         .replace(new RegExp(`<!--(${prefix}\\d+-end)-->`, 'g'), '$1')
         .split(new RegExp(`(${prefix}\\d+-end)`, 'g'))) {
         const expression = expressions.get(part);
+        // Restore original expression AST nodes so `this.#count` stays inside its declaring class.
+        // Keeping each interpolation in place also preserves evaluation order.
         if (expression) template.expression(expression);
         else template.text(part);
       }
@@ -692,6 +850,7 @@ export function createRenderStatements(
     {
       type: 'IfStatement',
       test: createUnaryExpression('!', createThisMemberExpression('shadowRoot')),
+      // First mount without an existing root: attachShadow(), then append the cloned template content.
       consequent: createBlockStatement([
         createExpressionStatement(
           createCallExpression(createThisMemberExpression('attachShadow'), [
@@ -726,6 +885,7 @@ export function createRenderStatements(
           ),
         ),
       ]),
+      // Existing root (including declarative Shadow DOM): replace its contents before binding listeners.
       alternate: createBlockStatement([
         createExpressionStatement(
           createAssignmentExpression(
@@ -749,22 +909,26 @@ function createSignalValueExpression(name: string): E.CallExpression {
 }
 
 // Create a static text template and its call, e.g. `Counter.$$tmpl0(this.count.get())`.
+// Private reads stay in instance scope: `static $$tmpl0 = count => ...` receives `this.#count.get()`.
 /** @internal */
 export function createReactiveTemplate(
   name: string,
-  signals: string[],
+  signals: ReactiveSignal[],
   template: TemplateLiteralParts,
   componentName: string,
 ): ReactiveTemplate {
   return {
     template: createPropertyDefinition(
       name,
-      createArrowFunctionExpression(signals, template.build(true)),
+      createArrowFunctionExpression(
+        signals.map(({ name }) => name),
+        template.build(true),
+      ),
       true,
     ),
     expression: createCallExpression(
       createMemberExpression(createIdentifier(componentName), name),
-      signals.map((signal) => createSignalValueExpression(signal)),
+      signals.map(({ name, expression }) => expression ?? createSignalValueExpression(name)),
     ),
   };
 }
@@ -790,6 +954,7 @@ export function createEffectStatements(reactiveElements: ReactiveElement[]): E.S
 
   reactiveElements.forEach(({ effect, attributes }, idx) => {
     if (effect?.expression) {
+      // Text bindings call the static template with live reads, e.g. `Counter.$$tmpl0(this.#count.get())`.
       addEffect([
         createExpressionStatement(
           createAssignmentExpression(
@@ -800,17 +965,22 @@ export function createEffectStatements(reactiveElements: ReactiveElement[]): E.S
       ]);
     }
     if (attributes.length > 0) {
+      // Attribute bindings use setAttribute('title', ...); the explicit innerHTML prop writes markup through `.innerHTML = ...`.
+      // Saved private-read AST takes precedence over public name lookup.
       addEffect(
         attributes.map((attr) =>
           createExpressionStatement(
             attr.name === 'innerHTML'
               ? createAssignmentExpression(
                   createMemberExpression(createThisMemberExpression(`$el${idx}`), 'innerHTML'),
-                  createSignalValueExpression(attr.value),
+                  attr.expression ?? createSignalValueExpression(attr.value),
                 )
               : createCallExpression(
                   createMemberExpression(createThisMemberExpression(`$el${idx}`), 'setAttribute'),
-                  [createLiteral(attr.name), createSignalValueExpression(attr.value)],
+                  [
+                    createLiteral(attr.name),
+                    attr.expression ?? createSignalValueExpression(attr.value),
+                  ],
                 ),
           ),
         ),

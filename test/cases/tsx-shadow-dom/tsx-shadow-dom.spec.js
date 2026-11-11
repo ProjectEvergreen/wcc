@@ -48,11 +48,11 @@ describe('Run WCC For ', function () {
 
       describe('Event Handling', () => {
         it('should handle a this expression', () => {
-          const wrapper = new JSDOM(heading.innerHTML);
-          const button = wrapper.window.document.querySelector('button');
-
-          expect(button.getAttribute('onclick')).to.be.equal(
-            'this.getRootNode().host.sayHello(event)',
+          expect(meta['wcc-heading'].source).to.contain(
+            "$evRoot0?.querySelector(':scope > button:nth-of-type(",
+          );
+          expect(meta['wcc-heading'].source).to.contain(
+            "addEventListener('click', event => this.sayHello(event))",
           );
         });
       });
