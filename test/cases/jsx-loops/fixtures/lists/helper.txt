@@ -1,0 +1,1 @@
+const helper = text => $$wcc_Markup(`<b>${$$wcc_Child(text)}</b>`);

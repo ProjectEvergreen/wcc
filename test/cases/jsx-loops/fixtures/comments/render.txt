@@ -1,0 +1,21 @@
+render() {
+  const {open, visibility, label} = this;
+  const replies = [{
+    author: 'Alex',
+    text: 'First <reply>'
+  }, {
+    author: 'Sam',
+    text: 'Second & reply'
+  }];
+  this.innerHTML = `<article>
+        <button type="button" aria-expanded="${`${open.get()}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')}" onclick="this.parentElement.parentElement.toggle(event)">
+          ${Comments.$$wccChild(label.get())}
+        </button>
+        <ul style="${`${visibility.get()}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')}">
+          ${replies.map(({author, text}, index) => `<li data-index="${`${index}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')}">
+              <h3>${Comments.$$wccChild(author)}</h3>
+              <p>${Comments.$$wccChild(text)}</p>
+            </li>`).join('')}
+        </ul>
+      </article>`;
+}

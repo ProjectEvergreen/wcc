@@ -147,6 +147,7 @@ function createHtmlTreeFromJsx(
   hasShadowRoot = false,
   currentDepth = 1,
   parent: H.ParentNode = ast.createHtmlFragment(),
+  context?: JsxCompilationContext,
 ): H.ParentNode {
   const { type } = element;
 
@@ -206,8 +207,8 @@ function createHtmlTreeFromJsx(
             node.attrs.push(
               ast.createHtmlAttribute(
                 name,
-                template.handler(() =>
-                  ast.generateInlineEventHandler(expression, currentDepth, hasShadowRoot),
+                template.handler((depth) =>
+                  ast.generateInlineEventHandler(expression, depth, hasShadowRoot),
                 ),
               ),
             );
@@ -246,6 +247,7 @@ function createHtmlTreeFromJsx(
           hasShadowRoot,
           currentDepth + 1,
           node,
+          context,
         );
       }
     }
@@ -266,18 +268,222 @@ function createHtmlTreeFromJsx(
 
   if (type === 'JSXExpressionContainer' && element.expression.type !== 'JSXEmptyExpression') {
     const parentTag = 'tagName' in parent ? parent.tagName : '';
+    const raw = html.hasUnescapedText(parentTag, true);
+    const expression = context
+      ? raw
+        ? (compileJsxValueExpressions(
+            element.expression,
+            context,
+            hasShadowRoot,
+            currentDepth,
+          ) as E.Expression)
+        : compileJsxChildExpression(element.expression, context, hasShadowRoot, currentDepth)
+      : element.expression;
+    // Keep `{items.map(...)}` as an AST expression while parse5 handles the surrounding HTML.
+    // E.g. `<tbody>{rows}</tbody>` temporarily contains `<!--wcc-expression-0-end-->`.
+    const slot = template.expression(expression, context || raw ? 'raw' : 'text');
     ast.appendHtmlChild(
       parent,
-      ast.createHtmlTextNode(
-        template.expression(
-          element.expression,
-          html.hasUnescapedText(parentTag, true) ? 'raw' : 'text',
-        ),
-        parentTag,
-      ),
+      raw || parentTag === 'textarea' || parentTag === 'title'
+        ? ast.createHtmlTextNode(slot, parentTag)
+        : ast.createHtmlChildSlot(slot),
     );
   }
   return parent;
+}
+
+// State for compiling one module; this object is not emitted into the generated JavaScript.
+// E.g. remember a `$$wccChild(title)` CallExpression so it can later become `Posts.$$wccChild(title)`.
+interface JsxCompilationContext {
+  markupFunctionName: string;
+  childNormalizerName: string;
+  moduleContents: string;
+  needsMarkupWrapper: boolean;
+  childNormalizerCalls: E.CallExpression[];
+}
+
+// Build the child serializer function, e.g. `{post.summary}` becomes `Posts.$$wccChild(post.summary)`.
+// It escapes ordinary text (`'<reply>'` -> '&lt;reply&gt;') and joins array children without commas.
+function createJsxChildSerializer(
+  name: string,
+  markupClass?: string,
+  reference: E.Expression = ast.createIdentifier(name),
+): E.FunctionExpression {
+  const program = ast.parseModule(`(function ${name}(value) {
+    if (value == null || typeof value === 'boolean') return '';
+    if (Array.isArray(value)) return value.map(${name}).join('');
+    ${markupClass ? `if (value instanceof ${markupClass}) return value.html;` : ''}
+    return \`\${value}\`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  });`);
+  const normalize = (program.body[0] as E.ExpressionStatement).expression as E.FunctionExpression;
+  // Rewrite the recursive function reference, e.g. `value.map($$wccChild)` ->
+  // `value.map(Posts.$$wccChild)`, so passing the method as a callback does not depend on `this`.
+  const replaceReferences = (node: E.Node): E.Node => {
+    if (node.type === 'Identifier' && node.name === name) return structuredClone(reference);
+    const fields = node as unknown as Record<string, unknown>;
+    for (const [key, value] of Object.entries(fields)) {
+      if (Array.isArray(value))
+        fields[key] = value.map((child) => (child?.type ? replaceReferences(child) : child));
+      else if (value && typeof value === 'object' && 'type' in value)
+        fields[key] = replaceReferences(value as E.Node);
+    }
+    return node;
+  };
+  replaceReferences(normalize.body);
+  return normalize;
+}
+
+// Distinguish JSX callbacks (`post => <li>{post.title}</li>`) from data callbacks (`post => post.title`).
+function containsJsx(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  if ('type' in value && value.type === 'JSXElement') return true;
+  return Object.values(value).some((child) =>
+    Array.isArray(child) ? child.some(containsJsx) : containsJsx(child),
+  );
+}
+
+// Compile a child expression, e.g. `{title}` -> `${Posts.$$wccChild(title)}`.
+// JSX elements become templates; `.map()` / `.flatMap()` expressions use compileJsxChildLoop.
+function compileJsxChildExpression(
+  node: E.Expression,
+  context: JsxCompilationContext,
+  hasShadowRoot: boolean,
+  depth: number,
+): E.Expression {
+  if (node.type === 'JSXElement') {
+    return compileJsxTemplate(node, context, hasShadowRoot, depth);
+  }
+  const loop = compileJsxChildLoop(node, context, hasShadowRoot, depth);
+  if (loop) return loop;
+  const call = ast.createCallExpression(ast.createIdentifier(context.childNormalizerName), [
+    compileJsxValueExpressions(node, context, hasShadowRoot, depth) as E.Expression,
+  ]);
+  context.childNormalizerCalls.push(call);
+  return call;
+}
+
+// Lower a direct child map into template-returning callbacks plus a join:
+// `{posts.map(post => <li>{post.title}</li>)}` ->
+// `${posts.map(post => `<li>${Posts.$$wccChild(post.title)}</li>`).join('')}`.
+function compileJsxChildLoop(
+  node: E.Expression,
+  context: JsxCompilationContext,
+  hasShadowRoot: boolean,
+  depth: number,
+): E.CallExpression | undefined {
+  if (
+    node.type === 'CallExpression' &&
+    node.callee.type === 'MemberExpression' &&
+    !node.callee.computed &&
+    ['map', 'flatMap'].includes(identifierName(node.callee.property) ?? '')
+  ) {
+    const callback = node.arguments[0];
+    if (
+      callback &&
+      (callback.type === 'ArrowFunctionExpression' || callback.type === 'FunctionExpression') &&
+      !callback.async
+    ) {
+      // `posts.map(post => post.title)` stays a data map, wrapped in `Posts.$$wccChild(...)`.
+      // A callback returning `<li>...</li>` instead returns HTML templates that can be joined.
+      if (containsJsx(callback.body)) {
+        if (callback.body.type !== 'BlockStatement') {
+          callback.body = compileJsxChildExpression(callback.body, context, hasShadowRoot, depth);
+        } else {
+          // Preserve block statements: `post => { const title = post.title; return <li>{title}</li>; }`
+          // keeps its declaration and replaces only the returned JSX with a template literal.
+          // A nested `function helper() { return ...; }` owns its returns and is skipped here.
+          const compileReturns = (statement: E.Node): void => {
+            if (
+              statement.type === 'FunctionDeclaration' ||
+              statement.type === 'FunctionExpression' ||
+              statement.type === 'ArrowFunctionExpression'
+            )
+              return;
+            if (statement.type === 'ReturnStatement') {
+              statement.argument = statement.argument
+                ? compileJsxChildExpression(statement.argument, context, hasShadowRoot, depth)
+                : { type: 'Literal', value: '' };
+              return;
+            }
+            for (const value of Object.values(statement)) {
+              if (Array.isArray(value))
+                value.forEach((child) => {
+                  if (child?.type) compileReturns(child);
+                });
+              else if (value && typeof value === 'object' && 'type' in value)
+                compileReturns(value as E.Node);
+            }
+          };
+          compileReturns(callback.body);
+        }
+        // Add a CallExpression/MemberExpression around the transformed map: `posts.map(...).join('')`.
+        // Missing block returns become undefined; Array#join omits these naturally.
+        return ast.createCallExpression(ast.createMemberExpression(node, 'join'), [
+          { type: 'Literal', value: '', raw: "''" },
+        ]);
+      }
+    }
+  }
+  return undefined;
+}
+
+// Convert the JSXElement to a TemplateLiteral without moving expressions out of scope.
+// E.g. `<li>{this.#title}</li>` retains `this.#title` inside the generated class method.
+function compileJsxTemplate(
+  node: E.JSXElement,
+  context: JsxCompilationContext,
+  hasShadowRoot: boolean,
+  depth: number,
+): E.TemplateLiteral {
+  const template = ast.createHtmlTemplateLiteralBuilder(context.moduleContents);
+  const tree = createHtmlTreeFromJsx(
+    node,
+    template,
+    false,
+    hasShadowRoot,
+    depth,
+    undefined,
+    context,
+  );
+  return template.build(tree, depth - 1);
+}
+
+// Compile JSX used as JavaScript values while preserving their original lexical scope.
+// E.g. `const saved = posts.map(post => <li>{post.title}</li>)` becomes a map returning
+// `$$wccMarkup(`<li>${Posts.$$wccChild(post.title)}</li>`)`, recognized when `{saved}` is serialized.
+function compileJsxValueExpressions(
+  node: E.Node,
+  context: JsxCompilationContext,
+  hasShadowRoot = false,
+  depth = 1,
+): E.Node {
+  // Preserve scalar conditions such as `title={active ? 'active' : ''}`.
+  // JSX branches such as `{active && <p>Active</p>}` are outside loop lowering.
+  if (node.type === 'ConditionalExpression' || node.type === 'LogicalExpression') {
+    if (containsJsx(node)) {
+      throw new Error('Conditional JSX is not supported.');
+    }
+    return node;
+  }
+  if (node.type === 'JSXElement') {
+    context.needsMarkupWrapper = true;
+    return ast.createCallExpression(ast.createIdentifier(context.markupFunctionName), [
+      compileJsxTemplate(node, context, hasShadowRoot, depth),
+    ]);
+  }
+  const fields = node as unknown as Record<string, unknown>;
+  for (const [key, value] of Object.entries(fields)) {
+    if (Array.isArray(value)) {
+      fields[key] = value.map((child) =>
+        child && typeof child.type === 'string'
+          ? compileJsxValueExpressions(child, context, hasShadowRoot, depth)
+          : child,
+      );
+    } else if (value && typeof value === 'object' && 'type' in value) {
+      fields[key] = compileJsxValueExpressions(value as E.Node, context, hasShadowRoot, depth);
+    }
+  }
+  return node;
 }
 
 // Compile a JSX/TSX module into a JavaScript AST with render statements and inferred effects.
@@ -286,6 +492,21 @@ export function parseJsx(
   moduleURL: PathOrFileDescriptor,
 ): E.Program & { start: number; end: number } {
   const moduleContents = fs.readFileSync(moduleURL, 'utf-8');
+  let helperPrefix = '$$wcc';
+  // Choose generated names that cannot collide with authored source. If it contains `$$wcc`,
+  // try `$$wcc_`, then `$$wcc__`, etc. E.g. an authored `$$wccChild` produces `$$wcc_Child`.
+  while (moduleContents.includes(helperPrefix)) helperPrefix += '_';
+
+  // Share generated names and pending AST rewrites across this module's JSX transformations.
+  // `childNormalizerCalls` collects calls like `$$wccChild(title)` for later class qualification;
+  // `needsMarkupWrapper` records JSX saved as a value, e.g. `const item = <li>{title}</li>`.
+  const context: JsxCompilationContext = {
+    markupFunctionName: `${helperPrefix}Markup`,
+    childNormalizerName: `${helperPrefix}Child`,
+    moduleContents,
+    needsMarkupWrapper: false,
+    childNormalizerCalls: [],
+  };
   const result = transform(moduleContents, {
     transforms: ['typescript', 'jsx'],
     jsxRuntime: 'preserve',
@@ -614,21 +835,100 @@ export function parseJsx(
                     template,
                     inferredObservability,
                     hasShadowRoot,
+                    1,
+                    undefined,
+                    context,
                   );
                   return ast.createRenderStatements(template.build(htmlTree), hasShadowRoot);
                 });
               }
             }
           }
+          compileJsxValueExpressions(node, context, hasShadowRoot);
         }
       },
     },
     {
-      // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
       ...ast.baseWalker,
       JSXElement: () => {},
     },
   );
+
+  compileJsxValueExpressions(tree, context);
+  const valueClass = context.needsMarkupWrapper ? `${helperPrefix}Value` : undefined;
+  const childCalls = new Set(context.childNormalizerCalls);
+  const components = new Set<E.ClassDeclaration>();
+  let needsModuleNormalizer = false;
+  let anonymousClasses = 0;
+  // Bind each generated CallExpression to its containing class, e.g.
+  // `$$wccChild(text)` -> `First.$$wccChild(text)` in First and `Second.$$wccChild(text)` in Second.
+  // Class qualification also works inside `map(function (item) { ... })` with its own `this`.
+  const bindNormalizers = (node: E.Node, component?: E.ClassDeclaration): void => {
+    if (node.type === 'ClassDeclaration' && identifierName(node.superClass) === 'HTMLElement') {
+      component = node;
+    }
+    if (node.type === 'CallExpression' && childCalls.has(node)) {
+      if (component) {
+        component.id ??= ast.createIdentifier(`${helperPrefix}Component${anonymousClasses++}`);
+        node.callee = ast.createMemberExpression(
+          ast.createIdentifier(component.id.name),
+          context.childNormalizerName,
+        );
+        components.add(component);
+      } else {
+        needsModuleNormalizer = true;
+      }
+    }
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value))
+        value.forEach((child) => {
+          if (child?.type) bindNormalizers(child, component);
+        });
+      else if (value && typeof value === 'object' && 'type' in value)
+        bindNormalizers(value as E.Node, component);
+    }
+  };
+  bindNormalizers(tree);
+  // Turn the shared function body into one MethodDefinition: `static $$wccChild(value) { ... }`.
+  const normalizers = new Map<E.ClassDeclaration, E.MethodDefinition>();
+  for (const component of components) {
+    const reference = ast.createMemberExpression(
+      ast.createIdentifier(component.id!.name),
+      context.childNormalizerName,
+    );
+    const normalize = createJsxChildSerializer(context.childNormalizerName, valueClass, reference);
+    normalizers.set(component, {
+      type: 'MethodDefinition',
+      key: ast.createIdentifier(context.childNormalizerName),
+      value: { ...normalize, id: null },
+      kind: 'method',
+      computed: false,
+      static: true,
+    });
+  }
+  const declarations: E.Statement[] = [];
+  if (valueClass) {
+    declarations.push(
+      ...(ast.parseModule(`
+      class ${valueClass} {
+        constructor(html) { this.html = html; }
+        toString() { return this.html; }
+      }
+      function ${context.markupFunctionName}(html) { return new ${valueClass}(html); }
+    `).body as E.Statement[]),
+    );
+  }
+  // A module helper such as `const heading = text => <h3>{text}</h3>` has no owning class.
+  // Its generated `$$wccChild(text)` calls share one module-level FunctionDeclaration.
+  if (needsModuleNormalizer) {
+    const normalize = createJsxChildSerializer(context.childNormalizerName, valueClass);
+    declarations.push({
+      ...normalize,
+      type: 'FunctionDeclaration',
+      id: ast.createIdentifier(context.childNormalizerName),
+    });
+  }
+  tree.body.unshift(...declarations);
 
   // TODO: why does this compilation run twice?  logging here will output the message twice
   if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
@@ -684,6 +984,18 @@ export function parseJsx(
 
     // inject WCC's effect function
     tree.body.unshift(ast.createEffectImportDeclaration());
+  }
+
+  // Insert the MethodDefinition after the generated attribute parser:
+  // `$el0; static parseAttribute = ...; static $$wccChild(value) { ... } attributeChangedCallback(...) { ... }`.
+  for (const [component, normalize] of normalizers) {
+    const parseAttributeIndex = component.body.body.findIndex(
+      (member) =>
+        member.type !== 'StaticBlock' &&
+        member.static &&
+        identifierName(member.key) === 'parseAttribute',
+    );
+    component.body.body.splice(parseAttributeIndex + 1, 0, normalize);
   }
 
   return tree;

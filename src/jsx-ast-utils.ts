@@ -46,7 +46,7 @@ export interface TemplateLiteralParts {
 export interface HtmlTemplateLiteralBuilder {
   expression(node: E.Expression, context?: 'text' | 'attribute' | 'raw'): string;
   handler(create: (depth: number) => string | undefined): string;
-  build(tree: H.ParentNode): E.TemplateLiteral;
+  build(tree: H.ParentNode, depthOffset?: number): E.TemplateLiteral;
 }
 
 export interface ReactiveTemplate {
@@ -300,6 +300,14 @@ export function createHtmlTextNode(value: string, parentTagName?: string): H.Tex
   return defaultTreeAdapter.createTextNode(value);
 }
 
+// parse5 follows browser HTML rules: it can insert implied tags (e.g. <tbody> around <tr>s)
+// or move disallowed table text outside the table. Use a comment placeholder so a JSX expression
+// keeps its position: `<tbody>{rows}</tbody>` -> `<tbody><!--wcc-expression-0-end--></tbody>`.
+// The placeholder comment is removed when restoring the expression AST.
+export function createHtmlChildSlot(value: string): H.CommentNode {
+  return defaultTreeAdapter.createCommentNode(value);
+}
+
 // Create attribute data for a boolean attribute or placeholder, e.g. `disabled` or `title={name}`.
 export function createHtmlAttribute(name: string, value = ''): Token.Attribute {
   return { name, value };
@@ -498,12 +506,13 @@ export function createHtmlTemplateLiteralBuilder(
       return marker;
     },
     // Normalize HTML and restore its interpolations to produce a template literal node.
-    build(htmlTree) {
+    build(htmlTree, depthOffset = 0) {
       // String boundary: parse5 applies HTML tree rules (e.g. inserting tbody) when parsing text.
       // Serialize the constructed nodes so parse5 can normalize them before final serialization.
       // TODO: review removing this round trip while retaining HTML normalization and event-handler depths.
       const html = serialize(htmlTree);
       const tree = getHtmlParser(html)(html);
+
       // Fill event attributes with component references at the correct depth.
       function applyEventHandlers(parent: H.Node, depth = 1): void {
         for (const node of 'childNodes' in parent ? parent.childNodes : []) {
@@ -514,13 +523,25 @@ export function createHtmlTemplateLiteralBuilder(
           applyEventHandlers(node, depth + 1);
         }
       }
-      applyEventHandlers(tree);
+
+      // JSX returned by a loop is compiled separately, e.g.
+      // `<div>{items.map(item => <button onclick={this.select}>{item}</button>)}</div>`.
+      // So we need to account for the outer <div> by tracking the <button> at a nested depth offset,
+      // so its handler reaches the component with this.parentElement.parentElement` instead of `this.parentElement`.
+      applyEventHandlers(tree, depthOffset + 1);
+
+      // Restore a slot such as `<!--wcc-expression-0-end-->` to its original AST interpolation,
+      // e.g. `${rows.map(...).join('')}`, without emitting the temporary comment in the template.
       const template = createTemplateLiteralParts();
-      for (const part of serialize(tree).split(new RegExp(`(${prefix}\\d+-end)`, 'g'))) {
+
+      for (const part of serialize(tree)
+        .replace(new RegExp(`<!--(${prefix}\\d+-end)-->`, 'g'), '$1')
+        .split(new RegExp(`(${prefix}\\d+-end)`, 'g'))) {
         const expression = expressions.get(part);
         if (expression) template.expression(expression);
         else template.text(part);
       }
+
       return template.build();
     },
   };
@@ -836,7 +857,13 @@ export function createReactiveClassMembers(
       ),
     );
   }
-  return members;
+  // Keep cached DOM fields first, then statics, then generated instance methods:
+  // `$el0; $el1; static $$tmpl0 = ...; static parseAttribute = ...; attributeChangedCallback(...) { ... }`.
+  return [
+    ...members.filter((member) => member.type === 'PropertyDefinition' && !member.static),
+    ...members.filter((member) => member.static),
+    ...members.filter((member) => member.type === 'MethodDefinition' && !member.static),
+  ];
 }
 
 // Cache reactive DOM nodes, e.g. `this.$el0 = this.shadowRoot.querySelector('span');`.
