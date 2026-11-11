@@ -22,10 +22,10 @@ export default class FeatureBox extends HTMLElement {
     return (
       <div class={styles.container}>
         <h4 class={styles.heading}>
-          <span class={styles.icon}>{icon}</span>
+          <span class={styles.icon} innerHTML={icon}></span>
           <span>{heading}</span>
         </h4>
-        {innerHTML}
+        <div innerHTML={innerHTML}></div>
       </div>
     );
   }

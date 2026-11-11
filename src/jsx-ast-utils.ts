@@ -44,7 +44,7 @@ export interface TemplateLiteralParts {
 }
 
 export interface HtmlTemplateLiteralBuilder {
-  expression(node: E.Expression): string;
+  expression(node: E.Expression, context?: 'text' | 'attribute' | 'raw'): string;
   handler(create: (depth: number) => string | undefined): string;
   build(tree: H.ParentNode): E.TemplateLiteral;
 }
@@ -82,6 +82,10 @@ const voidElements = new Set([
   'track',
   'wbr',
 ]);
+
+export function isVoidHtmlElement(tagName: string): boolean {
+  return voidElements.has(tagName);
+}
 
 // Reference a variable or property name, e.g. `count`.
 export const createIdentifier = (name: string): E.Identifier => ({ type: 'Identifier', name });
@@ -301,19 +305,41 @@ export function createHtmlAttribute(name: string, value = ''): Token.Attribute {
   return { name, value };
 }
 
-// Parse source attributes in their quoting context, e.g. `{0x10}` keeps `0x10` as its value.
+// Decode quoted JSX source in attribute context; JavaScript expression literals already hold their values.
 export function createHtmlLiteralAttributes(
   name: string,
   literal: E.Literal,
   isJsxAttribute = false,
 ): Token.Attribute[] {
-  const value = isJsxAttribute ? `"${literal.value}"` : literal.raw;
-  // Required markup string: parse5's public parser needs HTML to interpret attribute quoting/entities.
-  // TODO: review replacing this markup wrapper while preserving attribute quoting and entity handling.
-  // TODO: escape decoded JSX quotes; `title="&quot;Hello&quot;"` currently creates malformed attributes.
-  const fragment = parseFragment(`<span ${name}=${value}></span>`);
-  const node = fragment.childNodes[0];
-  return 'attrs' in node ? node.attrs : [];
+  if (isJsxAttribute) {
+    // Acorn's JSX entity table is incomplete (e.g. &dollar;). Parse the original quoted source
+    // so parse5 decodes all HTML entities once, without mistaking decoded quotes for delimiters.
+    const fragment = parseFragment(`<span ${name}=${literal.raw}></span>`);
+    const node = fragment.childNodes[0];
+    return 'attrs' in node ? node.attrs : [];
+  }
+  return [createHtmlAttribute(name, String(literal.value))];
+}
+
+// Coerce once, then escape values before they reach innerHTML; DOM setters do not need this step.
+function createEscapedHtmlExpression(
+  node: E.Expression,
+  context: 'text' | 'attribute',
+): E.Expression {
+  let value: E.Expression = createTemplateLiteral(['', ''], [node]);
+  const replacements = [
+    ['&', '&amp;'],
+    ['<', '&lt;'],
+    ['>', '&gt;'],
+    ...(context === 'attribute' ? [['"', '&quot;']] : []),
+  ];
+  for (const [character, entity] of replacements) {
+    value = createCallExpression(createMemberExpression(value, 'replaceAll'), [
+      createLiteral(character),
+      createLiteral(entity),
+    ]);
+  }
+  return value;
 }
 
 // Attach children to template content, or after void elements, e.g. `<img>hello</img>` becomes `<img>hello`.
@@ -454,13 +480,15 @@ export function createHtmlTemplateLiteralBuilder(
   const handlers = new Map<string, (depth: number) => string | undefined>();
   // Give each expression or handler a distinct placeholder, e.g. `wcc-expression-0-end`.
   const token = () => `${prefix}${expressions.size + handlers.size}-end`;
+
   return {
-    // TODO: keep attribute-derived text such as `<template>` from becoming markup when interpolated.
-    // https://github.com/ProjectEvergreen/wcc/issues/249
     // Save an interpolation node and return its placeholder, e.g. the `count` in `{count}`.
-    expression(node) {
+    expression(node, context = 'text') {
       const marker = token();
-      expressions.set(marker, node);
+      expressions.set(
+        marker,
+        context === 'raw' ? node : createEscapedHtmlExpression(node, context),
+      );
       return marker;
     },
     // Defer handler generation until the parsed HTML determines its DOM depth.
@@ -643,10 +671,15 @@ export function createEffectStatements(reactiveElements: ReactiveElement[]): E.S
       addEffect(
         attributes.map((attr) =>
           createExpressionStatement(
-            createCallExpression(
-              createMemberExpression(createThisMemberExpression(`$el${idx}`), 'setAttribute'),
-              [createLiteral(attr.name), createSignalValueExpression(attr.value)],
-            ),
+            attr.name === 'innerHTML'
+              ? createAssignmentExpression(
+                  createMemberExpression(createThisMemberExpression(`$el${idx}`), 'innerHTML'),
+                  createSignalValueExpression(attr.value),
+                )
+              : createCallExpression(
+                  createMemberExpression(createThisMemberExpression(`$el${idx}`), 'setAttribute'),
+                  [createLiteral(attr.name), createSignalValueExpression(attr.value)],
+                ),
           ),
         ),
       );

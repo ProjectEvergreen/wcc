@@ -7,7 +7,8 @@
     <style>
       h1,
       h2,
-      p {
+      p,
+      sb-comment-jsx {
         text-align: center;
       }
 
@@ -23,6 +24,13 @@
         text-align: center;
         white-space: collapse;
         border: 2px dotted #222;
+      }
+
+      pre.interpolation-example {
+        width: fit-content;
+        max-width: 100%;
+        text-align: left;
+        white-space: pre-line;
       }
 
       button.reset {
@@ -107,6 +115,7 @@
     <script type="module" src="../components/sandbox/card.js"></script>
     <script type="module" src="../components/sandbox/picture-frame.js"></script>
     <script type="module" src="../components/sandbox/header.jsx"></script>
+    <script type="module" src="../components/sandbox/comment.jsx"></script>
     <script type="module" src="../components/sandbox/card.jsx"></script>
     <script type="module" src="../components/sandbox/signal-counter.jsx"></script>
   </head>
@@ -237,6 +246,26 @@
       &lt;sb-signal-counter-jsx
         count="3"
       &gt;&lt;/sb-signal-counter-jsx&gt;
+    </pre>
+    <hr />
+
+    <h2>JSX + HTML Interpolation (Comment)</h2>
+
+    <p>
+      The author is displayed as text with <code>{author}</code>. The supplied comment content is
+      rendered as HTML with <code>innerHTML={content}</code>.
+    </p>
+
+    <sb-comment-jsx
+      author="Alex"
+      content="Great example! &lt;strong&gt;Thanks for sharing.&lt;/strong&gt;"
+    ></sb-comment-jsx>
+
+    <pre class="interpolation-example">
+      &lt;sb-comment-jsx
+        author="Alex"
+        content="Great example! &amp;lt;strong&amp;gt;Thanks for sharing.&amp;lt;/strong&amp;gt;"
+      &gt;&lt;/sb-comment-jsx&gt;
     </pre>
   </body>
 </html>

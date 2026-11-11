@@ -10,6 +10,7 @@ import { transform } from 'sucrase';
 import * as ast from './jsx-ast-utils.js';
 import { Signal } from 'signal-polyfill';
 import type * as E from 'estree-jsx';
+import { html } from 'parse5';
 import type { DefaultTreeAdapterTypes as H } from 'parse5';
 import type { ResolveHook, LoadHook } from 'node:module';
 import type { PathOrFileDescriptor } from 'node:fs';
@@ -147,120 +148,96 @@ function createHtmlTreeFromJsx(
   currentDepth = 1,
   parent: H.ParentNode = ast.createHtmlFragment(),
 ): H.ParentNode {
-  try {
-    const { type } = element;
+  const { type } = element;
 
-    if (type === 'JSXElement') {
-      const { openingElement } = element;
-      if (openingElement.name.type !== 'JSXIdentifier') return parent;
-      const node = ast.createHtmlElement(openingElement.name.name);
+  if (type === 'JSXElement') {
+    const { openingElement } = element;
+    if (openingElement.name.type !== 'JSXIdentifier') return parent;
+    const node = ast.createHtmlElement(openingElement.name.name);
+    const innerHtml = openingElement.attributes.find(
+      (attribute) =>
+        attribute.type === 'JSXAttribute' &&
+        attribute.name.type === 'JSXIdentifier' &&
+        attribute.name.name === 'innerHTML',
+    );
 
-      ast.appendHtmlChild(parent, node);
+    if (innerHtml) {
+      const hasChildren = element.children.some(
+        (child) =>
+          !(child.type === 'JSXText' && child.value.trim() === '') &&
+          !(
+            child.type === 'JSXExpressionContainer' &&
+            child.expression.type === 'JSXEmptyExpression'
+          ),
+      );
+      if (hasChildren) throw new Error('JSX innerHTML cannot be combined with children.');
+      if (ast.isVoidHtmlElement(node.tagName)) {
+        throw new Error(`JSX innerHTML cannot be used on void element <${node.tagName}>.`);
+      }
+    }
 
-      for (const attribute of openingElement.attributes) {
-        if (attribute.type !== 'JSXAttribute' || attribute.name.type !== 'JSXIdentifier') continue;
-        const { name } = attribute.name;
+    ast.appendHtmlChild(parent, node);
 
-        if (name.startsWith('on')) {
-          const { value } = attribute;
+    for (const attribute of openingElement.attributes) {
+      if (attribute.type !== 'JSXAttribute' || attribute.name.type !== 'JSXIdentifier') continue;
+      const { name } = attribute.name;
+      const { value } = attribute;
+      const expression = value?.type === 'JSXExpressionContainer' ? value.expression : value;
 
-          if (value?.type === 'JSXExpressionContainer') {
-            const { expression } = value;
-
-            if (expression.type === 'ArrowFunctionExpression' && expression.body) {
-              node.attrs.push(
-                ast.createHtmlAttribute(
-                  name,
-                  template.handler(() =>
-                    ast.generateInlineEventHandler(expression, currentDepth, hasShadowRoot),
-                  ),
+      // WCC's innerHTML prop inserts unescaped child markup instead of emitting an HTML attribute.
+      if (name === 'innerHTML') {
+        if (!expression || expression.type === 'JSXEmptyExpression') {
+          throw new Error('JSX innerHTML requires a value.');
+        }
+        // A quoted JSX attribute's raw source still contains entities; its value is decoded.
+        const content =
+          value?.type === 'Literal'
+            ? {
+                ...value,
+                value: ast.createHtmlLiteralAttributes(name, value, true)[0].value,
+                raw: undefined,
+              }
+            : expression;
+        ast.appendHtmlChild(node, ast.createHtmlTextNode(template.expression(content, 'raw')));
+      } else if (name.startsWith('on')) {
+        if (value?.type === 'JSXExpressionContainer') {
+          const { expression } = value;
+          if (expression.type === 'ArrowFunctionExpression' && expression.body) {
+            node.attrs.push(
+              ast.createHtmlAttribute(
+                name,
+                template.handler(() =>
+                  ast.generateInlineEventHandler(expression, currentDepth, hasShadowRoot),
                 ),
-              );
-            } else if (
-              ast.generateEventHandler(expression, currentDepth, hasShadowRoot) !== undefined
-            ) {
-              node.attrs.push(
-                ast.createHtmlAttribute(
-                  name,
-                  template.handler((depth) =>
-                    ast.generateEventHandler(expression, depth, hasShadowRoot),
-                  ),
+              ),
+            );
+          } else if (
+            ast.generateEventHandler(expression, currentDepth, hasShadowRoot) !== undefined
+          ) {
+            node.attrs.push(
+              ast.createHtmlAttribute(
+                name,
+                template.handler((depth) =>
+                  ast.generateEventHandler(expression, depth, hasShadowRoot),
                 ),
-              );
-            }
-          }
-        } else if (attribute.name.type === 'JSXIdentifier') {
-          if (!attribute.value) {
-            node.attrs.push(ast.createHtmlAttribute(name));
-            continue;
-          }
-          const expression =
-            attribute.value.type === 'JSXExpressionContainer'
-              ? attribute.value.expression
-              : undefined;
-
-          if (attribute.value.type === 'Literal') {
-            node.attrs.push(...ast.createHtmlLiteralAttributes(name, attribute.value, true));
-          } else if (inferredObservability && isSignalRead(expression)) {
-            const { object, property } = expression.callee;
-            if (
-              object.type === 'MemberExpression' &&
-              object.object.type === 'ThisExpression' &&
-              object.property.type === 'Identifier'
-            ) {
-              node.attrs.push(
-                ast.createHtmlAttribute(
-                  name,
-                  template.expression(
-                    ast.createCallExpression(
-                      ast.createMemberExpression(
-                        ast.createIdentifier(object.property.name),
-                        property.name,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            } else if (object.type === 'Identifier') {
-              node.attrs.push(
-                ast.createHtmlAttribute(
-                  name,
-                  template.expression(
-                    ast.createCallExpression(ast.createMemberExpression(object, property.name)),
-                  ),
-                ),
-              );
-            }
-          } else if (expression) {
-            switch (expression.type) {
-              case 'Literal':
-                node.attrs.push(...ast.createHtmlLiteralAttributes(name, expression));
-                break;
-              case 'Identifier':
-                node.attrs.push(ast.createHtmlAttribute(name, template.expression(expression)));
-                break;
-              case 'MemberExpression':
-                if (
-                  expression.object.type === 'Identifier' &&
-                  expression.property.type === 'Identifier'
-                ) {
-                  node.attrs.push(
-                    ast.createHtmlAttribute(
-                      name,
-                      template.expression(
-                        ast.createMemberExpression(expression.object, expression.property),
-                      ),
-                    ),
-                  );
-                }
-                break;
-              default:
-                break;
-            }
+              ),
+            );
           }
         }
+      } else if (!expression) {
+        node.attrs.push(ast.createHtmlAttribute(name));
+      } else if (expression.type === 'Literal') {
+        node.attrs.push(
+          ...ast.createHtmlLiteralAttributes(name, expression, value?.type === 'Literal'),
+        );
+      } else if (expression.type !== 'JSXEmptyExpression') {
+        node.attrs.push(
+          ast.createHtmlAttribute(name, template.expression(expression, 'attribute')),
+        );
       }
+    }
 
+    if (!innerHtml) {
       for (const child of element.children) {
         createHtmlTreeFromJsx(
           child,
@@ -271,65 +248,34 @@ function createHtmlTreeFromJsx(
           node,
         );
       }
-
-      // HTML treats </br> as another <br>; JSX br output includes both line-break nodes.
-      // TODO: emit one break for JSX <br />; the extra node preserves the current compiler output.
-      if (node.tagName === 'br') {
-        ast.appendHtmlChild(parent, ast.createHtmlElement('br'));
-      }
     }
 
-    if (type === 'JSXText') {
-      ast.appendHtmlChild(
-        parent,
-        ast.createHtmlTextNode(element.raw, 'tagName' in parent ? parent.tagName : undefined),
-      );
+    // HTML treats </br> as another <br>; JSX br output includes both line-break nodes.
+    // TODO: emit one break for JSX <br />; the extra node preserves the current compiler output.
+    if (node.tagName === 'br') {
+      ast.appendHtmlChild(parent, ast.createHtmlElement('br'));
     }
+  }
 
-    if (type === 'JSXExpressionContainer') {
-      const expression = element.expression;
-      let value;
+  if (type === 'JSXText') {
+    ast.appendHtmlChild(
+      parent,
+      ast.createHtmlTextNode(element.raw, 'tagName' in parent ? parent.tagName : undefined),
+    );
+  }
 
-      if (inferredObservability && isSignalRead(expression)) {
-        // TODO: handle this references
-        // https://github.com/ProjectEvergreen/wcc/issues/88
-        const { object, property } = expression.callee;
-        // Direct component this references are unsupported.
-        value = ast.createCallExpression(
-          ast.createMemberExpression(
-            ast.createIdentifier(identifierName(object) ?? 'undefined'),
-            property.name,
-          ),
-        );
-      } else if (expression.type === 'Identifier') {
-        // You have {count} TODOs left to complete
-        value = expression;
-      } else if (expression.type === 'MemberExpression') {
-        // You have {this.todos.length} Todos left to complete
-        // https://github.com/ProjectEvergreen/wcc/issues/88
-        // TODO: support component this references in JSX text member expressions
-        if (
-          expression.object.type !== 'MemberExpression' ||
-          expression.object.object.type !== 'ThisExpression'
-        ) {
-          value = ast.createMemberExpression(
-            ast.createIdentifier(identifierName(expression.object) ?? 'undefined'),
-            ast.createIdentifier(identifierName(expression.property) ?? 'undefined'),
-          );
-        }
-      }
-      if (value) {
-        ast.appendHtmlChild(
-          parent,
-          ast.createHtmlTextNode(
-            template.expression(value),
-            'tagName' in parent ? parent.tagName : undefined,
-          ),
-        );
-      }
-    }
-  } catch (e) {
-    console.error(e);
+  if (type === 'JSXExpressionContainer' && element.expression.type !== 'JSXEmptyExpression') {
+    const parentTag = 'tagName' in parent ? parent.tagName : '';
+    ast.appendHtmlChild(
+      parent,
+      ast.createHtmlTextNode(
+        template.expression(
+          element.expression,
+          html.hasUnescapedText(parentTag, true) ? 'raw' : 'text',
+        ),
+        parentTag,
+      ),
+    );
   }
   return parent;
 }
@@ -508,14 +454,15 @@ export function parseJsx(
                 const children: Record<string, string[]> = {};
                 const parentTemplate = ast.createTemplateLiteralParts();
                 let parentHasReactiveTemplate;
-                let parentHasReactiveAttributes;
+                const parentHasReactiveAttributes =
+                  rootNode.openingElement.attributes.some(isReactiveAttribute);
                 const parentSignals: string[] = [];
 
                 for (const child of rootNode.children) {
                   if (child.type === 'JSXText') {
                     // TODO: track top level reactivity for text nodes?
                     // https://github.com/ProjectEvergreen/wcc/issues/256
-                    parentTemplate.text(child.raw);
+                    parentTemplate.text(ast.createHtmlTextNode(child.raw, parentTag).value);
                   } else if (child.type === 'JSXExpressionContainer') {
                     if (isSignalRead(child.expression)) {
                       const { object } = child.expression.callee || {};
@@ -525,9 +472,6 @@ export function parseJsx(
                       parentSignals.push(identifierName(object) ?? 'undefined');
                       parentHasReactiveTemplate = true;
                     }
-
-                    parentHasReactiveAttributes =
-                      rootNode.openingElement.attributes.some(isReactiveAttribute);
                   } else if (child.type === 'JSXElement') {
                     const childTag =
                       child.openingElement.name.type === 'JSXIdentifier'
@@ -562,7 +506,7 @@ export function parseJsx(
 
                       for (const c of child.children) {
                         if (c.type === 'JSXText') {
-                          template.text(c.value);
+                          template.text(ast.createHtmlTextNode(c.raw, childTag).value);
                         } else if (
                           c.type === 'JSXExpressionContainer' &&
                           isSignalRead(c.expression)
@@ -605,17 +549,19 @@ export function parseJsx(
                   }
                 }
 
-                if (parentHasReactiveTemplate) {
+                if (parentHasReactiveTemplate || parentHasReactiveAttributes) {
                   // TODO: handle this references?
                   // https://www.github.com/ProjectEvergreen/wcc/issues/88
                   reactiveElements.push({
                     selector: `${parentTag}:nth-of-type(1)`,
-                    effect: ast.createReactiveTemplate(
-                      `$$tmpl${reactiveElements.length}`,
-                      parentSignals,
-                      parentTemplate,
-                      componentName,
-                    ),
+                    effect: parentHasReactiveTemplate
+                      ? ast.createReactiveTemplate(
+                          `$$tmpl${reactiveElements.length}`,
+                          parentSignals,
+                          parentTemplate,
+                          componentName,
+                        )
+                      : undefined,
                     attributes: [],
                   });
 

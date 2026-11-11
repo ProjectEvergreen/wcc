@@ -12,7 +12,7 @@ export default class CapabilityBox extends HTMLElement {
     return (
       <div class={styles.container}>
         <h4 class={styles.heading}>{heading}</h4>
-        {innerHTML}
+        <div innerHTML={innerHTML}></div>
       </div>
     );
   }

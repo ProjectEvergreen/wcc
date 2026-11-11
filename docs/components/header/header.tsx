@@ -51,13 +51,11 @@ export default class Header extends HTMLElement {
 
     return (
       <header class={styles.container}>
-        <a href="/" title="WCC Home Page" class={styles.logoLink}>
-          {wccLogo}
-        </a>
+        <a href="/" title="WCC Home Page" class={styles.logoLink} innerHTML={wccLogo}></a>
 
         <div class={styles.navBar}>
           <nav role="navigation" aria-label="Main">
-            <ul class={styles.navBarMenu}>{mainNavHtml}</ul>
+            <ul class={styles.navBarMenu} innerHTML={mainNavHtml}></ul>
           </nav>
         </div>
 
@@ -77,9 +75,8 @@ export default class Header extends HTMLElement {
           class={styles.mobileMenuIcon}
           popovertarget="mobile-menu"
           aria-label="Mobile Menu Icon Button"
-        >
-          {mobileMenuIcon}
-        </button>
+          innerHTML={mobileMenuIcon}
+        ></button>
 
         <div id="mobile-menu" popover="manual" class={styles.mobileMenuContainer}>
           <div class={styles.mobileMenuBackdrop}>
@@ -93,7 +90,7 @@ export default class Header extends HTMLElement {
             </button>
 
             <nav role="navigation" aria-label="Mobile">
-              <ul class={styles.mobileMenuList}>{mobileNavHtml}</ul>
+              <ul class={styles.mobileMenuList} innerHTML={mobileNavHtml}></ul>
             </nav>
           </div>
         </div>

@@ -467,6 +467,60 @@ There are of couple things you will need to do to use WCC with JSX:
 
 > _See our [example's page](/examples#jsx) for some usages of WCC + JSX._ 👀
 
+### HTML Interpolation
+
+WCC escapes interpolated strings in ordinary JSX text and attribute values by default. HTML inside those strings is preserved as text, helping prevent HTML injection and related XSS vulnerabilities.
+
+For example, this would display the raw HTML tag:
+
+<!-- prettier-ignore-start -->
+
+<wcc-ctc-block variant="snippet">
+
+  ```tsx
+  render() {
+    const heading = '<strong>Hello</strong>';
+    return <h4 innerHTML={heading}></h4>;
+  }
+  ```
+
+</wcc-ctc-block>
+
+<wcc-ctc-block variant="snippet">
+
+  ```html
+  <h4>&lt;template&gt;</h4>
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
+
+To render HTML or SVG from a string, use WCC’s `innerHTML` JSX prop. WCC interprets the string as markup without escaping or sanitizing it.
+
+<!-- prettier-ignore-start -->
+
+<wcc-ctc-block variant="snippet">
+
+  ```tsx
+  render() {
+    const heading = '<strong>Hello</strong>';
+    return <h4 innerHTML={heading}></h4>;
+  }
+  ```
+
+</wcc-ctc-block>
+
+<wcc-ctc-block variant="snippet">
+
+  ```html
+  <h4><strong>Hello</strong></h4>
+  ```
+
+</wcc-ctc-block>
+
+<!-- prettier-ignore-end -->
+
 ### TSX
 
 TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You'll need to configure JSX in your _tsconfig.json_ by adding these required (and recommend) entries into to your `compilerOptions` settings:

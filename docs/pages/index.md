@@ -105,7 +105,7 @@ WCC aims to cover a reasonable set of DOM APIs to help facilitate server-renderi
     <p>Declarative Shadow DOM</p>
   </wcc-capability-box>
 
-  <wcc-capability-box heading="< template >">
+  <wcc-capability-box heading="&lt;template&gt;">
     <p>Template element support (createElement)</p>
   </wcc-capability-box>
 
