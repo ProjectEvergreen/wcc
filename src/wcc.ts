@@ -322,7 +322,6 @@ async function renderToString(
   };
 }
 
-function renderFromHTML(html: string, elementURLs: URL[]): Promise<HtmlRenderResult>;
 async function renderFromHTML(html: string, elements: URL[] = []): Promise<HtmlRenderResult> {
   const definitions: Definitions = {};
 
