@@ -49,25 +49,18 @@ describe('Run WCC For ', function () {
       describe('Event Handling', () => {
         // <button onclick={this.sayHello}>Get a greeting!</button>
         it('should handle a this expression', () => {
-          const wrapper = new JSDOM(heading.innerHTML);
-          const button = Array.from(wrapper.window.document.querySelectorAll('button')).find(
-            (button) => button.getAttribute('id') === 'evt-this',
+          expect(meta['wcc-heading'].source).to.contain(
+            "$evRoot0?.querySelector(':scope > button:nth-of-type(",
           );
-
-          expect(button.getAttribute('onclick')).to.be.equal(
-            'this.getRootNode().host.sayHello(event)',
+          expect(meta['wcc-heading'].source).to.contain(
+            "addEventListener('click', event => this.sayHello(event))",
           );
         });
 
         // <button onclick={(e) => { console.log({ e }); }}> Click Me</button>
         it('should handle an inline event handler with custom event identifier', () => {
-          const wrapper = new JSDOM(heading.innerHTML);
-          const button = Array.from(wrapper.window.document.querySelectorAll('button')).find(
-            (button) => button.getAttribute('id') === 'evt-inline',
-          );
-
-          expect(button.getAttribute('onclick').trim().replace(/\s+/g, '')).to.be.equal(
-            '(function(e,self){{console.log({e});}})(event,this.getRootNode().host)',
+          expect(meta['wcc-heading'].source.replace(/\s+/g, '')).to.contain(
+            "addEventListener('click',e=>{console.log({e});})",
           );
         });
       });

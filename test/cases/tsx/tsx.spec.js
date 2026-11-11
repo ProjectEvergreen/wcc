@@ -28,12 +28,6 @@ describe('Run WCC For ', function () {
 
   describe(LABEL, function () {
     describe('<Counter> component w/ <Badge>', function () {
-      let buttons;
-
-      before(async function () {
-        buttons = dom.window.document.querySelectorAll('button');
-      });
-
       describe('Metadata', () => {
         it('should return a JSX definition in metadata', () => {
           expect(Object.keys(meta).length).to.equal(2);
@@ -76,34 +70,22 @@ describe('Run WCC For ', function () {
       describe('Event Handling', () => {
         // <button onclick={this.decrement}> - </button>
         it('should handle a this expression', () => {
-          const element = Array.from(buttons).find(
-            (button) => button.getAttribute('id') === 'evt-this',
-          );
-
-          expect(element.getAttribute('onclick')).to.be.equal(
-            'this.parentElement.parentElement.decrement(event)',
+          expect(meta['wcc-counter-jsx'].source).to.contain(
+            "addEventListener('click', event => this.decrement(event))",
           );
         });
 
         // <button onclick={this.count -= 1}> - </button>
         it('should handle an assignment expression with implicit reactivity using this.render', () => {
-          const element = Array.from(buttons).find(
-            (button) => button.getAttribute('id') === 'evt-assignment',
-          );
-
-          expect(element.getAttribute('onclick')).to.be.equal(
-            'this.parentElement.parentElement.count-=1; this.parentElement.parentElement.render();',
+          expect(meta['wcc-counter-jsx'].source.replace(/\s+/g, '')).to.contain(
+            "addEventListener('click',()=>{this.count-=1;this.render();})",
           );
         });
 
         // <button onclick={(e: Event) => { console.log({ e }); }}> Click Me</button>
         it('should handle an inline event handler with custom event identifier', () => {
-          const element = Array.from(buttons).find(
-            (button) => button.getAttribute('id') === 'evt-inline',
-          );
-
-          expect(element.getAttribute('onclick').trim().replace(/\s+/g, '')).to.be.equal(
-            '(function(e,self){{console.log({e});}})(event,this.parentElement.parentElement)',
+          expect(meta['wcc-counter-jsx'].source.replace(/\s+/g, '')).to.contain(
+            "addEventListener('click',e=>{console.log({e});})",
           );
         });
       });

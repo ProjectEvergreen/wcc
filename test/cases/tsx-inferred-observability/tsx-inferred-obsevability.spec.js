@@ -88,12 +88,11 @@ describe('Run WCC For ', function () {
         expect(actual).to.contain(effectImport);
       });
 
-      it('should generate an inline handler that references the component', () => {
-        const button = dom.window.document.querySelector('wcc-counter-tsx #evt-assignment');
-        const actual = button.getAttribute('onclick').replace(/\s+/g, '');
+      it('should generate a listener that references the component', () => {
+        const actual = meta['wcc-counter-tsx'].source.replace(/\s+/g, '');
 
-        expect(actual).to.equal(
-          '(function(event,self){self.count.set(self.count.get()-1);})(event,this.parentElement.parentElement)',
+        expect(actual).to.contain(
+          "addEventListener('click',()=>this.count.set(this.count.get()-1))",
         );
       });
 

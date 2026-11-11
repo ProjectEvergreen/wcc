@@ -1,0 +1,24 @@
+{
+  const $evRoot_0 = this.querySelector('section:nth-of-type(1)');
+  const $evEl_0 = $evRoot_0?.querySelector(':scope > button:nth-of-type(1)');
+  $evEl_0?.addEventListener('click', event => this.#increment(event));
+  const $evEl_1 = $evRoot_0?.querySelector(':scope > button:nth-of-type(2)');
+  $evEl_1?.addEventListener('click', e => {
+    e.preventDefault();
+    this.#count += $evEl0 + event + $evRoot0;
+    this.render();
+  });
+  $evEl_1?.addEventListener('focus', () => {
+    this.#count = 10;
+    this.render();
+  });
+  const $evEl_2 = $evRoot_0?.querySelector(':scope > button:nth-of-type(3)');
+  $evEl_2?.addEventListener('click', () => {
+    this.#count += 1;
+    this.render();
+  });
+  const $evEl_3 = $evRoot_0?.querySelector(':scope > button:nth-of-type(4)');
+  $evEl_3?.addEventListener('closed', event => this.#reset(event));
+  const $evEl_4 = $evRoot_0?.querySelector(':scope > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > button:nth-of-type(1)');
+  $evEl_4?.addEventListener('click', event => this.#increment(event));
+}
