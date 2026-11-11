@@ -116,6 +116,7 @@
     <script type="module" src="../components/sandbox/picture-frame.js"></script>
     <script type="module" src="../components/sandbox/header.jsx"></script>
     <script type="module" src="../components/sandbox/comment.jsx"></script>
+    <script type="module" src="../components/sandbox/comment-thread.jsx"></script>
     <script type="module" src="../components/sandbox/card.jsx"></script>
     <script type="module" src="../components/sandbox/signal-counter.jsx"></script>
   </head>
@@ -251,11 +252,6 @@
 
     <h2>JSX + HTML Interpolation (Comment)</h2>
 
-    <p>
-      The author is displayed as text with <code>{author}</code>. The supplied comment content is
-      rendered as HTML with <code>innerHTML={content}</code>.
-    </p>
-
     <sb-comment-jsx
       author="Alex"
       content="Great example! &lt;strong&gt;Thanks for sharing.&lt;/strong&gt;"
@@ -266,6 +262,17 @@
         author="Alex"
         content="Great example! &amp;lt;strong&amp;gt;Thanks for sharing.&amp;lt;/strong&amp;gt;"
       &gt;&lt;/sb-comment-jsx&gt;
+    </pre>
+    <hr />
+
+    <h2>JSX Loops (<code>.map()</code>) + Signals (Comment Replies)</h2>
+
+    <sb-comment-thread-jsx></sb-comment-thread-jsx>
+
+    <pre class="interpolation-example">
+      {comments.map(({ author, text }) =&gt; (
+        &lt;li&gt;&lt;h4&gt;{author}&lt;/h4&gt;&lt;p&gt;{text}&lt;/p&gt;&lt;/li&gt;
+      ))}
     </pre>
   </body>
 </html>

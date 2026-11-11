@@ -1,0 +1,55 @@
+render() {
+  const items = [{
+    name: '<Alex>',
+    show: true
+  }, {
+    name: 'Sam & Jo',
+    show: true
+  }];
+  const saved = items.map(({name}, index) => {
+    const title = `${index}: ${name}${this.#suffix}`;
+    return $$wcc_Markup(`<li title="${`${title}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')}">
+          <span>${Lists.$$wcc_Child(title)}</span>
+        </li>`);
+  });
+  const collected = [];
+  items.forEach(({name}) => collected.push($$wcc_Markup(`<em>${Lists.$$wcc_Child(name)}</em>`)));
+  this.innerHTML = `<main>
+        <ul id="saved">${Lists.$$wcc_Child(saved)}</ul>
+        <ul id="chain">
+          ${items.filter(item => item.show).map(({name}) => `<li>${Lists.$$wcc_Child(name)}</li>`).join('')}
+        </ul>
+        <div id="flat">${items.flatMap(({name}) => Lists.$$wcc_Child([$$wcc_Markup(`<span>${Lists.$$wcc_Child(name)}</span>`), $$wcc_Markup(`<br><br>`)])).join('')}</div>
+        <div id="nested">
+          ${[1, 2].map(number => `<section>
+              ${[3, 4].map(value => `<small>${Lists.$$wcc_Child(number * value)}</small>`).join('')}
+            </section>`).join('')}
+        </div>
+        <div id="empty">
+          ${[].map(value => `<p>${Lists.$$wcc_Child(value)}</p>`).join('')}
+        </div>
+        <div id="foreach">
+          ${Lists.$$wcc_Child(items.forEach(({name}) => $$wcc_Markup(`<p>${Lists.$$wcc_Child(name)}</p>`)))}
+        </div>
+        <div id="collected">${Lists.$$wcc_Child(collected)}</div>
+        <div id="helper">${Lists.$$wcc_Child(helper('chosen'))}</div>
+        <div id="collision">${Lists.$$wcc_Child($$wccMarkup)}</div>
+        <div id="inline">
+          ${items.map(({name}) => `<button onclick="(function (event, self) {
+  self.action();
+})(event, this.parentElement.parentElement.parentElement)">${Lists.$$wcc_Child(name)}</button>`).join('')}
+        </div>
+        <table>
+          <tbody>
+            ${items.map(({name}) => `<tr>
+                <td>
+                  <button onclick="this.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.action(event)">${Lists.$$wcc_Child(name)}</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        <div id="json">
+          ${items.map(item => `<span data-comment="${`${JSON.stringify(item)}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')}"></span>`).join('')}
+        </div>
+      </main>`;
+}
