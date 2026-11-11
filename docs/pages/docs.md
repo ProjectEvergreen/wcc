@@ -113,7 +113,7 @@ You can also manually set the `innerHTML` of a Shadow Root if you don't want to 
 
 ### renderFromHTML
 
-This function takes a string of HTML and an array of any top-level custom elements used in the HTML, and returns the static HTML output of the rendered content. WCC will follow and recursively render any imports from those top-level custom elements, however.
+This function takes a string of HTML and an optional array of any top-level custom elements used in the HTML, and returns the static HTML output of the rendered content. WCC will follow and recursively render any imports from those top-level custom elements, however.
 
 <!-- prettier-ignore-start -->
 

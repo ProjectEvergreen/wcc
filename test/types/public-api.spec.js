@@ -40,6 +40,8 @@ describe('Published TypeScript declarations', function () {
       const result = await render(new URL('file:///component.js'));
       const metadata: Metadata = result.metadata;
       await fromHtml('<div></div>', []);
+      await fromHtml('<div></div>');
+      await fromHtml('<div></div>', undefined);
       getParse('<div></div>');
       getParser(new URL('file:///component.jsx'));
       const tree = parseJsx(new URL('file:///component.tsx'));
