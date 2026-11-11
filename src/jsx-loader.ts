@@ -967,6 +967,9 @@ export function parseJsx(
             );
           };
           context.escapeHtml = escapeHtml;
+          let eventInitializationField = 'evInitialized';
+          while (moduleContents.includes(eventInitializationField)) eventInitializationField += '_';
+          let needsEventInitializationField = false;
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
               const nodeName = identifierName(n1.key);
@@ -986,19 +989,28 @@ export function parseJsx(
                     context,
                     hasShadowRoot,
                   );
-                  // Keep master's loop/escaping context and template naming while binding static
-                  // root events inside render(), where private names and local captures are valid.
+                  const renderTemplate = template.build(htmlTree);
+                  const listeners = template.listeners(hasShadowRoot);
+                  const reuseShadowRoot = hasShadowRoot && listeners.length > 0;
+                  needsEventInitializationField ||= reuseShadowRoot;
+                  // e.g. `return <button onclick={this.#increment}>` becomes an innerHTML
+                  // assignment followed by its listener. The first Shadow DOM render reuses DSD
+                  // nodes when present, while keeping local callback captures in render() scope.
                   return [
                     ...ast.createRenderStatements(
-                      template.build(htmlTree),
+                      renderTemplate,
                       hasShadowRoot,
                       templateName,
+                      reuseShadowRoot ? eventInitializationField : undefined,
                     ),
-                    ...template.listeners(hasShadowRoot),
+                    ...listeners,
                   ];
                 });
               }
             }
+          }
+          if (needsEventInitializationField) {
+            node.body.body.unshift(ast.createEventInitializationField(eventInitializationField));
           }
 
           compileJsxValueExpressions(node, context, hasShadowRoot);

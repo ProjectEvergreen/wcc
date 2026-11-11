@@ -65,6 +65,17 @@ describe('JSX private members and event listeners', () => {
     ).to.equal('Hello');
   });
 
+  it('should reuse populated Shadow DOM for initial listener setup and mount content on later renders', async () => {
+    const source = heading.metadata['wcc-private-heading'].source;
+    const expected = await fs.readFile(
+      new URL('./fixtures/heading/render.txt', import.meta.url),
+      'utf8',
+    );
+
+    expect(compact(source)).to.contain('#evInitialized=false;');
+    expect(compact(source)).to.contain(compact(expected));
+  });
+
   it('should generate effects for private signal reads and aliases', async () => {
     const source = signals.metadata['wcc-private-signals'].source;
     const document = new JSDOM(signals.html).window.document;
