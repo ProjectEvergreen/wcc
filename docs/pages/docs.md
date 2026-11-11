@@ -445,6 +445,37 @@ A couple things to observe in the above example:
 
 > There is an [active discussion tracking features](https://github.com/ProjectEvergreen/wcc/discussions/84) and [issues in progress](https://github.com/ProjectEvergreen/wcc/issues?q=is%3Aopen+is%3Aissue+label%3AJSX) to continue iterating on this, so please feel free to try it out and give us your feedback!
 
+### Private Members and Event Handlers
+
+JSX expressions can access JavaScript private fields and methods, including in text, attributes, and event callbacks:
+
+```jsx
+class Counter extends HTMLElement {
+  #count = 0;
+
+  #increment(event) {
+    this.#count += 1;
+    this.render();
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    return (
+      <div>
+        <p title={this.#count}>Count: {this.#count}</p>
+        <button onclick={this.#increment}>Increment</button>
+      </div>
+    );
+  }
+}
+```
+
+- Event handlers receive the event, with `this` referring to the component. Call `render()` after changing ordinary state.
+- Private Signals work with [inferred observability](#inferred-observability-signals) to update bound text and attributes automatically.
+
 ### Prerequisites
 
 There are of couple things you will need to do to use WCC with JSX:
@@ -575,6 +606,8 @@ If you create your own custom elements and use them in your TSX components, you'
 
 To opt-in to Declarative Shadow DOM with JSX, you will need to signal to the WCC compiler your intentions so it can accurately mount from a `shadowRoot` on the client side. To opt-in, simply make a call to `attachShadow` in your `connectedCallback` method before calling `render`. That's it!
 
+> Call `render()` in `connectedCallback()` even when a declarative shadow root already exists.
+
 Using, the Counter example from above, we would amend it like so:
 
 <!-- prettier-ignore-start -->
@@ -591,8 +624,9 @@ Using, the Counter example from above, we would amend it like so:
     connectedCallback() {
       if (!this.shadowRoot) {
         this.attachShadow({ mode: 'open' }); // this is required for DSD support
-        this.render();
       }
+
+      this.render();
     }
 
     // ...
@@ -638,9 +672,10 @@ So taking the above counter example, enable the inferred observability behavior 
         this.attachShadow({
           mode: 'open',
         });
-        // this call is still needed
-        this.render();
       }
+
+      // mount the template and install listeners on the client
+      this.render();
     }
 
     increment() {
