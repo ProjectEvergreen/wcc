@@ -606,7 +606,9 @@ If you create your own custom elements and use them in your TSX components, you'
 
 To opt-in to Declarative Shadow DOM with JSX, you will need to signal to the WCC compiler your intentions so it can accurately mount from a `shadowRoot` on the client side. To opt-in, simply make a call to `attachShadow` in your `connectedCallback` method before calling `render`. That's it!
 
-> Call `render()` in `connectedCallback()` even when a declarative shadow root already exists.
+> Call `render()` in `connectedCallback()` to initialize event handlers. Existing declarative Shadow DOM is reused on the first call; later calls render updated content.
+>
+> Light DOM components replace their existing content whenever `render()` runs.
 
 Using, the Counter example from above, we would amend it like so:
 
@@ -674,7 +676,7 @@ So taking the above counter example, enable the inferred observability behavior 
         });
       }
 
-      // mount the template and install listeners on the client
+      // initialize event handlers, reusing existing DSD
       this.render();
     }
 

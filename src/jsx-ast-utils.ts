@@ -112,7 +112,7 @@ const createLiteral = (value: string | number | boolean | null): E.SimpleLiteral
 // Access a property, e.g. `this.count` or `this[name]` when computed is true.
 export const createMemberExpression = (
   object: E.Expression | E.Super,
-  property: string | E.Expression,
+  property: string | E.Expression | E.PrivateIdentifier,
   computed = false,
 ): E.MemberExpression => ({
   type: 'MemberExpression',
@@ -445,7 +445,8 @@ export function createHtmlTemplateLiteralBuilder(
       return marker;
     },
     // Emit bindings after mounting, e.g. `$evEl0?.addEventListener('click', event => this.#increment(event))`.
-    // Each render replaces the elements, so bindings belong in render() rather than only connectedCallback().
+    // The initial Shadow DOM render can bind existing DSD nodes; later renders bind replacement nodes.
+    // Keeping callbacks here preserves access to render-local values such as `const step = 2`.
     listeners(hasShadowRoot) {
       const root = hasShadowRoot
         ? createThisMemberExpression('shadowRoot')
@@ -560,11 +561,51 @@ export function createHtmlTemplateLiteralBuilder(
   };
 }
 
+// Track the first listener initialization separately from subsequent explicit renders.
+// e.g. `#evInitialized = false` allows the first render to reuse populated declarative Shadow DOM.
+export function createEventInitializationField(name: string): E.PropertyDefinition {
+  return {
+    ...createPropertyDefinition(name, createLiteral(false)),
+    key: { type: 'PrivateIdentifier', name },
+  };
+}
+
 // Create render statements, e.g. `this.innerHTML = ...`, with Shadow DOM setup when needed.
 export function createRenderStatements(
   template: E.TemplateLiteral,
   hasShadowRoot: boolean,
+  eventInitializationField?: string,
 ): E.Statement[] {
+  if (hasShadowRoot && eventInitializationField) {
+    const initialized = createMemberExpression(createThisExpression(), {
+      type: 'PrivateIdentifier',
+      name: eventInitializationField,
+    });
+    // Reuse populated DSD on the first call. Keep all template creation and interpolation inside
+    // the condition so binding listeners does not evaluate markup or replace server-rendered nodes.
+    // e.g. `if (this.#evInitialized || !this.shadowRoot?.firstChild) { ...mount... }`.
+    // An empty root (including one just created by connectedCallback) still needs its initial markup.
+    return [
+      {
+        type: 'IfStatement',
+        test: createBinaryExpression(
+          '||',
+          initialized,
+          createUnaryExpression('!', {
+            type: 'ChainExpression',
+            expression: {
+              ...createMemberExpression(createThisMemberExpression('shadowRoot'), 'firstChild'),
+              optional: true,
+            },
+          }),
+        ),
+        consequent: createBlockStatement(createRenderStatements(template, true)),
+        alternate: null,
+      },
+      // Subsequent explicit render() calls update the DOM and rebind listeners as usual.
+      createExpressionStatement(createAssignmentExpression(initialized, createLiteral(true))),
+    ];
+  }
   // TODO: could / should we do something else instead of .innerHTML
   // https://github.com/ProjectEvergreen/wcc/issues/138
   if (!hasShadowRoot) {
@@ -631,7 +672,7 @@ export function createRenderStatements(
           ),
         ),
       ]),
-      // Existing root (including declarative Shadow DOM): replace its contents before binding listeners.
+      // An empty existing root or a subsequent explicit render receives the new template contents.
       alternate: createBlockStatement([
         createExpressionStatement(
           createAssignmentExpression(

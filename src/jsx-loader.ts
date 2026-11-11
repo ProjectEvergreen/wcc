@@ -641,6 +641,9 @@ export function parseJsx(
     {
       ClassDeclaration(node) {
         if (identifierName(node.superClass) === 'HTMLElement') {
+          let eventInitializationField = 'evInitialized';
+          while (moduleContents.includes(eventInitializationField)) eventInitializationField += '_';
+          let needsEventInitializationField = false;
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
               const nodeName = identifierName(n1.key);
@@ -654,15 +657,27 @@ export function parseJsx(
                   }
                   const template = ast.createHtmlTemplateLiteralBuilder(moduleContents);
                   const htmlTree = createHtmlTreeFromJsx(statement.argument, template);
+                  const renderTemplate = template.build(htmlTree);
+                  const listeners = template.listeners(hasShadowRoot);
+                  const reuseShadowRoot = hasShadowRoot && listeners.length > 0;
+                  needsEventInitializationField ||= reuseShadowRoot;
                   // e.g. `return <button onclick={this.#increment}>` becomes an innerHTML
-                  // assignment followed by its listener, after either light or shadow DOM mounting.
+                  // assignment followed by its listener. The first Shadow DOM render reuses DSD
+                  // nodes when present, while keeping local callback captures in render() scope.
                   return [
-                    ...ast.createRenderStatements(template.build(htmlTree), hasShadowRoot),
-                    ...template.listeners(hasShadowRoot),
+                    ...ast.createRenderStatements(
+                      renderTemplate,
+                      hasShadowRoot,
+                      reuseShadowRoot ? eventInitializationField : undefined,
+                    ),
+                    ...listeners,
                   ];
                 });
               }
             }
+          }
+          if (needsEventInitializationField) {
+            node.body.body.unshift(ast.createEventInitializationField(eventInitializationField));
           }
         }
       },

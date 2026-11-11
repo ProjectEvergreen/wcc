@@ -1,0 +1,22 @@
+render() {
+  if (this.#evInitialized || !this.shadowRoot?.firstChild) {
+    const template = document.createElement('template');
+    template.innerHTML = `<h1 title="${`${this.#greeting.get()}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')}">
+      ${`${this.#greeting.get()}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}
+    </h1>`;
+    if (!this.shadowRoot) {
+      this.attachShadow({
+        mode: 'open'
+      });
+      this.shadowRoot.appendChild(template.content.cloneNode(true));
+    } else {
+      this.shadowRoot.innerHTML = template.innerHTML;
+    }
+  }
+  this.#evInitialized = true;
+  {
+    const $evRoot0 = this.shadowRoot.querySelector('h1:nth-of-type(1)');
+    const $evEl0 = $evRoot0;
+    $evEl0?.addEventListener('click', event => this.#sayHello(event));
+  }
+}
