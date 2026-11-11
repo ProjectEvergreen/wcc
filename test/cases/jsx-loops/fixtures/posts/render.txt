@@ -1,0 +1,22 @@
+render() {
+  const posts = [{
+    summary: 'Summary <1>'
+  }, {
+    summary: 'Summary & 2'
+  }, {
+    summary: 'Summary 3'
+  }];
+  this.innerHTML = `<section>
+        <div id="summaries">
+          ${posts.map(post => `<details class="post__summary">${Posts.$$wccChild(post.summary)}</details>`).join('')}
+        </div>
+        <ul id="blocks">
+          ${posts.map((post, index) => {
+    if (index === 1) return "";
+    if (index === 2) return Posts.$$wccChild('<plain text>');
+    return `<li>${Posts.$$wccChild(post.summary)}</li>`;
+  }).join('')}
+        </ul>
+        <p id="plain">${Posts.$$wccChild(posts.map(post => post.summary))}</p>
+      </section>`;
+}

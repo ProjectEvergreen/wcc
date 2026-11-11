@@ -1,0 +1,5 @@
+disconnectedCallback() {
+  this.$eff0();
+  this.$eff1();
+  this.$eff2();
+}

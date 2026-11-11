@@ -1,0 +1,5 @@
+static $$wccChild(value) {
+  if (value == null || typeof value === 'boolean') return '';
+  if (Array.isArray(value)) return value.map(Posts.$$wccChild).join('');
+  return `${value}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+}

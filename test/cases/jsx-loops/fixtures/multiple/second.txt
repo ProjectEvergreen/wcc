@@ -1,0 +1,15 @@
+class Second extends HTMLElement {
+  static $$wccChild(value) {
+    if (value == null || typeof value === 'boolean') return '';
+    if (Array.isArray(value)) return value.map(Second.$$wccChild).join('');
+    return `${value}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  }
+  connectedCallback() {
+    this.render();
+  }
+  render() {
+    this.innerHTML = `<ul>
+        ${['second'].map(text => `<li>${Second.$$wccChild(text)}</li>`).join('')}
+      </ul>`;
+  }
+}
