@@ -9,7 +9,10 @@ import type { DefaultTreeAdapterTypes as H, Token } from 'parse5';
 type Visitors = {
   [K in E.Node['type']]?: (node: Extract<E.Node, { type: K }>) => void;
 };
-type WalkerBase = typeof acornWalk.base & { JSXElement?: () => void };
+type WalkerBase = typeof acornWalk.base & {
+  JSXElement?: () => void;
+  JSXFragment?: () => void;
+};
 
 // Only the node/visitor assertions adapt generated ESTree nodes to Acorn's types.
 export const baseWalker = acornWalk.base;

@@ -27,7 +27,7 @@ const tsxRegex = /\.(tsx)$/;
 export function getParser(moduleURL: URL):
   | {
       parser: typeof acorn.Parser;
-      config: typeof acornWalkBase & { JSXElement: () => void };
+      config: typeof acornWalkBase & { JSXElement: () => void; JSXFragment: () => void };
     }
   | undefined {
   const ext = moduleURL.pathname.split('.').pop();
@@ -43,6 +43,7 @@ export function getParser(moduleURL: URL):
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
       ...ast.baseWalker,
       JSXElement: () => {},
+      JSXFragment: () => {},
     },
   };
 }
@@ -140,6 +141,15 @@ function findThisReferences(
   return references;
 }
 
+// Fragments group siblings without introducing a DOM node or selector level.
+// e.g. the children of <div><span>A</span><><span>B</span><><span>C</span></></></div>
+// flattens to [<span>A</span>, <span>B</span>, <span>C</span>]
+function flattenJsxChildren(children: E.JSXElement['children']): E.JSXElement['children'] {
+  return children.flatMap((child) =>
+    child.type === 'JSXFragment' ? flattenJsxChildren(child.children) : [child],
+  );
+}
+
 // Create HTML nodes from JSX, e.g. `<p>{count}</p>` becomes an element with an interpolation marker.
 function createHtmlTreeFromJsx(
   element: E.JSXElement['children'][number],
@@ -151,6 +161,20 @@ function createHtmlTreeFromJsx(
   bindListeners = true,
 ): H.ParentNode {
   const { type } = element;
+
+  if (type === 'JSXFragment') {
+    for (const child of element.children) {
+      createHtmlTreeFromJsx(
+        child,
+        template,
+        parent,
+        context,
+        hasShadowRoot,
+        currentDepth,
+        bindListeners,
+      );
+    }
+  }
 
   if (type === 'JSXElement') {
     const { openingElement } = element;
@@ -453,7 +477,7 @@ function createJsxChildSerializer(
 // Distinguish JSX callbacks (`post => <li>{post.title}</li>`) from data callbacks (`post => post.title`).
 function containsJsx(value: unknown): boolean {
   if (!value || typeof value !== 'object') return false;
-  if ('type' in value && value.type === 'JSXElement') return true;
+  if ('type' in value && (value.type === 'JSXElement' || value.type === 'JSXFragment')) return true;
   return Object.values(value).some((child) =>
     Array.isArray(child) ? child.some(containsJsx) : containsJsx(child),
   );
@@ -467,7 +491,7 @@ function compileJsxChildExpression(
   hasShadowRoot: boolean,
   depth: number,
 ): E.Expression {
-  if (node.type === 'JSXElement') {
+  if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
     return compileJsxTemplate(node, context, hasShadowRoot, depth);
   }
   const loop = compileJsxChildLoop(node, context, hasShadowRoot, depth);
@@ -552,7 +576,7 @@ function compileJsxChildLoop(
 // Convert the JSXElement to a TemplateLiteral without moving expressions out of scope.
 // E.g. `<li>{this.#title}</li>` retains `this.#title` inside the generated class method.
 function compileJsxTemplate(
-  node: E.JSXElement,
+  node: E.JSXElement | E.JSXFragment,
   context: JsxCompilationContext,
   hasShadowRoot: boolean,
   depth: number,
@@ -614,7 +638,7 @@ function compileJsxValueExpressions(
     }
     return node;
   }
-  if (node.type === 'JSXElement') {
+  if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
     context.needsMarkupWrapper = true;
     return ast.createCallExpression(ast.createIdentifier(context.markupFunctionName), [
       compileJsxTemplate(node, context, hasShadowRoot, depth),
@@ -766,7 +790,7 @@ export function parseJsx(
                 }
               },
             },
-            { ...ast.baseWalker, JSXElement: () => {} },
+            { ...ast.baseWalker, JSXElement: () => {}, JSXFragment: () => {} },
           );
 
           for (const n1 of node.body.body) {
@@ -868,6 +892,7 @@ export function parseJsx(
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
       ...ast.baseWalker,
       JSXElement: () => {},
+      JSXFragment: () => {},
     },
   );
 
@@ -889,89 +914,132 @@ export function parseJsx(
             for (const n2 in node.value.body.body) {
               const n = node.value.body.body[n2];
 
-              if (n.type === 'ReturnStatement' && n.argument?.type === 'JSXElement') {
-                const rootNode = n.argument;
-                const parentTag =
-                  rootNode.openingElement.name.type === 'JSXIdentifier'
-                    ? rootNode.openingElement.name.name
-                    : '';
-                const children: Record<string, string[]> = {};
-                const parentTemplate = ast.createTemplateLiteralParts();
-                let parentHasReactiveTemplate;
-                const parentHasReactiveAttributes =
-                  rootNode.openingElement.attributes.some(isReactiveAttribute);
-                const parentSignals: ast.ReactiveSignal[] = [];
+              if (
+                n.type === 'ReturnStatement' &&
+                (n.argument?.type === 'JSXElement' || n.argument?.type === 'JSXFragment')
+              ) {
+                const roots = flattenJsxChildren([n.argument]);
+                const rootCounts: Record<string, number> = {};
 
-                for (const child of rootNode.children) {
-                  if (child.type === 'JSXText') {
-                    // TODO: track top level reactivity for text nodes?
-                    // https://github.com/ProjectEvergreen/wcc/issues/256
-                    parentTemplate.text(ast.createHtmlTextNode(child.raw, parentTag).value);
-                  } else if (child.type === 'JSXExpressionContainer') {
-                    if (isSignalRead(child.expression)) {
-                      const signal = signalReference(child.expression);
-                      parentTemplate.expression(ast.createIdentifier(signal.name));
-                      parentSignals.push(signal);
-                      parentHasReactiveTemplate = true;
-                    }
-                  } else if (child.type === 'JSXElement') {
-                    const childTag =
-                      child.openingElement.name.type === 'JSXIdentifier'
-                        ? child.openingElement.name.name
-                        : '';
+                for (const rootNode of roots) {
+                  if (rootNode.type !== 'JSXElement') continue;
 
-                    // track children for determining correct effect selector
-                    if (!children[childTag]) {
-                      children[childTag] = [];
-                    }
-                    children[childTag].push(childTag);
+                  const parentTag =
+                    rootNode.openingElement.name.type === 'JSXIdentifier'
+                      ? rootNode.openingElement.name.name
+                      : '';
+                  rootCounts[parentTag] = (rootCounts[parentTag] ?? 0) + 1;
 
-                    // TODO: I think we are only checking for State, I think we also need to handle Computeds (by themselves) here as well
-                    // TODO: should we filter the things that call .get() out against actual signals found in the constructor / JSX?
-                    // https://github.com/ProjectEvergreen/wcc/issues/256
-                    const hasReactiveTemplate = child.children.some(
-                      (c) => c.type === 'JSXExpressionContainer' && isSignalRead(c.expression),
-                    );
-                    const hasReactiveAttributes =
-                      child.openingElement.attributes.some(isReactiveAttribute);
+                  const parentSelector = `${parentTag}:nth-of-type(${rootCounts[parentTag]})`;
+                  const childSelectorPrefix =
+                    n.argument.type === 'JSXFragment' ? parentSelector : parentTag;
+                  const children: Record<string, string[]> = {};
+                  const parentTemplate = ast.createTemplateLiteralParts();
+                  let parentHasReactiveTemplate;
+                  const parentHasReactiveAttributes =
+                    rootNode.openingElement.attributes.some(isReactiveAttribute);
+                  const parentSignals: ast.ReactiveSignal[] = [];
 
-                    if (hasReactiveTemplate || hasReactiveAttributes) {
-                      reactiveElements.push({
-                        selector: `${parentTag} > ${childTag}:nth-of-type(${children[childTag].length})`,
-                        attributes: [],
-                      });
-                    }
+                  for (const child of flattenJsxChildren(rootNode.children)) {
+                    if (child.type === 'JSXText') {
+                      // TODO: track top level reactivity for text nodes?
+                      // https://github.com/ProjectEvergreen/wcc/issues/256
+                      parentTemplate.text(ast.createHtmlTextNode(child.raw, parentTag).value);
+                    } else if (child.type === 'JSXExpressionContainer') {
+                      if (isSignalRead(child.expression)) {
+                        const signal = signalReference(child.expression);
+                        parentTemplate.expression(ast.createIdentifier(signal.name));
+                        parentSignals.push(signal);
+                        parentHasReactiveTemplate = true;
+                      }
+                    } else if (child.type === 'JSXElement') {
+                      const childTag =
+                        child.openingElement.name.type === 'JSXIdentifier'
+                          ? child.openingElement.name.name
+                          : '';
 
-                    if (hasReactiveTemplate) {
-                      const signals: ast.ReactiveSignal[] = [];
-                      const template = ast.createTemplateLiteralParts();
+                      // track children for determining correct effect selector
+                      if (!children[childTag]) {
+                        children[childTag] = [];
+                      }
+                      children[childTag].push(childTag);
 
-                      for (const c of child.children) {
-                        if (c.type === 'JSXText') {
-                          template.text(ast.createHtmlTextNode(c.raw, childTag).value);
-                        } else if (
-                          c.type === 'JSXExpressionContainer' &&
-                          isSignalRead(c.expression)
-                        ) {
-                          const signal = signalReference(c.expression);
-                          template.expression(ast.createIdentifier(signal.name));
-                          signals.push(signal);
+                      // TODO: I think we are only checking for State, I think we also need to handle Computeds (by themselves) here as well
+                      // TODO: should we filter the things that call .get() out against actual signals found in the constructor / JSX?
+                      // https://github.com/ProjectEvergreen/wcc/issues/256
+                      const hasReactiveTemplate = flattenJsxChildren(child.children).some(
+                        (c) => c.type === 'JSXExpressionContainer' && isSignalRead(c.expression),
+                      );
+                      const hasReactiveAttributes =
+                        child.openingElement.attributes.some(isReactiveAttribute);
+
+                      if (hasReactiveTemplate || hasReactiveAttributes) {
+                        reactiveElements.push({
+                          selector: `${childSelectorPrefix} > ${childTag}:nth-of-type(${children[childTag].length})`,
+                          attributes: [],
+                        });
+                      }
+
+                      if (hasReactiveTemplate) {
+                        const signals: ast.ReactiveSignal[] = [];
+                        const template = ast.createTemplateLiteralParts();
+
+                        for (const c of flattenJsxChildren(child.children)) {
+                          if (c.type === 'JSXText') {
+                            template.text(ast.createHtmlTextNode(c.raw, childTag).value);
+                          } else if (
+                            c.type === 'JSXExpressionContainer' &&
+                            isSignalRead(c.expression)
+                          ) {
+                            const signal = signalReference(c.expression);
+                            template.expression(ast.createIdentifier(signal.name));
+                            signals.push(signal);
+                          }
+                        }
+
+                        if (signals.length > 0) {
+                          reactiveElements[reactiveElements.length - 1].effect =
+                            ast.createReactiveTemplate(
+                              `$$tmpl${reactiveElements.length - 1}`,
+                              signals,
+                              template,
+                              componentName,
+                            );
                         }
                       }
 
-                      if (signals.length > 0) {
-                        reactiveElements[reactiveElements.length - 1].effect =
-                          ast.createReactiveTemplate(
-                            `$$tmpl${reactiveElements.length - 1}`,
-                            signals,
-                            template,
-                            componentName,
-                          );
+                      if (hasReactiveAttributes) {
+                        for (const attr of child.openingElement.attributes) {
+                          if (isReactiveAttribute(attr)) {
+                            const value = getSignalName(attr.value.expression) ?? 'undefined';
+
+                            reactiveElements[reactiveElements.length - 1].attributes.push({
+                              name: attr.name.name,
+                              value,
+                              expression: privateSignalRead(attr.value.expression),
+                            });
+                          }
+                        }
                       }
                     }
+                  }
 
-                    if (hasReactiveAttributes) {
-                      for (const attr of child.openingElement.attributes) {
+                  if (parentHasReactiveTemplate || parentHasReactiveAttributes) {
+                    reactiveElements.push({
+                      selector: parentSelector,
+                      effect: parentHasReactiveTemplate
+                        ? ast.createReactiveTemplate(
+                            `$$tmpl${reactiveElements.length}`,
+                            parentSignals,
+                            parentTemplate,
+                            componentName,
+                          )
+                        : undefined,
+                      attributes: [],
+                    });
+
+                    if (parentHasReactiveAttributes) {
+                      for (const attr of rootNode.openingElement.attributes) {
                         if (isReactiveAttribute(attr)) {
                           const value = getSignalName(attr.value.expression) ?? 'undefined';
 
@@ -987,35 +1055,6 @@ export function parseJsx(
                     }
                   }
                 }
-
-                if (parentHasReactiveTemplate || parentHasReactiveAttributes) {
-                  reactiveElements.push({
-                    selector: `${parentTag}:nth-of-type(1)`,
-                    effect: parentHasReactiveTemplate
-                      ? ast.createReactiveTemplate(
-                          `$$tmpl${reactiveElements.length}`,
-                          parentSignals,
-                          parentTemplate,
-                          componentName,
-                        )
-                      : undefined,
-                    attributes: [],
-                  });
-
-                  if (parentHasReactiveAttributes) {
-                    for (const attr of rootNode.openingElement.attributes) {
-                      if (isReactiveAttribute(attr)) {
-                        const value = getSignalName(attr.value.expression) ?? 'undefined';
-
-                        reactiveElements[reactiveElements.length - 1].attributes.push({
-                          name: attr.name.name,
-                          value,
-                          expression: privateSignalRead(attr.value.expression),
-                        });
-                      }
-                    }
-                  }
-                }
               }
             }
           }
@@ -1025,6 +1064,7 @@ export function parseJsx(
         // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
         ...ast.baseWalker,
         JSXElement: () => {},
+        JSXFragment: () => {},
       },
     );
   }
@@ -1079,7 +1119,8 @@ export function parseJsx(
                 n1.value.body.body = n1.value.body.body.flatMap((statement) => {
                   if (
                     statement.type !== 'ReturnStatement' ||
-                    statement.argument?.type !== 'JSXElement'
+                    (statement.argument?.type !== 'JSXElement' &&
+                      statement.argument?.type !== 'JSXFragment')
                   ) {
                     return [statement];
                   }
@@ -1166,6 +1207,7 @@ export function parseJsx(
     {
       ...ast.baseWalker,
       JSXElement: () => {},
+      JSXFragment: () => {},
     },
   );
 
@@ -1332,6 +1374,7 @@ export function parseJsx(
         // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
         ...ast.baseWalker,
         JSXElement: () => {},
+        JSXFragment: () => {},
       },
     );
 
