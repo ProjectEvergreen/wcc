@@ -26,7 +26,7 @@ const tsxRegex = /\.(tsx)$/;
 export function getParser(moduleURL: URL):
   | {
       parser: typeof acorn.Parser;
-      config: typeof acornWalkBase & { JSXElement: () => void };
+      config: typeof acornWalkBase & { JSXElement: () => void; JSXFragment: () => void };
     }
   | undefined {
   const ext = moduleURL.pathname.split('.').pop();
@@ -42,6 +42,7 @@ export function getParser(moduleURL: URL):
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
       ...ast.baseWalker,
       JSXElement: () => {},
+      JSXFragment: () => {},
     },
   };
 }
@@ -139,6 +140,15 @@ function findThisReferences(
   return references;
 }
 
+// Fragments group siblings without introducing a DOM node or selector level.
+// e.g. the children of <div><span>A</span><><span>B</span><><span>C</span></></></div>
+// flattens to [<span>A</span>, <span>B</span>, <span>C</span>]
+function flattenJsxChildren(children: E.JSXElement['children']): E.JSXElement['children'] {
+  return children.flatMap((child) =>
+    child.type === 'JSXFragment' ? flattenJsxChildren(child.children) : [child],
+  );
+}
+
 // Create HTML nodes from JSX, e.g. `<p>{count}</p>` becomes an element with an interpolation marker.
 function createHtmlTreeFromJsx(
   element: E.JSXElement['children'][number],
@@ -149,6 +159,19 @@ function createHtmlTreeFromJsx(
   parent: H.ParentNode = ast.createHtmlFragment(),
 ): H.ParentNode {
   const { type } = element;
+
+  if (type === 'JSXFragment') {
+    for (const child of element.children) {
+      createHtmlTreeFromJsx(
+        child,
+        template,
+        inferredObservability,
+        hasShadowRoot,
+        currentDepth,
+        parent,
+      );
+    }
+  }
 
   if (type === 'JSXElement') {
     const { openingElement } = element;
@@ -361,7 +384,7 @@ export function parseJsx(
                 }
               },
             },
-            { ...ast.baseWalker, JSXElement: () => {} },
+            { ...ast.baseWalker, JSXElement: () => {}, JSXFragment: () => {} },
           );
 
           for (const n1 of node.body.body) {
@@ -429,6 +452,7 @@ export function parseJsx(
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
       ...ast.baseWalker,
       JSXElement: () => {},
+      JSXFragment: () => {},
     },
   );
 
@@ -445,97 +469,141 @@ export function parseJsx(
             for (const n2 in node.value.body.body) {
               const n = node.value.body.body[n2];
 
-              if (n.type === 'ReturnStatement' && n.argument?.type === 'JSXElement') {
-                const rootNode = n.argument;
-                const parentTag =
-                  rootNode.openingElement.name.type === 'JSXIdentifier'
-                    ? rootNode.openingElement.name.name
-                    : '';
-                const children: Record<string, string[]> = {};
-                const parentTemplate = ast.createTemplateLiteralParts();
-                let parentHasReactiveTemplate;
-                const parentHasReactiveAttributes =
-                  rootNode.openingElement.attributes.some(isReactiveAttribute);
-                const parentSignals: string[] = [];
+              if (
+                n.type === 'ReturnStatement' &&
+                (n.argument?.type === 'JSXElement' || n.argument?.type === 'JSXFragment')
+              ) {
+                const roots = flattenJsxChildren([n.argument]);
+                const rootCounts: Record<string, number> = {};
 
-                for (const child of rootNode.children) {
-                  if (child.type === 'JSXText') {
-                    // TODO: track top level reactivity for text nodes?
-                    // https://github.com/ProjectEvergreen/wcc/issues/256
-                    parentTemplate.text(ast.createHtmlTextNode(child.raw, parentTag).value);
-                  } else if (child.type === 'JSXExpressionContainer') {
-                    if (isSignalRead(child.expression)) {
-                      const { object } = child.expression.callee || {};
-                      parentTemplate.expression(
-                        ast.createIdentifier(identifierName(object) ?? 'undefined'),
+                for (const rootNode of roots) {
+                  if (rootNode.type !== 'JSXElement') continue;
+
+                  const parentTag =
+                    rootNode.openingElement.name.type === 'JSXIdentifier'
+                      ? rootNode.openingElement.name.name
+                      : '';
+                  rootCounts[parentTag] = (rootCounts[parentTag] ?? 0) + 1;
+
+                  const parentSelector = `${parentTag}:nth-of-type(${rootCounts[parentTag]})`;
+                  const childSelectorPrefix =
+                    n.argument.type === 'JSXFragment' ? parentSelector : parentTag;
+                  const children: Record<string, string[]> = {};
+                  const parentTemplate = ast.createTemplateLiteralParts();
+                  let parentHasReactiveTemplate;
+                  const parentHasReactiveAttributes =
+                    rootNode.openingElement.attributes.some(isReactiveAttribute);
+                  const parentSignals: string[] = [];
+
+                  for (const child of flattenJsxChildren(rootNode.children)) {
+                    if (child.type === 'JSXText') {
+                      // TODO: track top level reactivity for text nodes?
+                      // https://github.com/ProjectEvergreen/wcc/issues/256
+                      parentTemplate.text(ast.createHtmlTextNode(child.raw, parentTag).value);
+                    } else if (child.type === 'JSXExpressionContainer') {
+                      if (isSignalRead(child.expression)) {
+                        const { object } = child.expression.callee || {};
+                        parentTemplate.expression(
+                          ast.createIdentifier(identifierName(object) ?? 'undefined'),
+                        );
+                        parentSignals.push(identifierName(object) ?? 'undefined');
+                        parentHasReactiveTemplate = true;
+                      }
+                    } else if (child.type === 'JSXElement') {
+                      const childTag =
+                        child.openingElement.name.type === 'JSXIdentifier'
+                          ? child.openingElement.name.name
+                          : '';
+
+                      // track children for determining correct effect selector
+                      if (!children[childTag]) {
+                        children[childTag] = [];
+                      }
+                      children[childTag].push(childTag);
+
+                      // TODO: I think we are only checking for State, I think we also need to handle Computeds (by themselves) here as well
+                      // TODO: should we filter the things that call .get() out against actual signals found in the constructor / JSX?
+                      // https://github.com/ProjectEvergreen/wcc/issues/256
+                      const hasReactiveTemplate = flattenJsxChildren(child.children).some(
+                        (c) => c.type === 'JSXExpressionContainer' && isSignalRead(c.expression),
                       );
-                      parentSignals.push(identifierName(object) ?? 'undefined');
-                      parentHasReactiveTemplate = true;
-                    }
-                  } else if (child.type === 'JSXElement') {
-                    const childTag =
-                      child.openingElement.name.type === 'JSXIdentifier'
-                        ? child.openingElement.name.name
-                        : '';
+                      const hasReactiveAttributes =
+                        child.openingElement.attributes.some(isReactiveAttribute);
 
-                    // track children for determining correct effect selector
-                    if (!children[childTag]) {
-                      children[childTag] = [];
-                    }
-                    children[childTag].push(childTag);
+                      if (hasReactiveTemplate || hasReactiveAttributes) {
+                        reactiveElements.push({
+                          selector: `${childSelectorPrefix} > ${childTag}:nth-of-type(${children[childTag].length})`,
+                          attributes: [],
+                        });
+                      }
 
-                    // TODO: I think we are only checking for State, I think we also need to handle Computeds (by themselves) here as well
-                    // TODO: should we filter the things that call .get() out against actual signals found in the constructor / JSX?
-                    // https://github.com/ProjectEvergreen/wcc/issues/256
-                    const hasReactiveTemplate = child.children.some(
-                      (c) => c.type === 'JSXExpressionContainer' && isSignalRead(c.expression),
-                    );
-                    const hasReactiveAttributes =
-                      child.openingElement.attributes.some(isReactiveAttribute);
+                      if (hasReactiveTemplate) {
+                        const signals: string[] = [];
+                        const template = ast.createTemplateLiteralParts();
 
-                    if (hasReactiveTemplate || hasReactiveAttributes) {
-                      reactiveElements.push({
-                        selector: `${parentTag} > ${childTag}:nth-of-type(${children[childTag].length})`,
-                        attributes: [],
-                      });
-                    }
+                        for (const c of flattenJsxChildren(child.children)) {
+                          if (c.type === 'JSXText') {
+                            template.text(ast.createHtmlTextNode(c.raw, childTag).value);
+                          } else if (
+                            c.type === 'JSXExpressionContainer' &&
+                            isSignalRead(c.expression)
+                          ) {
+                            // TODO: handle this references?
+                            // https://github.com/ProjectEvergreen/wcc/issues/88
+                            const { object } = c.expression.callee || {};
+                            template.expression(
+                              ast.createIdentifier(identifierName(object) ?? 'undefined'),
+                            );
+                            signals.push(identifierName(object) ?? 'undefined');
+                          }
+                        }
 
-                    if (hasReactiveTemplate) {
-                      const signals: string[] = [];
-                      const template = ast.createTemplateLiteralParts();
-
-                      for (const c of child.children) {
-                        if (c.type === 'JSXText') {
-                          template.text(ast.createHtmlTextNode(c.raw, childTag).value);
-                        } else if (
-                          c.type === 'JSXExpressionContainer' &&
-                          isSignalRead(c.expression)
-                        ) {
+                        if (signals.length > 0) {
                           // TODO: handle this references?
-                          // https://github.com/ProjectEvergreen/wcc/issues/88
-                          const { object } = c.expression.callee || {};
-                          template.expression(
-                            ast.createIdentifier(identifierName(object) ?? 'undefined'),
-                          );
-                          signals.push(identifierName(object) ?? 'undefined');
+                          // https://www.github.com/ProjectEvergreen/wcc/issues/88
+                          reactiveElements[reactiveElements.length - 1].effect =
+                            ast.createReactiveTemplate(
+                              `$$tmpl${reactiveElements.length - 1}`,
+                              signals,
+                              template,
+                              componentName,
+                            );
                         }
                       }
 
-                      if (signals.length > 0) {
-                        // TODO: handle this references?
-                        // https://www.github.com/ProjectEvergreen/wcc/issues/88
-                        reactiveElements[reactiveElements.length - 1].effect =
-                          ast.createReactiveTemplate(
-                            `$$tmpl${reactiveElements.length - 1}`,
-                            signals,
-                            template,
-                            componentName,
-                          );
+                      if (hasReactiveAttributes) {
+                        for (const attr of child.openingElement.attributes) {
+                          if (isReactiveAttribute(attr)) {
+                            const value = getSignalName(attr.value.expression) ?? 'undefined';
+
+                            reactiveElements[reactiveElements.length - 1].attributes.push({
+                              name: attr.name.name,
+                              value,
+                            });
+                          }
+                        }
                       }
                     }
+                  }
 
-                    if (hasReactiveAttributes) {
-                      for (const attr of child.openingElement.attributes) {
+                  if (parentHasReactiveTemplate || parentHasReactiveAttributes) {
+                    // TODO: handle this references?
+                    // https://www.github.com/ProjectEvergreen/wcc/issues/88
+                    reactiveElements.push({
+                      selector: parentSelector,
+                      effect: parentHasReactiveTemplate
+                        ? ast.createReactiveTemplate(
+                            `$$tmpl${reactiveElements.length}`,
+                            parentSignals,
+                            parentTemplate,
+                            componentName,
+                          )
+                        : undefined,
+                      attributes: [],
+                    });
+
+                    if (parentHasReactiveAttributes) {
+                      for (const attr of rootNode.openingElement.attributes) {
                         if (isReactiveAttribute(attr)) {
                           const value = getSignalName(attr.value.expression) ?? 'undefined';
 
@@ -544,36 +612,6 @@ export function parseJsx(
                             value,
                           });
                         }
-                      }
-                    }
-                  }
-                }
-
-                if (parentHasReactiveTemplate || parentHasReactiveAttributes) {
-                  // TODO: handle this references?
-                  // https://www.github.com/ProjectEvergreen/wcc/issues/88
-                  reactiveElements.push({
-                    selector: `${parentTag}:nth-of-type(1)`,
-                    effect: parentHasReactiveTemplate
-                      ? ast.createReactiveTemplate(
-                          `$$tmpl${reactiveElements.length}`,
-                          parentSignals,
-                          parentTemplate,
-                          componentName,
-                        )
-                      : undefined,
-                    attributes: [],
-                  });
-
-                  if (parentHasReactiveAttributes) {
-                    for (const attr of rootNode.openingElement.attributes) {
-                      if (isReactiveAttribute(attr)) {
-                        const value = getSignalName(attr.value.expression) ?? 'undefined';
-
-                        reactiveElements[reactiveElements.length - 1].attributes.push({
-                          name: attr.name.name,
-                          value,
-                        });
                       }
                     }
                   }
@@ -587,6 +625,7 @@ export function parseJsx(
         // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
         ...ast.baseWalker,
         JSXElement: () => {},
+        JSXFragment: () => {},
       },
     );
   }
@@ -604,7 +643,8 @@ export function parseJsx(
                 n1.value.body.body = n1.value.body.body.flatMap((statement) => {
                   if (
                     statement.type !== 'ReturnStatement' ||
-                    statement.argument?.type !== 'JSXElement'
+                    (statement.argument?.type !== 'JSXElement' &&
+                      statement.argument?.type !== 'JSXFragment')
                   ) {
                     return [statement];
                   }
@@ -627,6 +667,7 @@ export function parseJsx(
       // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
       ...ast.baseWalker,
       JSXElement: () => {},
+      JSXFragment: () => {},
     },
   );
 
@@ -679,6 +720,7 @@ export function parseJsx(
         // https://github.com/acornjs/acorn/issues/829#issuecomment-1172586171
         ...ast.baseWalker,
         JSXElement: () => {},
+        JSXFragment: () => {},
       },
     );
 
