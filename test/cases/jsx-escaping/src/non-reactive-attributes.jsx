@@ -1,14 +1,16 @@
-import styles from './styles.module.css';
-
 export default class NonReactiveAttributes extends HTMLElement {
   connectedCallback() {
     this.render();
   }
 
   render() {
+    const styles = {
+      container: this.getAttribute('container-class') ?? 'container',
+      label: this.getAttribute('label-class') ?? 'label',
+    };
     return (
       <section class={styles.container}>
-        <p class={styles.label}>CSS Modules</p>
+        <p class={styles.label}>Attribute expressions</p>
       </section>
     );
   }

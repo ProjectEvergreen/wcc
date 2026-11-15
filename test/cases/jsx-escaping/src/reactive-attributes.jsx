@@ -1,5 +1,4 @@
 import { Signal } from 'signal-polyfill';
-import styles from './styles.module.css';
 
 export const inferredObservability = true;
 
@@ -14,6 +13,10 @@ export default class ReactiveAttributes extends HTMLElement {
   }
 
   render() {
+    const styles = {
+      container: this.getAttribute('container-class') ?? 'container',
+      label: this.getAttribute('label-class') ?? 'label',
+    };
     const { count } = this;
 
     return (
