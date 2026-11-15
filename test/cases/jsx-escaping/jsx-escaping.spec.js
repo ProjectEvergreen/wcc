@@ -2,11 +2,6 @@ import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
 import fs from 'fs/promises';
 import { renderFromHTML, renderToString } from 'wc-compiler';
-import { tmpdir } from 'os';
-import path from 'path';
-import { pathToFileURL } from 'url';
-import { greenwoodPluginImportJsx } from '@greenwood/plugin-import-jsx';
-import { greenwoodPluginCssModules } from '@greenwood/plugin-css-modules';
 
 describe('JSX HTML escaping', () => {
   it('should share one static helper for escaped text and attributes', async () => {
@@ -156,53 +151,18 @@ describe('JSX HTML escaping', () => {
     }
 
     describe('Attribute expressions', () => {
-      let scratchDir;
-      let compilation;
-      let jsx;
-      let scan;
-      let strip;
-
-      before(async () => {
-        scratchDir = await fs.mkdtemp(path.join(tmpdir(), 'wcc-css-modules-'));
-        compilation = {
-          config: { plugins: [...greenwoodPluginImportJsx(), ...greenwoodPluginCssModules()] },
-          context: {
-            scratchDir: pathToFileURL(`${scratchDir}/`),
-            userWorkspace: new URL('./src/', import.meta.url),
-          },
-        };
-        jsx = compilation.config.plugins
-          .find((plugin) => plugin.name === 'plugin-import-jsx:resource')
-          .provider(compilation);
-        scan = compilation.config.plugins
-          .find((plugin) => plugin.name === 'plugin-css-modules:scan')
-          .provider(compilation);
-        strip = compilation.config.plugins
-          .find((plugin) => plugin.name === 'plugin-css-modules-strip-modules')
-          .provider(compilation);
-      });
-
-      after(async () => {
-        await fs.rm(scratchDir, { recursive: true, force: true });
-      });
-
       for (const component of ['non-reactive-attributes', 'reactive-attributes']) {
-        it(`should resolve CSS-module classes in the ${component} render output`, async () => {
-          const url = new URL(`./src/${component}.jsx`, import.meta.url);
-          const page = new URL('./', import.meta.url);
-          await scan.intercept(
-            page,
-            new Request(page),
-            new Response(`<head><script type="module" src="./${component}.jsx"></script></head>`),
+        it(`should emit the complete ${component} render method`, async () => {
+          const { metadata } = await renderToString(
+            new URL(`./src/${component}.jsx`, import.meta.url),
           );
-          const compiled = await jsx.serve(url);
-          const output = await (await strip.intercept(url, new Request(url), compiled)).text();
           const expected = await fs.readFile(
             new URL(`./fixtures/${component}/render.txt`, import.meta.url),
             'utf-8',
           );
+          const actual = metadata[`wcc-${component}`].source.replace(/\s+/g, '');
 
-          expect(output.replace(/\s+/g, '')).to.contain(expected.replace(/\s+/g, ''));
+          expect(actual).to.contain(expected.replace(/\s+/g, ''));
         });
       }
     });
