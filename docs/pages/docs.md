@@ -469,7 +469,7 @@ There are of couple things you will need to do to use WCC with JSX:
 
 ### HTML Interpolation
 
-WCC escapes interpolated strings in ordinary JSX text and attribute values by default. HTML inside those strings is preserved as text, helping prevent HTML injection and related XSS vulnerabilities.
+WCC escapes interpolated strings in ordinary JSX text and attribute values by default and inferred signal effects use DOM setters for subsequent updates. HTML inside those strings is preserved as text, helping prevent HTML injection and related XSS vulnerabilities.
 
 For example, this would display the raw HTML tag:
 
@@ -479,8 +479,8 @@ For example, this would display the raw HTML tag:
 
   ```tsx
   render() {
-    const heading = '<strong>Hello</strong>';
-    return <h4 innerHTML={heading}></h4>;
+    const heading = '<template>';
+    return <h4>{heading}</h4>;
   }
   ```
 

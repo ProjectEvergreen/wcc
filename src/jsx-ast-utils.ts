@@ -1,3 +1,5 @@
+// WCC compiler implementation utilities. Exports let the loader and renderer share
+// AST builders; this module is not a public package entry point.
 import { Parser } from 'acorn';
 import * as acornWalk from 'acorn-walk';
 import { generate, GENERATOR } from 'astring';
@@ -37,23 +39,27 @@ export function parseModule(
   }) as unknown as E.Program & { start: number; end: number };
 }
 
+/** @internal Compiler-only accumulator for constructing a JavaScript template-literal AST. */
 export interface TemplateLiteralParts {
   text(value: string): void;
   expression(node: E.Expression): void;
   build(trim?: boolean): E.TemplateLiteral;
 }
 
+/** @internal Compiler-only HTML template builder; escaped expressions call the shared class helper. */
 export interface HtmlTemplateLiteralBuilder {
   expression(node: E.Expression, context?: 'text' | 'attribute' | 'raw'): string;
   handler(create: (depth: number) => string | undefined): string;
   build(tree: H.ParentNode): E.TemplateLiteral;
 }
 
+/** @internal Compiler metadata for an inferred signal text template and its generated call. */
 export interface ReactiveTemplate {
   template: E.PropertyDefinition;
   expression: E.CallExpression;
 }
 
+/** @internal Compiler metadata for an inferred effect target and its signal-backed attributes. */
 export interface ReactiveElement {
   selector: string;
   effect?: ReactiveTemplate;
@@ -252,6 +258,7 @@ function createTemplateLiteral(strings: string[], expressions: E.Expression[]): 
 }
 
 // Collect template text and expressions incrementally, e.g. `Hello `, `${name}`, then `!`.
+/** @internal */
 export function createTemplateLiteralParts(): TemplateLiteralParts {
   const strings = [''];
   const expressions: E.Expression[] = [];
@@ -321,25 +328,43 @@ export function createHtmlLiteralAttributes(
   return [createHtmlAttribute(name, String(literal.value))];
 }
 
-// Coerce once, then escape values before they reach innerHTML; DOM setters do not need this step.
-function createEscapedHtmlExpression(
-  node: E.Expression,
-  context: 'text' | 'attribute',
-): E.Expression {
-  let value: E.Expression = createTemplateLiteral(['', ''], [node]);
-  const replacements = [
+// Share escaping across a component's ordinary HTML interpolations.
+// Call sites supply strings, retaining template references for downstream transforms.
+/** @internal */
+export function createHtmlEscapeHelper(name: string): E.PropertyDefinition {
+  const value = createIdentifier('value');
+  let text: E.Expression = value;
+  for (const [character, entity] of [
     ['&', '&amp;'],
     ['<', '&lt;'],
     ['>', '&gt;'],
-    ...(context === 'attribute' ? [['"', '&quot;']] : []),
-  ];
-  for (const [character, entity] of replacements) {
-    value = createCallExpression(createMemberExpression(value, 'replaceAll'), [
+  ]) {
+    text = createCallExpression(createMemberExpression(text, 'replaceAll'), [
       createLiteral(character),
       createLiteral(entity),
     ]);
   }
-  return value;
+  return createPropertyDefinition(
+    name,
+    createArrowFunctionExpression(
+      ['value', 'attribute'],
+      createBlockStatement([
+        createExpressionStatement(createAssignmentExpression(value, text)),
+        {
+          type: 'ReturnStatement',
+          argument: createConditionalExpression(
+            createIdentifier('attribute'),
+            createCallExpression(createMemberExpression(value, 'replaceAll'), [
+              createLiteral('"'),
+              createLiteral('&quot;'),
+            ]),
+            value,
+          ),
+        },
+      ]),
+    ),
+    true,
+  );
 }
 
 // Attach children to template content, or after void elements, e.g. `<img>hello</img>` becomes `<img>hello`.
@@ -471,8 +496,10 @@ export function generateInlineEventHandler(
 
 // Use parse5 to normalize HTML while keeping JavaScript expressions as AST nodes.
 // Placeholders such as `wcc-expression-0-end` mark where `${count}` belongs in the template literal.
+/** @internal */
 export function createHtmlTemplateLiteralBuilder(
   moduleContents: string,
+  escape: (expression: E.Expression, context: 'text' | 'attribute') => E.Expression,
 ): HtmlTemplateLiteralBuilder {
   let prefix = 'wcc-expression-';
   while (moduleContents.includes(prefix)) prefix += '-';
@@ -485,9 +512,10 @@ export function createHtmlTemplateLiteralBuilder(
     // Save an interpolation node and return its placeholder, e.g. the `count` in `{count}`.
     expression(node, context = 'text') {
       const marker = token();
+      // Keep coercion as a template literal so downstream transforms can recognize references.
       expressions.set(
         marker,
-        context === 'raw' ? node : createEscapedHtmlExpression(node, context),
+        context === 'raw' ? node : escape(createTemplateLiteral(['', ''], [node]), context),
       );
       return marker;
     },
@@ -527,9 +555,11 @@ export function createHtmlTemplateLiteralBuilder(
 }
 
 // Create render statements, e.g. `this.innerHTML = ...`, with Shadow DOM setup when needed.
+/** @internal */
 export function createRenderStatements(
   template: E.TemplateLiteral,
   hasShadowRoot: boolean,
+  templateName: string,
 ): E.Statement[] {
   // TODO: could / should we do something else instead of .innerHTML
   // https://github.com/ProjectEvergreen/wcc/issues/138
@@ -540,7 +570,7 @@ export function createRenderStatements(
       ),
     ];
   }
-  const templateElement = createIdentifier('template');
+  const templateElement = createIdentifier(templateName);
   return [
     {
       type: 'VariableDeclaration',
@@ -619,6 +649,7 @@ function createSignalValueExpression(name: string): E.CallExpression {
 }
 
 // Create a static text template and its call, e.g. `Counter.$$tmpl0(this.count.get())`.
+/** @internal */
 export function createReactiveTemplate(
   name: string,
   signals: string[],
@@ -639,6 +670,7 @@ export function createReactiveTemplate(
 }
 
 // Create effect registrations, e.g. `this.$eff0 = effect(() => { ... });`.
+/** @internal */
 export function createEffectStatements(reactiveElements: ReactiveElement[]): E.Statement[] {
   const statements: E.Statement[] = [];
   let effectsCount = 0;
@@ -689,6 +721,7 @@ export function createEffectStatements(reactiveElements: ReactiveElement[]): E.S
 }
 
 // Create disposer calls for generated effects, e.g. `this.$eff0();`.
+/** @internal */
 export function createEffectCleanupStatements(reactiveElements: ReactiveElement[]): E.Statement[] {
   const statements: E.Statement[] = [];
   for (const { effect, attributes } of reactiveElements) {
@@ -801,6 +834,7 @@ function createAttributeMethods(
 }
 
 // Create reactive fields and lifecycle methods, e.g. `$el0;` and `static get observedAttributes() { ... }`.
+/** @internal */
 export function createReactiveClassMembers(
   componentName: string,
   reactiveElements: ReactiveElement[],
@@ -840,6 +874,7 @@ export function createReactiveClassMembers(
 }
 
 // Cache reactive DOM nodes, e.g. `this.$el0 = this.shadowRoot.querySelector('span');`.
+/** @internal */
 export function createElementReferenceStatements(
   reactiveElements: ReactiveElement[],
   hasShadowRoot: boolean,

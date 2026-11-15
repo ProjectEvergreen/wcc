@@ -1,0 +1,8 @@
+render() {
+  const {count} = this;
+  this.innerHTML = `<section class="${ReactiveAttributes.$$escapeHtml(`styles-85oFdnFr-container`, true)}">
+        <p class="${ReactiveAttributes.$$escapeHtml(`styles-85oFdnFr-label`, true)}" data-count="${ReactiveAttributes.$$escapeHtml(`${count.get()}`, true)}">
+          Count: ${ReactiveAttributes.$$escapeHtml(`${count.get()}`)}
+        </p>
+      </section>`;
+}

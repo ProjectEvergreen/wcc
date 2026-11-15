@@ -1,0 +1,5 @@
+render() {
+  this.innerHTML = `<section class="${NonReactiveAttributes.$$escapeHtml(`styles-85oFdnFr-container`, true)}">
+        <p class="${NonReactiveAttributes.$$escapeHtml(`styles-85oFdnFr-label`, true)}">CSS Modules</p>
+      </section>`;
+}
