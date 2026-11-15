@@ -597,6 +597,13 @@ export function parseJsx(
     {
       ClassDeclaration(node) {
         if (identifierName(node.superClass) === 'HTMLElement') {
+          let templateName = '$$template';
+          while (moduleContents.includes(templateName)) templateName += '_';
+          let escapeHelperName = '$$escapeHtml';
+          while (moduleContents.includes(escapeHelperName)) escapeHelperName += '_';
+          let needsEscapeHelper = false;
+          const component =
+            node.id ?? ast.createMemberExpression({ type: 'ThisExpression' }, 'constructor');
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
               const nodeName = identifierName(n1.key);
@@ -608,18 +615,35 @@ export function parseJsx(
                   ) {
                     return [statement];
                   }
-                  const template = ast.createHtmlTemplateLiteralBuilder(moduleContents);
+                  const template = ast.createHtmlTemplateLiteralBuilder(
+                    moduleContents,
+                    (expression, context) => {
+                      needsEscapeHelper = true;
+                      return ast.createCallExpression(
+                        ast.createMemberExpression(component, escapeHelperName),
+                        context === 'attribute'
+                          ? [expression, { type: 'Literal', value: true }]
+                          : [expression],
+                      );
+                    },
+                  );
                   const htmlTree = createHtmlTreeFromJsx(
                     statement.argument,
                     template,
                     inferredObservability,
                     hasShadowRoot,
                   );
-                  return ast.createRenderStatements(template.build(htmlTree), hasShadowRoot);
+                  return ast.createRenderStatements(
+                    template.build(htmlTree),
+                    hasShadowRoot,
+                    templateName,
+                  );
                 });
               }
             }
           }
+          if (needsEscapeHelper)
+            node.body.body.unshift(ast.createHtmlEscapeHelper(escapeHelperName));
         }
       },
     },
