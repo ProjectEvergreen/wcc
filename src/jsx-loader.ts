@@ -597,11 +597,16 @@ export function parseJsx(
     {
       ClassDeclaration(node) {
         if (identifierName(node.superClass) === 'HTMLElement') {
+          // Keep generated locals and static members distinct from authored names.
+          // E.g. an existing $$escapeHtml makes the generated member $$escapeHtml_.
           let templateName = '$$template';
           while (moduleContents.includes(templateName)) templateName += '_';
           let escapeHelperName = '$$escapeHtml';
           while (moduleContents.includes(escapeHelperName)) escapeHelperName += '_';
+          // Initial HTML for both ordinary expressions and signal reads shares one helper.
+          // Signal updates still use the existing effect-generation pass below.
           let needsEscapeHelper = false;
+          // Named classes call their static member directly; anonymous classes use this.constructor.
           const component =
             node.id ?? ast.createMemberExpression({ type: 'ThisExpression' }, 'constructor');
           for (const n1 of node.body.body) {
@@ -618,6 +623,9 @@ export function parseJsx(
                   const template = ast.createHtmlTemplateLiteralBuilder(
                     moduleContents,
                     (expression, context) => {
+                      // The builder supplies a string coercion, e.g. `${count.get()}`.
+                      // Emit Counter.$$escapeHtml(`${count.get()}`, true) for attributes;
+                      // text omits the flag. Raw innerHTML/script/style expressions bypass this callback.
                       needsEscapeHelper = true;
                       return ast.createCallExpression(
                         ast.createMemberExpression(component, escapeHelperName),
@@ -642,6 +650,8 @@ export function parseJsx(
               }
             }
           }
+          // Insert the helper once per component, regardless of how many interpolations use it.
+          // Components with only static or raw content do not need the generated member.
           if (needsEscapeHelper)
             node.body.body.unshift(ast.createHtmlEscapeHelper(escapeHelperName));
         }

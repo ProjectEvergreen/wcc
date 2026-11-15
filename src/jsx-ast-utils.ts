@@ -1,5 +1,3 @@
-// WCC compiler implementation utilities. Exports let the loader and renderer share
-// AST builders; this module is not a public package entry point.
 import { Parser } from 'acorn';
 import * as acornWalk from 'acorn-walk';
 import { generate, GENERATOR } from 'astring';
@@ -39,27 +37,77 @@ export function parseModule(
   }) as unknown as E.Program & { start: number; end: number };
 }
 
-/** @internal Compiler-only accumulator for constructing a JavaScript template-literal AST. */
+/**
+ * @internal Accumulates static text and expression AST nodes before constructing a template literal.
+ * This is compiler bookkeeping; its methods are not emitted into component code.
+ *
+ * @example Build the AST for `Hello ${name}!`:
+ * ```js
+ * const parts = createTemplateLiteralParts();
+ * parts.text('Hello ');
+ * parts.expression(createIdentifier('name'));
+ * parts.text('!');
+ * const template = parts.build();
+ * ```
+ */
 export interface TemplateLiteralParts {
   text(value: string): void;
   expression(node: E.Expression): void;
   build(trim?: boolean): E.TemplateLiteral;
 }
 
-/** @internal Compiler-only HTML template builder; escaped expressions call the shared class helper. */
+/**
+ * @internal Keeps JavaScript expressions separate from HTML while parse5 normalizes the tree.
+ * Expression/handler methods return temporary markers; build() restores their generated code.
+ * Text and attribute contexts use the shared escape callback; raw content bypasses it.
+ *
+ * @example Attach an attribute expression to an HTML node before building the template AST:
+ * ```js
+ * const builder = createHtmlTemplateLiteralBuilder(moduleContents, escape);
+ * const marker = builder.expression(createIdentifier('label'), 'attribute');
+ * paragraph.attrs.push(createHtmlAttribute('title', marker));
+ * const template = builder.build(fragment);
+ * ```
+ * The caller's escape callback turns the restored label into
+ * ``Greeting.$$escapeHtml(`${label}`, true)`` in the generated attribute interpolation.
+ */
 export interface HtmlTemplateLiteralBuilder {
   expression(node: E.Expression, context?: 'text' | 'attribute' | 'raw'): string;
   handler(create: (depth: number) => string | undefined): string;
   build(tree: H.ParentNode): E.TemplateLiteral;
 }
 
-/** @internal Compiler metadata for an inferred signal text template and its generated call. */
+/**
+ * @internal Pairs a generated static text-template field with the call used by a signal effect.
+ * Both properties hold AST nodes, not a live function, evaluated text, or DOM node.
+ *
+ * @example The template and expression properties emit these two pieces of code:
+ * ```js
+ * static $$tmpl0 = count => `Count: ${count}`;
+ * Counter.$$tmpl0(this.count.get());
+ * ```
+ */
 export interface ReactiveTemplate {
   template: E.PropertyDefinition;
   expression: E.CallExpression;
 }
 
-/** @internal Compiler metadata for an inferred effect target and its signal-backed attributes. */
+/**
+ * @internal Describes one element whose inferred signal updates need generated effects.
+ * selector locates the cached DOM element; effect describes its optional text update.
+ * Each attribute value names a component signal member, rather than its current value.
+ *
+ * @example An attribute entry and the update it generates:
+ * ```js
+ * const element = {
+ *   selector: 'div > span:nth-of-type(1)',
+ *   attributes: [{ name: 'title', value: 'label' }]
+ * };
+ * // Generated element reference and effect body:
+ * this.$el0 = this.querySelector('div > span:nth-of-type(1)');
+ * this.$el0.setAttribute('title', this.label.get());
+ * ```
+ */
 export interface ReactiveElement {
   selector: string;
   effect?: ReactiveTemplate;
@@ -328,9 +376,18 @@ export function createHtmlLiteralAttributes(
   return [createHtmlAttribute(name, String(literal.value))];
 }
 
-// Share escaping across a component's ordinary HTML interpolations.
-// Call sites supply strings, retaining template references for downstream transforms.
-/** @internal */
+/**
+ * @internal Share escaping across a component's HTML interpolations.
+ * Call sites supply strings, retaining template references for downstream transforms.
+ *
+ * @example Generated class member:
+ * ```js
+ * static $$escapeHtml = (value, attribute) => {
+ *   value = value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+ *   return attribute ? value.replaceAll('"', '&quot;') : value;
+ * };
+ * ```
+ */
 export function createHtmlEscapeHelper(name: string): E.PropertyDefinition {
   const value = createIdentifier('value');
   let text: E.Expression = value;
@@ -494,9 +551,18 @@ export function generateInlineEventHandler(
   );
 }
 
-// Use parse5 to normalize HTML while keeping JavaScript expressions as AST nodes.
-// Placeholders such as `wcc-expression-0-end` mark where `${count}` belongs in the template literal.
-/** @internal */
+/**
+ * @internal Normalize HTML with parse5 while keeping JavaScript expressions as AST nodes.
+ * Placeholders such as `wcc-expression-0-end` survive parsing and are restored as interpolations.
+ *
+ * @example The caller's escape callback turns JSX into helper calls:
+ * ```jsx
+ * <p title={label}>{label}</p>
+ * ```
+ * ```js
+ * `<p title="${Greeting.$$escapeHtml(`${label}`, true)}">${Greeting.$$escapeHtml(`${label}`)}</p>`
+ * ```
+ */
 export function createHtmlTemplateLiteralBuilder(
   moduleContents: string,
   escape: (expression: E.Expression, context: 'text' | 'attribute') => E.Expression,
@@ -512,7 +578,9 @@ export function createHtmlTemplateLiteralBuilder(
     // Save an interpolation node and return its placeholder, e.g. the `count` in `{count}`.
     expression(node, context = 'text') {
       const marker = token();
-      // Keep coercion as a template literal so downstream transforms can recognize references.
+      // Coerce once while preserving the inner template expression for downstream transforms.
+      // E.g. Header.$$escapeHtml(`${styles.container}`, true) lets a CSS-module plugin
+      // replace ${styles.container} before removing the styles import.
       expressions.set(
         marker,
         context === 'raw' ? node : escape(createTemplateLiteral(['', ''], [node]), context),
@@ -554,8 +622,19 @@ export function createHtmlTemplateLiteralBuilder(
   };
 }
 
-// Create render statements, e.g. `this.innerHTML = ...`, with Shadow DOM setup when needed.
-/** @internal */
+/**
+ * @internal Emit the existing HTML-string render path for Light DOM or Shadow DOM.
+ * The loader chooses templateName to avoid collisions with authored render locals.
+ *
+ * @example Light DOM assignment and the Shadow DOM template setup:
+ * ```js
+ * this.innerHTML = `<p>${Greeting.$$escapeHtml(`${label}`)}</p>`;
+ * // Shadow DOM instead starts with a detached template:
+ * const $$template = document.createElement('template');
+ * $$template.innerHTML = `<p>${Greeting.$$escapeHtml(`${label}`)}</p>`;
+ * ```
+ * The remaining Shadow DOM statements create/populate the shadow root or replace its HTML.
+ */
 export function createRenderStatements(
   template: E.TemplateLiteral,
   hasShadowRoot: boolean,
