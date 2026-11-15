@@ -1,0 +1,9 @@
+render() {
+  const styles = {
+    container: _nullishCoalesce(this.getAttribute('container-class'), () => 'container'),
+    label: _nullishCoalesce(this.getAttribute('label-class'), () => 'label')
+  };
+  this.innerHTML = `<section class="${NonReactiveAttributes.$$escapeHtml(`${styles.container}`, true)}">
+        <p class="${NonReactiveAttributes.$$escapeHtml(`${styles.label}`, true)}">Attribute expressions</p>
+      </section>`;
+}

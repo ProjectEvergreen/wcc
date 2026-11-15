@@ -1,0 +1,18 @@
+render() {
+  const $$escapeHtml = _nullishCoalesce(this.getAttribute('greeting'), () => 'Hello');
+  const $$template = _nullishCoalesce(this.getAttribute('name'), () => 'World');
+  const $$template_ = document.createElement('template');
+  $$template_.innerHTML = `<section title="${ShadowDomEscapeHelper.$$escapeHtml_(`${$$template}`, true)}">
+        <p>
+          ${ShadowDomEscapeHelper.$$escapeHtml_(`${$$escapeHtml}`)} ${ShadowDomEscapeHelper.$$escapeHtml_(`${$$template}`)}
+        </p>
+      </section>`;
+  if (!this.shadowRoot) {
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.appendChild($$template_.content.cloneNode(true));
+  } else {
+    this.shadowRoot.innerHTML = $$template_.innerHTML;
+  }
+}

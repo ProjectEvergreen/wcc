@@ -1,0 +1,12 @@
+render() {
+  const styles = {
+    container: _nullishCoalesce(this.getAttribute('container-class'), () => 'container'),
+    label: _nullishCoalesce(this.getAttribute('label-class'), () => 'label')
+  };
+  const {count} = this;
+  this.innerHTML = `<section class="${ReactiveAttributes.$$escapeHtml(`${styles.container}`, true)}">
+        <p class="${ReactiveAttributes.$$escapeHtml(`${styles.label}`, true)}" data-count="${ReactiveAttributes.$$escapeHtml(`${count.get()}`, true)}">
+          Count: ${ReactiveAttributes.$$escapeHtml(`${count.get()}`)}
+        </p>
+      </section>`;
+}

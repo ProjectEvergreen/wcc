@@ -261,5 +261,22 @@ describe('Run WCC For ', function () {
         expect(heading.getAttribute('data-name')).to.equal('World');
       });
     });
+
+    describe('<Markup> component with signal-backed innerHTML', () => {
+      let source;
+
+      before(async () => {
+        const { metadata } = await renderToString(new URL('./src/markup.jsx', import.meta.url));
+        source = metadata['wcc-markup-jsx'].source.replace(/\s+/g, '');
+      });
+
+      it('should emit an innerHTML effect targeting the shadow root element', async () => {
+        const expected = await fs.readFile(
+          new URL('./fixtures/markup/effects.txt', import.meta.url),
+          'utf-8',
+        );
+        expect(source).to.contain(expected.replace(/\s+/g, ''));
+      });
+    });
   });
 });

@@ -1,0 +1,9 @@
+render() {
+  const $$escapeHtml = _nullishCoalesce(this.getAttribute('greeting'), () => 'Hello');
+  const $$template = _nullishCoalesce(this.getAttribute('name'), () => 'World');
+  this.innerHTML = `<section title="${LightDomEscapeHelper.$$escapeHtml_(`${$$template}`, true)}">
+        <p>
+          ${LightDomEscapeHelper.$$escapeHtml_(`${$$escapeHtml}`)} ${LightDomEscapeHelper.$$escapeHtml_(`${$$template}`)}
+        </p>
+      </section>`;
+}
