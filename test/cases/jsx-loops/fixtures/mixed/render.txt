@@ -1,0 +1,6 @@
+render() {
+  const children = [$$wccMarkup(`<strong>Rendered as HTML</strong>`), '<strong>Displayed as text</strong>', '&lt;already escaped&gt;', 0, false, true, null, undefined];
+  const saved = children;
+  saved.push([$$wccMarkup(`<em>Nested JSX</em>`), '<em>Nested text</em>']);
+  this.innerHTML = `<div>${MixedChildren.$$wccChild(saved)}</div>`;
+}

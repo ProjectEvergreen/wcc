@@ -1,0 +1,16 @@
+render() {
+  const template = document.createElement('template');
+  template.innerHTML = `<ul>
+        ${[1, 2].map(value => `<li>
+            <button onclick="this.getRootNode().host.action(event)">${ShadowList.$$wccChild(value)}</button>
+          </li>`).join('')}
+      </ul>`;
+  if (!this.shadowRoot) {
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  } else {
+    this.shadowRoot.innerHTML = template.innerHTML;
+  }
+}

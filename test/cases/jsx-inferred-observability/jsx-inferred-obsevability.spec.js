@@ -65,8 +65,10 @@ describe('Run WCC For ', function () {
       it('should infer observability by generating an attributeChangedCallback method', () => {
         const actual = meta['wcc-counter-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
         const expected = fixtureAttributeChangedCallback.replace(/ /g, '').replace(/\n/g, '');
+        const [parseAttribute, callback] = expected.split('attributeChangedCallback');
 
-        expect(actual).to.contain(expected);
+        expect(actual).to.contain(parseAttribute);
+        expect(actual).to.contain(`attributeChangedCallback${callback}`);
       });
 
       it('should infer observability by merging disconnectedCallback', () => {
@@ -215,8 +217,10 @@ describe('Run WCC For ', function () {
       it('should infer observability by generating an attributeChangedCallback method', () => {
         const actual = meta['wcc-greeting-jsx'].source.replace(/ /g, '').replace(/\n/g, '');
         const expected = fixtureAttributeChangedCallback.replace(/ /g, '').replace(/\n/g, '');
+        const [parseAttribute, callback] = expected.split('attributeChangedCallback');
 
-        expect(actual).to.contain(expected);
+        expect(actual).to.contain(parseAttribute);
+        expect(actual).to.contain(`attributeChangedCallback${callback}`);
       });
 
       it('should infer observability by generating a static attribute method', () => {

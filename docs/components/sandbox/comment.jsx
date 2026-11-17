@@ -8,10 +8,12 @@ export default class CommentComponent extends HTMLElement {
     const content = this.getAttribute('content') ?? '';
 
     return (
-      <article>
-        <h3>{author}</h3>
-        <div innerHTML={content}></div>
-      </article>
+      <div>
+        <article>
+          <h3>{author}</h3>
+          <div innerHTML={content}></div>
+        </article>
+      </div>
     );
   }
 }
