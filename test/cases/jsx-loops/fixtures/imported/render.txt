@@ -1,0 +1,3 @@
+render() {
+  this.innerHTML = `<div>${ImportedChildren.$$wccChild(createChildren('From another module'))}</div>`;
+}

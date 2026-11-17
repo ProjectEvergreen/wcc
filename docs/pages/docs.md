@@ -577,6 +577,25 @@ Chain array methods and use block callbacks for additional JavaScript logic:
 - Use `.forEach()` to collect JSX in an array; `.forEach()` itself returns `undefined`.
 - Wrap mapped table rows in an explicit `<tbody>`.
 
+Arrays can contain both JSX and ordinary values:
+
+```jsx
+const children = [<strong>Rendered as HTML</strong>, '<strong>Displayed as text</strong>', 0, null];
+
+return <div>{children}</div>;
+```
+
+```html
+<div><strong>Rendered as HTML</strong>&lt;strong&gt;Displayed as text&lt;/strong&gt;0</div>
+```
+
+- JSX items render as markup, ordinary strings are escaped as text.
+- Nested arrays are rendered in order without separator commas.
+- `null`, `undefined`, and boolean children are omitted; `0` is preserved.
+- Arrays can be saved in variables, updated with `.push()`, or returned by imported JSX helpers.
+- Keep JSX values as array items. Concatenating them or calling `.join('')` creates an ordinary
+  string, which is escaped when used as a child.
+
 #### Event handlers in Light DOM
 
 In Light DOM, event handlers in JSX saved to a variable or returned by a helper can target the wrong element when that JSX is inserted inside another element.
