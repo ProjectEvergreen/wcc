@@ -305,17 +305,25 @@ interface JsxCompilationContext {
   needsModuleEscapeHelper: boolean;
 }
 
+// Compiled modules share this marker so an imported JSX helper's values retain their identity.
+// `Symbol.for(...)` uses the same symbol across modules without a shared runtime import.
+const jsxMarkupSymbol = 'wc-compiler.jsx-markup';
+
 // Build the child serializer function, e.g. `{post.summary}` becomes `Posts.$$wccChild(post.summary)`.
 // It escapes ordinary text (`'<reply>'` -> '&lt;reply&gt;') and joins array children without commas.
 function createJsxChildSerializer(
   name: string,
-  markupClass?: string,
   reference: E.Expression = ast.createIdentifier(name),
 ): E.FunctionExpression {
+  // Recognize JSX from this module or an imported helper before escaping ordinary objects.
+  // E.g. `[makeHeading(), '<b>text</b>']` preserves the heading markup and escapes the string.
+  // Parse this function source into an ESTree Program; parsing does not execute the body.
+  // Its FunctionExpression is later emitted as `static $$wccChild(value) { ... }`, which runs
+  // during normal server/browser rendering, e.g. `Posts.$$wccChild(children)`.
   const program = ast.parseModule(`(function ${name}(value) {
     if (value == null || typeof value === 'boolean') return '';
     if (Array.isArray(value)) return value.map(${name}).join('');
-    ${markupClass ? `if (value instanceof ${markupClass}) return value.html;` : ''}
+    if (typeof value === 'object' && value[Symbol.for('${jsxMarkupSymbol}')] === true) return value.html;
     return \`\${value}\`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   });`);
   const normalize = (program.body[0] as E.ExpressionStatement).expression as E.FunctionExpression;
@@ -953,7 +961,7 @@ export function parseJsx(
       ast.createIdentifier(component.id!.name),
       context.childNormalizerName,
     );
-    const normalize = createJsxChildSerializer(context.childNormalizerName, valueClass, reference);
+    const normalize = createJsxChildSerializer(context.childNormalizerName, reference);
     normalizers.set(component, {
       type: 'MethodDefinition',
       key: ast.createIdentifier(context.childNormalizerName),
@@ -968,6 +976,7 @@ export function parseJsx(
     declarations.push(
       ...(ast.parseModule(`
       class ${valueClass} {
+        [Symbol.for('${jsxMarkupSymbol}')] = true;
         constructor(html) { this.html = html; }
         toString() { return this.html; }
       }
@@ -978,7 +987,7 @@ export function parseJsx(
   // A module helper such as `const heading = text => <h3>{text}</h3>` has no owning class.
   // Its generated `$$wccChild(text)` calls share one module-level FunctionDeclaration.
   if (needsModuleNormalizer) {
-    const normalize = createJsxChildSerializer(context.childNormalizerName, valueClass);
+    const normalize = createJsxChildSerializer(context.childNormalizerName);
     declarations.push({
       ...normalize,
       type: 'FunctionDeclaration',

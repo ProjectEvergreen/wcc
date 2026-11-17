@@ -1,0 +1,12 @@
+class $$wccValue {
+  [Symbol.for('wc-compiler.jsx-markup')] = true;
+  constructor(html) {
+    this.html = html;
+  }
+  toString() {
+    return this.html;
+  }
+}
+function $$wccMarkup(html) {
+  return new $$wccValue(html);
+}

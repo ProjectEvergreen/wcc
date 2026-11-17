@@ -117,6 +117,7 @@
     <script type="module" src="../components/sandbox/header.jsx"></script>
     <script type="module" src="../components/sandbox/comment.jsx"></script>
     <script type="module" src="../components/sandbox/comment-thread.jsx"></script>
+    <script type="module" src="../components/sandbox/mixed-children.jsx"></script>
     <script type="module" src="../components/sandbox/card.jsx"></script>
     <script type="module" src="../components/sandbox/signal-counter.jsx"></script>
   </head>
@@ -273,6 +274,22 @@
       {comments.map(({ author, text }) =&gt; (
         &lt;li&gt;&lt;h4&gt;{author}&lt;/h4&gt;&lt;p&gt;{text}&lt;/p&gt;&lt;/li&gt;
       ))}
+    </pre>
+    <hr />
+
+    <h2>JSX + Mixed Child Arrays</h2>
+
+    <p>The JSX item is bold. The ordinary string displays its HTML tags as text.</p>
+
+    <sb-mixed-children-jsx></sb-mixed-children-jsx>
+
+    <pre class="interpolation-example">
+      const children = [
+        &lt;strong&gt;Rendered as HTML&lt;/strong&gt;,
+        ' | ',
+        '&lt;strong&gt;Displayed as text&lt;/strong&gt;',
+      ];
+      return &lt;p&gt;{children}&lt;/p&gt;;
     </pre>
   </body>
 </html>

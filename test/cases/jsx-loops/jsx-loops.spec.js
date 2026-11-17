@@ -21,6 +21,9 @@ describe('JSX loops compiler output', () => {
       ['multiple-components.jsx', ['wcc-loop-first', 'wcc-loop-second']],
       ['shadow-dom.jsx', ['wcc-loop-shadow']],
       ['comments.tsx', ['wcc-loop-comments']],
+      ['mixed.tsx', ['wcc-mixed-children']],
+      ['imported.jsx', ['wcc-imported-mixed-children']],
+      ['values.jsx', ['wcc-mixed-value-source']],
     ]) {
       const { metadata } = await renderFromHTML(tags.map((tag) => `<${tag}></${tag}>`).join(''), [
         new URL(`./src/${file}`, import.meta.url),
@@ -80,5 +83,31 @@ describe('JSX loops compiler output', () => {
     expect(childIndex).to.be.greaterThan(parseIndex);
     expect(callbackIndex).to.be.greaterThan(childIndex);
     expect(actual).to.match(/staticparseAttribute=[^;]*;static\$\$wccChild\(value\)/);
+  });
+
+  describe('Mixed arrays', () => {
+    it('preserves JSX identity through mixed arrays, aliases, nested arrays and push', () => {
+      const source = sources.get('mixed.tsx');
+      expectOutput(source, 'mixed/render');
+      expectOutput(source, 'mixed/wrapper');
+    });
+
+    it('emits recursive child serialization that preserves markup, escapes text and retains zero', () => {
+      expectOutput(sources.get('mixed.tsx'), 'mixed/child-serializer');
+    });
+
+    it('marks JSX returned from a separately compiled helper module', () => {
+      const source = sources.get('values.jsx');
+      expectOutput(source, 'values/create-children');
+      expectOutput(source, 'values/wrapper');
+      expectOutput(source, 'values/child-serializer');
+    });
+
+    it('recognizes imported JSX values with the same marker in the consuming component', () => {
+      const source = sources.get('imported.jsx');
+      expectOutput(source, 'imported/render');
+      expectOutput(source, 'imported/child-serializer');
+      expect(source).to.contain("import {createChildren} from './values.jsx';");
+    });
   });
 });
