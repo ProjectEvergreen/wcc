@@ -325,7 +325,7 @@ export function parseJsx(
           if (identifierName(declaration.declarations[0].id) === 'inferredObservability') {
             inferredObservability = Boolean(
               declaration.declarations[0].init?.type === 'Literal'
-                ? declaration.declarations[0].init.raw
+                ? declaration.declarations[0].init.value
                 : undefined,
             );
           }
