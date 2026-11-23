@@ -14,6 +14,9 @@
     "types": ["mocha", "node"],
     "jsx": "preserve",
     "jsxImportSource": "wc-compiler",
+    "paths": {
+      "wc-compiler/jsx-runtime": ["./src/jsx-runtime.ts"]
+    },
     "lib": ["DOM"]
   },
   "exclude": ["node_modules", "dist"]

@@ -549,6 +549,12 @@ TSX (.tsx) file are also supported and your HTML will also be **type-safe**. You
 
 <!-- prettier-ignore-end -->
 
+WCC's JSX aims to follow the HTML and SVG specifications:
+
+- Use standard attribute names such as `class`, `for`, and `readonly`, and preserve SVG casing such as `viewBox`.
+- TypeScript checks many fixed attribute values, so `loading="lzy"` is an error. These checks help catch mistakes but WCC does not validate every HTML or SVG rule at this time.
+- Define attributes for your own custom elements by adding their tag names and prop types to `JSX.IntrinsicElements` in an app-level `.d.ts` file.
+
 If you create your own custom elements and use them in your TSX components, you'll need to define your own `interface` for them:
 
 <!-- prettier-ignore-start -->

@@ -55,6 +55,28 @@ For VSCode users, add this TypeScript ESLint config compatibility flag in your _
 }
 ```
 
+## JSX Attribute Definitions
+
+WCC maintains a custom definition file for mapping HTML attributes to JSX by combining a few packages together to extract their various sources of information and generating a TypeScript definition file from them.
+
+- [**html-element-attributes**](https://github.com/wooorm/html-element-attributes) and [**svg-element-attributes**](https://github.com/wooorm/svg-element-attributes) supply attribute names for HTML and SVG tags, respectively.
+- [**property-information**](https://github.com/wooorm/property-information) supplies name mappings and value categories such as boolean and numeric.
+- [**html-validate**](https://html-validate.org/usage/elements.html) and [**@vscode/web-custom-data**](https://github.com/microsoft/vscode-custom-data) supply value rules and fixed keyword lists. Validator rules take precedence over completion suggestions.
+
+During the build, `generate-jsx-attributes.ts` combines all these sources into the definition file to be published with WCC.
+
+When updating the generator or its metadata:
+
+- Run `npm run jsx-types:generate` and commit the generated file so changes can be reviewed.
+- Run `npm run jsx-types:check` to check freshness without writing files. CI runs this before the build, since regeneration would otherwise hide stale committed output.
+
+Notes:
+
+- Use HTML spellings such as `for`, `readonly`, and `tabindex`, and preserve SVG casing such as `viewBox`. Fixed values are checked per tag: `loading="lzy"` is an error, and input and button `type` have different allowed values.
+- URLs, custom names, MIME types, token lists, and most SVG values retain broad types for the time being. These declarations do not validate every grammar, attribute relationship, or unknown hyphenated name.
+- Typing changes do not change serialization or signal updates. Accepting null does not imply attribute omission; declaring namespace-qualified names does not add compiler support for that syntax. There will be plans to support this in the future.
+- The generator contains a few manual fixes for incomplete upstream metadata. Each fix links to the relevant standard explaining the allowed values.
+
 ## Website
 
 The website is built with [**Greenwood**](https://www.greenwoodjs.dev). To run the website locally, use one of the following commands:
