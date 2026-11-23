@@ -54,4 +54,10 @@ declare global {
   interface HTMLElementTagNameMap {
     'wcc-social-tray': SocialTray;
   }
+
+  namespace JSX {
+    interface IntrinsicElements {
+      'wcc-social-tray': Record<string, never>;
+    }
+  }
 }

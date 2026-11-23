@@ -21,3 +21,9 @@ export default class Footer extends HTMLElement {
 }
 
 customElements.define('wcc-footer', Footer);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-footer': Footer;
+  }
+}

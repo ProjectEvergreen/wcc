@@ -94,3 +94,9 @@ export default class CopyToClipboardBlock extends HTMLElement {
 }
 
 customElements.define('wcc-ctc-block', CopyToClipboardBlock);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-ctc-block': CopyToClipboardBlock;
+  }
+}

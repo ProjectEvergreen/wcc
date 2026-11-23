@@ -28,3 +28,9 @@ export default class BannerCta extends HTMLElement {
 }
 
 customElements.define('wcc-banner-cta', BannerCta);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-banner-cta': BannerCta;
+  }
+}

@@ -100,3 +100,9 @@ export default class Header extends HTMLElement {
 }
 
 customElements.define('wcc-header', Header);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-header': Header;
+  }
+}

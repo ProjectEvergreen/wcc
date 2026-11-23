@@ -19,3 +19,9 @@ export default class CapabilityBox extends HTMLElement {
 }
 
 customElements.define('wcc-capability-box', CapabilityBox);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-capability-box': CapabilityBox;
+  }
+}
