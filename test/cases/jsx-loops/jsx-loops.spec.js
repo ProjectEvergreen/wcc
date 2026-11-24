@@ -43,9 +43,12 @@ describe('JSX loops compiler output', () => {
     const source = sources.get('lists.jsx');
     expectOutput(source, 'lists/render');
     expectOutput(source, 'lists/helper');
+    expectOutput(source, 'lists/module-helpers');
     expect(source).to.contain("const $$wccMarkup = 'authored name';");
     expect(source.match(/static \$\$wcc_Child\(value\)/g)).to.have.length(1);
     expect(source.match(/function \$\$wcc_Child\(value\)/g)).to.have.length(1);
+    expect(source.match(/static \$\$escapeHtml =/g)).to.have.length(1);
+    expect(source.match(/const \$\$wcc_EscapeHtml =/g)).to.have.length(1);
   });
 
   it('qualifies child normalizer calls with their owning component class', () => {

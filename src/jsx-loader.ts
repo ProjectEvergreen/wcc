@@ -313,6 +313,7 @@ const jsxMarkupSymbol = 'wc-compiler.jsx-markup';
 // It escapes ordinary text (`'<reply>'` -> '&lt;reply&gt;') and joins array children without commas.
 function createJsxChildSerializer(
   name: string,
+  escapeReference: E.Expression,
   reference: E.Expression = ast.createIdentifier(name),
 ): E.FunctionExpression {
   // Recognize JSX from this module or an imported helper before escaping ordinary objects.
@@ -324,13 +325,17 @@ function createJsxChildSerializer(
     if (value == null || typeof value === 'boolean') return '';
     if (Array.isArray(value)) return value.map(${name}).join('');
     if (typeof value === 'object' && value[Symbol.for('${jsxMarkupSymbol}')] === true) return value.html;
-    return \`\${value}\`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    return escapeHtml(\`\${value}\`);
   });`);
   const normalize = (program.body[0] as E.ExpressionStatement).expression as E.FunctionExpression;
   // Rewrite the recursive function reference, e.g. `value.map($$wccChild)` ->
   // `value.map(Posts.$$wccChild)`, so passing the method as a callback does not depend on `this`.
+  // Ordinary values share the HTML helper: `return Posts.$$escapeHtml(`${value}`)`.
+  // Keep string coercion after the array, empty-child and JSX-markup checks above.
   const replaceReferences = (node: E.Node): E.Node => {
     if (node.type === 'Identifier' && node.name === name) return structuredClone(reference);
+    if (node.type === 'Identifier' && node.name === 'escapeHtml')
+      return structuredClone(escapeReference);
     const fields = node as unknown as Record<string, unknown>;
     for (const [key, value] of Object.entries(fields)) {
       if (Array.isArray(value))
@@ -837,6 +842,8 @@ export function parseJsx(
     );
   }
 
+  const escapeHelpers = new Map<E.ClassDeclaration, string>();
+  const componentsNeedingEscape = new Set<E.ClassDeclaration>();
   // apply all JSX transformations
   ast.walkSimple(
     tree,
@@ -849,9 +856,9 @@ export function parseJsx(
           while (moduleContents.includes(templateName)) templateName += '_';
           let escapeHelperName = '$$escapeHtml';
           while (moduleContents.includes(escapeHelperName)) escapeHelperName += '_';
+          escapeHelpers.set(node, escapeHelperName);
           // Initial HTML for both ordinary expressions and signal reads shares one helper.
           // Signal updates still use the existing effect-generation pass below.
-          let needsEscapeHelper = false;
           // Named classes call their static member directly; anonymous classes use this.constructor.
           const component =
             node.id ?? ast.createMemberExpression({ type: 'ThisExpression' }, 'constructor');
@@ -861,7 +868,7 @@ export function parseJsx(
           ): E.Expression => {
             // The builder supplies a string coercion, e.g. `${count.get()}`.
             // Share Counter.$$escapeHtml(`${count.get()}`, true) across root and loop attributes.
-            needsEscapeHelper = true;
+            componentsNeedingEscape.add(node);
             return ast.createCallExpression(
               ast.createMemberExpression(component, escapeHelperName),
               location === 'attribute'
@@ -900,13 +907,9 @@ export function parseJsx(
               }
             }
           }
-          
+
           compileJsxValueExpressions(node, context, hasShadowRoot);
-          
-          // Insert after all root and saved JSX templates have registered their escaping needs.
-          if (needsEscapeHelper)
-            node.body.body.unshift(ast.createHtmlEscapeHelper(escapeHelperName));
-          
+
           // Finished compiling this component
           // Clear out the internal `$$escapeHtml` escaping helper so it can't be referenced by accident in another component
           context.escapeHtml = undefined;
@@ -961,7 +964,16 @@ export function parseJsx(
       ast.createIdentifier(component.id!.name),
       context.childNormalizerName,
     );
-    const normalize = createJsxChildSerializer(context.childNormalizerName, reference);
+    const escapeReference = ast.createMemberExpression(
+      ast.createIdentifier(component.id!.name),
+      escapeHelpers.get(component)!,
+    );
+    componentsNeedingEscape.add(component);
+    const normalize = createJsxChildSerializer(
+      context.childNormalizerName,
+      escapeReference,
+      reference,
+    );
     normalizers.set(component, {
       type: 'MethodDefinition',
       key: ast.createIdentifier(context.childNormalizerName),
@@ -970,6 +982,11 @@ export function parseJsx(
       computed: false,
       static: true,
     });
+  }
+  // Include text-only components too: `{title}` needs both $$wccChild and $$escapeHtml.
+  // Emit one escaping helper per component, shared with any dynamic attributes.
+  for (const component of componentsNeedingEscape) {
+    component.body.body.unshift(ast.createHtmlEscapeHelper(escapeHelpers.get(component)!));
   }
   const declarations: E.Statement[] = [];
   if (valueClass) {
@@ -987,7 +1004,11 @@ export function parseJsx(
   // A module helper such as `const heading = text => <h3>{text}</h3>` has no owning class.
   // Its generated `$$wccChild(text)` calls share one module-level FunctionDeclaration.
   if (needsModuleNormalizer) {
-    const normalize = createJsxChildSerializer(context.childNormalizerName);
+    context.needsModuleEscapeHelper = true;
+    const normalize = createJsxChildSerializer(
+      context.childNormalizerName,
+      ast.createIdentifier(context.moduleEscapeHelperName),
+    );
     declarations.push({
       ...normalize,
       type: 'FunctionDeclaration',

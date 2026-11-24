@@ -2,5 +2,9 @@ function $$wccChild(value) {
   if (value == null || typeof value === 'boolean') return '';
   if (Array.isArray(value)) return value.map($$wccChild).join('');
   if (typeof value === 'object' && value[Symbol.for('wc-compiler.jsx-markup')] === true) return value.html;
-  return `${value}`.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  return $$wccEscapeHtml(`${value}`);
 }
+const $$wccEscapeHtml = (value, attribute) => {
+  value = value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  return attribute ? value.replaceAll('"', '&quot;') : value;
+};
