@@ -1,0 +1,63 @@
+render() {
+  const prefix = 'item';
+  const empty = [];
+  const $evBindings = [];
+  const $evRegister = handlers => $evBindings.push(handlers) - 1;
+  if (this.#evInitialized || !this.shadowRoot?.firstChild) {
+    const $$template = document.createElement('template');
+    $$template.innerHTML = `<div>
+        <ul id="items">
+          ${this.#items.map((item, index) => {
+      const id = `${prefix}:${index}:${item.id}`;
+      return `<li>
+                <button data-wcc-ev-237f8c64134c-0="${$evRegister([['click', event => this.#select(id, event)], ['focus', event => this.#focus(event)]])}">
+                  ${PrivateLoopEvents.$$wccChild(item.label)}
+                </button>
+              </li>`;
+    }).join('')}
+        </ul>
+        <div id="flat">
+          ${this.#items.flatMap(item => PrivateLoopEvents.$$wccChild([$$wccMarkup(`<button data-wcc-ev-237f8c64134c-0="${$evRegister([['click', event => this.#select(item.id, event)]])}">${PrivateLoopEvents.$$wccChild(item.label)}</button>`), $$wccMarkup(`<span>${PrivateLoopEvents.$$wccChild(item.id)}</span>`)])).join('')}
+        </div>
+        <div id="nested">
+          ${this.#items.map(item => `<section>
+              ${[1, 2].map(position => {
+      const id = `${item.id}:${position}`;
+      return `<button data-wcc-ev-237f8c64134c-0="${$evRegister([['click', event => this.#select(id, event)]])}">${PrivateLoopEvents.$$wccChild(id)}</button>`;
+    }).join('')}
+            </section>`).join('')}
+        </div>
+        <div id="empty">
+          ${empty.map(item => `<button data-wcc-ev-237f8c64134c-0="${$evRegister([['click', event => this.#select(item.id, event)]])}">Empty</button>`).join('')}
+        </div>
+        <div id="helper">${PrivateLoopEvents.$$wccChild(this.#renderHelper())}</div>
+      </div>`;
+    if (!this.shadowRoot) {
+      this.attachShadow({
+        mode: 'open'
+      });
+      this.shadowRoot.appendChild($$template.content.cloneNode(true));
+    } else {
+      this.shadowRoot.innerHTML = $$template.innerHTML;
+    }
+  } else {
+    this.#items.map((item, index) => {
+      const id = `${prefix}:${index}:${item.id}`;
+      return ($evRegister([['click', event => this.#select(id, event)], ['focus', event => this.#focus(event)]]), '');
+    }).join('');
+    this.#items.flatMap(item => [($evRegister([['click', event => this.#select(item.id, event)]]), ''), '']).join('');
+    this.#items.map(item => ([1, 2].map(position => {
+      const id = `${item.id}:${position}`;
+      return ($evRegister([['click', event => this.#select(id, event)]]), '');
+    }).join(''), '')).join('');
+    empty.map(item => ($evRegister([['click', event => this.#select(item.id, event)]]), '')).join('');
+  }
+  this.#evInitialized = true;
+  for (const $evEl of this.shadowRoot.querySelectorAll("[data-wcc-ev-237f8c64134c-0]") ?? []) {
+    const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-237f8c64134c-0"))];
+    for (const [$evName, $evHandler] of $evHandlers ?? []) {
+      $evEl.addEventListener($evName, $evHandler);
+    }
+    $evEl.removeAttribute("data-wcc-ev-237f8c64134c-0");
+  }
+}

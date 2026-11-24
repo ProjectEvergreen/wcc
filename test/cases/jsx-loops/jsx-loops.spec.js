@@ -58,15 +58,13 @@ describe('JSX loops compiler output', () => {
     expect(source.match(/static \$\$wccChild\(value\)/g)).to.have.length(2);
   });
 
-  it('emits component references at the correct depth inside mapped handlers', () => {
+  it('emits class-scoped callbacks inside direct mapped handlers', () => {
     const source = sources.get('lists.jsx');
-    expect(source).to.contain('})(event, this.parentElement.parentElement.parentElement)');
-    expect(source).to.contain(
-      'onclick="this.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.action(event)"',
-    );
+    expect(source).to.contain("$evRegister([['click', () => this.action()]])");
+    expect(source).to.contain("$evRegister([['click', event => this.action(event)]])");
   });
 
-  it('emits Shadow DOM rendering and mapped host handlers', () => {
+  it('emits Shadow DOM rendering and per-item mapped listeners', () => {
     expectOutput(sources.get('shadow-dom.jsx'), 'shadow-dom/render');
   });
 

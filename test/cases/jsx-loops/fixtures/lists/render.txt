@@ -14,6 +14,8 @@ render() {
   });
   const collected = [];
   items.forEach(({name}) => collected.push($$wcc_Markup(`<em>${Lists.$$wcc_Child(name)}</em>`)));
+  const $evBindings = [];
+  const $evRegister = handlers => $evBindings.push(handlers) - 1;
   this.innerHTML = `<main>
         <ul id="saved">${Lists.$$wcc_Child(saved)}</ul>
         <ul id="chain">
@@ -35,15 +37,13 @@ render() {
         <div id="helper">${Lists.$$wcc_Child(helper('chosen'))}</div>
         <div id="collision">${Lists.$$wcc_Child($$wccMarkup)}</div>
         <div id="inline">
-          ${items.map(({name}) => `<button onclick="(function (event, self) {
-  self.action();
-})(event, this.parentElement.parentElement.parentElement)">${Lists.$$wcc_Child(name)}</button>`).join('')}
+          ${items.map(({name}) => `<button data-wcc-ev-b24e606428fc-0="${$evRegister([['click', () => this.action()]])}">${Lists.$$wcc_Child(name)}</button>`).join('')}
         </div>
         <table>
           <tbody>
             ${items.map(({name}) => `<tr>
                 <td>
-                  <button onclick="this.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.action(event)">${Lists.$$wcc_Child(name)}</button>
+                  <button data-wcc-ev-b24e606428fc-0="${$evRegister([['click', event => this.action(event)]])}">${Lists.$$wcc_Child(name)}</button>
                 </td>
               </tr>`).join('')}
           </tbody>
@@ -52,4 +52,12 @@ render() {
           ${items.map(item => `<span data-comment="${Lists.$$escapeHtml(`${JSON.stringify(item)}`, true)}"></span>`).join('')}
         </div>
       </main>`;
+  for (const $evEl of this.querySelectorAll("[data-wcc-ev-b24e606428fc-0]") ?? []) {
+    if ($evEl.parentElement?.closest(this.localName) !== this) continue;
+    const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-b24e606428fc-0"))];
+    for (const [$evName, $evHandler] of $evHandlers ?? []) {
+      $evEl.addEventListener($evName, $evHandler);
+    }
+    $evEl.removeAttribute("data-wcc-ev-b24e606428fc-0");
+  }
 }

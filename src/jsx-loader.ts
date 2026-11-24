@@ -2,6 +2,7 @@
 import * as acorn from 'acorn';
 import { generate } from 'astring';
 import fs from 'fs';
+import { createHash } from 'node:crypto';
 // ideally we can eventually adopt an ESM compatible version of this plugin
 // https://github.com/acornjs/acorn-jsx/issues/112
 // but it does have a default export?
@@ -9,8 +10,8 @@ import jsx from '@projectevergreen/acorn-jsx-esm';
 import { transform } from 'sucrase';
 import * as ast from './jsx-ast-utils.js';
 import { Signal } from 'signal-polyfill';
-import type * as E from 'estree-jsx';
 import { html } from 'parse5';
+import type * as E from 'estree-jsx';
 import type { DefaultTreeAdapterTypes as H } from 'parse5';
 import type { ResolveHook, LoadHook } from 'node:module';
 import type { PathOrFileDescriptor } from 'node:fs';
@@ -143,11 +144,11 @@ function findThisReferences(
 function createHtmlTreeFromJsx(
   element: E.JSXElement['children'][number],
   template: ast.HtmlTemplateLiteralBuilder,
-  inferredObservability: boolean,
-  hasShadowRoot = false,
-  currentDepth = 1,
   parent: H.ParentNode = ast.createHtmlFragment(),
   context?: JsxCompilationContext,
+  hasShadowRoot = false,
+  currentDepth = 1,
+  bindListeners = true,
 ): H.ParentNode {
   const { type } = element;
 
@@ -201,37 +202,64 @@ function createHtmlTreeFromJsx(
             : expression;
         ast.appendHtmlChild(node, ast.createHtmlTextNode(template.expression(content, 'raw')));
       } else if (name.startsWith('on')) {
+        // Save `onclick={this.#increment}` as a callback AST. Its marker identifies the target
+        // after parse5 applies HTML parsing rules; listener statements are emitted after mounting.
         if (value?.type === 'JSXExpressionContainer') {
           const { expression } = value;
-          if (expression.type === 'ArrowFunctionExpression' && expression.body) {
-            node.attrs.push(
-              ast.createHtmlAttribute(
-                name,
-                template.handler((depth) =>
-                  ast.generateInlineEventHandler(expression, depth, hasShadowRoot),
+          if (!bindListeners) {
+            const hasPrivateReference = (value: unknown): boolean =>
+              value !== null &&
+              typeof value === 'object' &&
+              (('type' in value && value.type === 'PrivateIdentifier') ||
+                Object.values(value).some((child) =>
+                  Array.isArray(child)
+                    ? child.some(hasPrivateReference)
+                    : hasPrivateReference(child),
+                ));
+            if (hasPrivateReference(expression)) {
+              // TODO: Preserve private callbacks and their captured values in saved JSX and helper returns.
+              // https://github.com/ProjectEvergreen/wcc/issues/306
+              // https://github.com/ProjectEvergreen/wcc/issues/307
+              throw new Error(
+                'Private event handlers in saved JSX or helper returns are not supported.',
+              );
+            }
+            if (expression.type === 'ArrowFunctionExpression') {
+              node.attrs.push(
+                ast.createHtmlAttribute(
+                  name,
+                  template.inlineHandler((depth) =>
+                    ast.generateInlineEventHandler(expression, depth, hasShadowRoot),
+                  ),
                 ),
-              ),
-            );
-          } else if (
-            ast.generateEventHandler(expression, currentDepth, hasShadowRoot) !== undefined
-          ) {
-            node.attrs.push(
-              ast.createHtmlAttribute(
-                name,
-                template.handler((depth) =>
-                  ast.generateEventHandler(expression, depth, hasShadowRoot),
+              );
+            } else if (
+              ast.generateEventHandler(expression, currentDepth, hasShadowRoot) !== undefined
+            ) {
+              node.attrs.push(
+                ast.createHtmlAttribute(
+                  name,
+                  template.inlineHandler((depth) =>
+                    ast.generateEventHandler(expression, depth, hasShadowRoot),
+                  ),
                 ),
-              ),
-            );
+              );
+            }
+          } else if (expression.type !== 'JSXEmptyExpression') {
+            const marker = template.handler(name, expression);
+            if (marker) node.attrs.push(ast.createHtmlAttribute(name, marker));
           }
         }
       } else if (!expression) {
+        // A valueless attribute such as `<button disabled>` is serialized as a boolean attribute.
         node.attrs.push(ast.createHtmlAttribute(name));
       } else if (expression.type === 'Literal') {
+        // Literal JSX values (e.g. `title="&amp;"` or `hidden={false}`) can be serialized now.
         node.attrs.push(
           ...ast.createHtmlLiteralAttributes(name, expression, value?.type === 'Literal'),
         );
       } else if (expression.type !== 'JSXEmptyExpression') {
+        // Keep dynamic values such as `title={this.#label}` as AST for runtime interpolation and escaping.
         node.attrs.push(
           ast.createHtmlAttribute(name, template.expression(expression, 'attribute')),
         );
@@ -243,11 +271,11 @@ function createHtmlTreeFromJsx(
         createHtmlTreeFromJsx(
           child,
           template,
-          inferredObservability,
-          hasShadowRoot,
-          currentDepth + 1,
           node,
           context,
+          hasShadowRoot,
+          currentDepth + 1,
+          bindListeners,
         );
       }
     }
@@ -303,6 +331,79 @@ interface JsxCompilationContext {
   escapeHtml?: (expression: E.Expression, context: 'text' | 'attribute') => E.Expression;
   moduleEscapeHelperName: string;
   needsModuleEscapeHelper: boolean;
+  loopEvents?: LoopEventContext;
+}
+
+// Direct-loop callbacks share a render-local registry while retaining their own item bindings.
+// e.g. `items.map(item => <button onclick={() => this.#select(item.id)} />)` registers
+// one callback per item in `$evBindings`, with a marker index identifying each button.
+interface LoopEventContext {
+  registryName: string;
+  registerName: string;
+  markerName: string;
+  templates: Set<E.TemplateLiteral>;
+  depth: number;
+  used: boolean;
+}
+
+// Find registrations even inside nested loops, e.g.
+// `rows.map(row => row.items.map(item => $evRegister(handlers)))` still needs a DSD binding pass.
+function containsLoopRegistration(value: unknown, registerName: string): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const node = value as E.Node;
+  if (
+    node.type === 'CallExpression' &&
+    node.callee.type === 'Identifier' &&
+    node.callee.name === registerName
+  )
+    return true;
+  return Object.values(value).some((child) =>
+    Array.isArray(child)
+      ? child.some((value) => containsLoopRegistration(value, registerName))
+      : containsLoopRegistration(child, registerName),
+  );
+}
+
+// DSD needs the same per-item callbacks as a normal render, but already has the markup.
+// Clone the compiled loop, replacing only generated HTML templates with registration expressions.
+// e.g. a generated `<button data-wcc-ev-...="${$evRegister(handlers)}">${label}</button>`
+// becomes `($evRegister(handlers), '')`: collect callbacks without evaluating the label or HTML.
+// Authored locals such as `const id = item.id` keep their values and lexical scope.
+function compileLoopBindingsOnly(
+  node: E.Node,
+  context: JsxCompilationContext,
+  events: LoopEventContext,
+): E.Node {
+  if (node.type === 'TemplateLiteral' && events.templates.has(node)) {
+    const expressions = node.expressions
+      .filter((expression) => containsLoopRegistration(expression, events.registerName))
+      .map((expression) => compileLoopBindingsOnly(expression, context, events) as E.Expression);
+    return expressions.length
+      ? {
+          type: 'SequenceExpression',
+          expressions: [...expressions, { type: 'Literal', value: '', raw: "''" }],
+        }
+      : { type: 'Literal', value: '', raw: "''" };
+  }
+  // Child serialization and JSX-value wrapping are unnecessary when only collecting callbacks.
+  // e.g. `$$wccChild([$$wccMarkup(buttonTemplate)])` becomes an array of registrations.
+  if (
+    node.type === 'CallExpression' &&
+    (context.childNormalizerCalls.includes(node) ||
+      (node.callee.type === 'Identifier' && node.callee.name === context.markupFunctionName))
+  ) {
+    return compileLoopBindingsOnly(node.arguments[0] as E.Expression, context, events);
+  }
+  const copy = { ...node } as unknown as Record<string, unknown>;
+  for (const [key, value] of Object.entries(copy)) {
+    if (Array.isArray(value))
+      copy[key] = value.map((child) =>
+        child?.type ? compileLoopBindingsOnly(child, context, events) : child,
+      );
+    else if (value && typeof value === 'object' && 'type' in value)
+      copy[key] = compileLoopBindingsOnly(value as E.Node, context, events);
+  }
+  return copy as unknown as E.Node;
 }
 
 // Compiled modules share this marker so an imported JSX helper's values retain their identity.
@@ -402,6 +503,10 @@ function compileJsxChildLoop(
       // `posts.map(post => post.title)` stays a data map, wrapped in `Posts.$$wccChild(...)`.
       // A callback returning `<li>...</li>` instead returns HTML templates that can be joined.
       if (containsJsx(callback.body)) {
+        const events = context.loopEvents;
+        // e.g. `rows.map(row => row.items.map(item => <button onclick={...} />))` shares
+        // one registry; restore the outer depth before compiling its next sibling.
+        if (events) events.depth += 1;
         if (callback.body.type !== 'BlockStatement') {
           callback.body = compileJsxChildExpression(callback.body, context, hasShadowRoot, depth);
         } else {
@@ -432,6 +537,7 @@ function compileJsxChildLoop(
           };
           compileReturns(callback.body);
         }
+        if (events) events.depth -= 1;
         // Add a CallExpression/MemberExpression around the transformed map: `posts.map(...).join('')`.
         // Missing block returns become undefined; Array#join omits these naturally.
         return ast.createCallExpression(ast.createMemberExpression(node, 'join'), [
@@ -451,6 +557,10 @@ function compileJsxTemplate(
   hasShadowRoot: boolean,
   depth: number,
 ): E.TemplateLiteral {
+  const events = context.loopEvents;
+  // e.g. a button inside `return <div>{items.map(...)}</div>` can register with render().
+  // A separate `renderButton() { return <button ... />; }` has no active loop registry.
+  const bindLoopEvents = events !== undefined && events.depth > 0;
   // Nested loop templates share the owning component's escaping helper, just like its root.
   // Standalone JSX helpers use one module helper because they have no owning component.
   const template = ast.createHtmlTemplateLiteralBuilder(
@@ -463,17 +573,28 @@ function compileJsxTemplate(
           location === 'attribute' ? [expression, { type: 'Literal', value: true }] : [expression],
         );
       }),
+    bindLoopEvents
+      ? {
+          registerName: events.registerName,
+          markerName: events.markerName,
+          onRegistration() {
+            events.used = true;
+          },
+        }
+      : undefined,
   );
   const tree = createHtmlTreeFromJsx(
     node,
     template,
-    false,
-    hasShadowRoot,
-    depth,
     undefined,
     context,
+    hasShadowRoot,
+    depth,
+    bindLoopEvents,
   );
-  return template.build(tree, depth - 1);
+  const result = template.build(tree, depth - 1);
+  if (bindLoopEvents) events.templates.add(result);
+  return result;
 }
 
 // Compile JSX used as JavaScript values while preserving their original lexical scope.
@@ -515,7 +636,7 @@ function compileJsxValueExpressions(
 }
 
 // Compile a JSX/TSX module into a JavaScript AST with render statements and inferred effects.
-// E.g. JSX `<p>{count}</p>` in render() becomes an assignment to `this.innerHTML`.
+// e.g. JSX `<p>{count}</p>` in render() becomes an assignment to `this.innerHTML`.
 export function parseJsx(
   moduleURL: PathOrFileDescriptor,
 ): E.Program & { start: number; end: number } {
@@ -550,6 +671,39 @@ export function parseJsx(
   let observedAttributes: Array<string | E.VariableDeclarator> = [];
   const constructorMembersSignals = new Map<string, { isState: boolean; isComputed: boolean }>();
   const reactiveElements: ast.ReactiveElement[] = [];
+  // Effects run outside render(), so private aliases must resolve back to their class members.
+  // e.g. `const count = this.#count; <span>{count.get()}</span>` needs `this.#count.get()` in its effect.
+  const privateSignals = new Map<string, E.Expression>();
+  const privateSignalRead = (expression: E.CallExpression & { callee: E.MemberExpression }) => {
+    const object = expression.callee.object;
+    const reference = object.type === 'Identifier' ? privateSignals.get(object.name) : undefined;
+    if (reference) {
+      // An alias read such as `count.get()` becomes `this.#count.get()` when moved into an effect.
+      return { ...expression, callee: { ...expression.callee, object: reference } };
+    }
+    // Direct `this.#count.get()` already has the right receiver; retain its PrivateIdentifier node.
+    // Public reads use the existing name-based generation, e.g. `count` becomes `this.count.get()`.
+    return object.type === 'MemberExpression' && object.property.type === 'PrivateIdentifier'
+      ? expression
+      : undefined;
+  };
+  let privateSignalIndex = 0;
+  // e.g. `{this.#count.get()}` uses `$privateSignal0` as the static template's parameter,
+  // while its caller passes the original `this.#count.get()` expression from instance scope.
+  const signalReference = (
+    expression: E.CallExpression & { callee: E.MemberExpression },
+  ): ast.ReactiveSignal => {
+    const object = expression.callee.object;
+    // Both `count.get()` and `this.count.get()` need a parameter named `count` in the static template.
+    let name = getSignalName(expression) ?? 'undefined';
+    if (object.type === 'MemberExpression' && object.property.type === 'PrivateIdentifier') {
+      // Private names cannot be template-function parameters. Use a generated parameter instead.
+      name = `$privateSignal${privateSignalIndex++}`;
+      while (moduleContents.includes(name)) name += '_';
+    }
+    return { name, expression: privateSignalRead(expression) };
+  };
+  let hasPrivateSignals = false;
   let componentName = '';
   let hasShadowRoot = false;
   let hasDisconnectedCallback = false;
@@ -619,10 +773,42 @@ export function parseJsx(
             if (n1.type === 'MethodDefinition') {
               const nodeName = identifierName(n1.key);
               if (nodeName === 'render') {
+                // Direct reads such as `<p>{this.#count.get()}</p>` need effects even without
+                // a declaration such as `const count = this.#count` to trigger alias tracking.
+                const findPrivateSignalReads = (value: unknown): void => {
+                  if (!value || typeof value !== 'object') return;
+                  const expression = value as E.Node;
+                  if (
+                    isSignalRead(expression) &&
+                    expression.callee.object.type === 'MemberExpression' &&
+                    expression.callee.object.property.type === 'PrivateIdentifier'
+                  ) {
+                    hasPrivateSignals = true;
+                  }
+                  for (const child of Object.values(value)) {
+                    // JSX nodes are skipped by the general analysis walker, so inspect their expression
+                    // containers here too, e.g. the read inside `<p title={this.#count.get()}>`.
+                    if (Array.isArray(child)) child.forEach(findPrivateSignalReads);
+                    else findPrivateSignalReads(child);
+                  }
+                };
+                findPrivateSignalReads(n1.value.body);
                 for (const n2 in n1.value.body.body) {
                   const n = n1.value.body.body[n2];
 
                   if (n.type === 'VariableDeclaration') {
+                    // Save `const count = this.#count` for effect generation without adding
+                    // the private field to public HTML attribute observation (`observedAttributes`).
+                    for (const { id, init } of n.declarations) {
+                      if (
+                        id.type === 'Identifier' &&
+                        init?.type === 'MemberExpression' &&
+                        init.object.type === 'ThisExpression' &&
+                        init.property.type === 'PrivateIdentifier'
+                      ) {
+                        privateSignals.set(id.name, init);
+                      }
+                    }
                     observedAttributes = [
                       ...observedAttributes,
                       ...findThisReferences('render', n),
@@ -654,6 +840,8 @@ export function parseJsx(
               n.expression.left.object.type === 'ThisExpression'
             ) {
               const { left, right } = n.expression;
+              // `this.count = new Signal.State(0)` can expose a public observed attribute.
+              // `this.#count` is tracked separately for effects and must retain its private identity.
               if (
                 right.type === 'NewExpression' &&
                 right.callee.type === 'MemberExpression' &&
@@ -683,8 +871,13 @@ export function parseJsx(
     },
   );
 
-  // we do this first to track reactivity usage before we transform the template and re-write its contents
-  if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
+  // Analyze reads before replacing JSX with render statements. Private-only components still need
+  // effects, e.g. `<p>{this.#count.get()}</p>`, even when observedAttributes has no public entries.
+  if (
+    inferredObservability &&
+    (observedAttributes.length > 0 || privateSignals.size > 0 || hasPrivateSignals) &&
+    !hasOwnObservedAttributes
+  ) {
     // this scans for signals usage within the template and builds up a reactive list of templates + effects
     // TODO: recursive scanning for nested components
     // https://github.com/ProjectEvergreen/wcc/issues/256
@@ -707,7 +900,7 @@ export function parseJsx(
                 let parentHasReactiveTemplate;
                 const parentHasReactiveAttributes =
                   rootNode.openingElement.attributes.some(isReactiveAttribute);
-                const parentSignals: string[] = [];
+                const parentSignals: ast.ReactiveSignal[] = [];
 
                 for (const child of rootNode.children) {
                   if (child.type === 'JSXText') {
@@ -716,11 +909,9 @@ export function parseJsx(
                     parentTemplate.text(ast.createHtmlTextNode(child.raw, parentTag).value);
                   } else if (child.type === 'JSXExpressionContainer') {
                     if (isSignalRead(child.expression)) {
-                      const { object } = child.expression.callee || {};
-                      parentTemplate.expression(
-                        ast.createIdentifier(identifierName(object) ?? 'undefined'),
-                      );
-                      parentSignals.push(identifierName(object) ?? 'undefined');
+                      const signal = signalReference(child.expression);
+                      parentTemplate.expression(ast.createIdentifier(signal.name));
+                      parentSignals.push(signal);
                       parentHasReactiveTemplate = true;
                     }
                   } else if (child.type === 'JSXElement') {
@@ -752,7 +943,7 @@ export function parseJsx(
                     }
 
                     if (hasReactiveTemplate) {
-                      const signals: string[] = [];
+                      const signals: ast.ReactiveSignal[] = [];
                       const template = ast.createTemplateLiteralParts();
 
                       for (const c of child.children) {
@@ -762,19 +953,13 @@ export function parseJsx(
                           c.type === 'JSXExpressionContainer' &&
                           isSignalRead(c.expression)
                         ) {
-                          // TODO: handle this references?
-                          // https://github.com/ProjectEvergreen/wcc/issues/88
-                          const { object } = c.expression.callee || {};
-                          template.expression(
-                            ast.createIdentifier(identifierName(object) ?? 'undefined'),
-                          );
-                          signals.push(identifierName(object) ?? 'undefined');
+                          const signal = signalReference(c.expression);
+                          template.expression(ast.createIdentifier(signal.name));
+                          signals.push(signal);
                         }
                       }
 
                       if (signals.length > 0) {
-                        // TODO: handle this references?
-                        // https://www.github.com/ProjectEvergreen/wcc/issues/88
                         reactiveElements[reactiveElements.length - 1].effect =
                           ast.createReactiveTemplate(
                             `$$tmpl${reactiveElements.length - 1}`,
@@ -793,6 +978,9 @@ export function parseJsx(
                           reactiveElements[reactiveElements.length - 1].attributes.push({
                             name: attr.name.name,
                             value,
+                            // Preserve `this.#count.get()` (including resolved aliases) instead of
+                            // reconstructing a public read such as `this.count.get()` from its name.
+                            expression: privateSignalRead(attr.value.expression),
                           });
                         }
                       }
@@ -801,8 +989,6 @@ export function parseJsx(
                 }
 
                 if (parentHasReactiveTemplate || parentHasReactiveAttributes) {
-                  // TODO: handle this references?
-                  // https://www.github.com/ProjectEvergreen/wcc/issues/88
                   reactiveElements.push({
                     selector: `${parentTag}:nth-of-type(1)`,
                     effect: parentHasReactiveTemplate
@@ -824,6 +1010,7 @@ export function parseJsx(
                         reactiveElements[reactiveElements.length - 1].attributes.push({
                           name: attr.name.name,
                           value,
+                          expression: privateSignalRead(attr.value.expression),
                         });
                       }
                     }
@@ -844,6 +1031,11 @@ export function parseJsx(
 
   const escapeHelpers = new Map<E.ClassDeclaration, string>();
   const componentsNeedingEscape = new Set<E.ClassDeclaration>();
+  // Stable module / return identifiers keep one component's loop targets distinct from another's.
+  // Callback indices restart on every render, matching the markers emitted by the same SSR source.
+  // e.g. `data-wcc-ev-abc123def456-0="2"` identifies callback group 2 in return template 0.
+  const eventModuleId = createHash('sha256').update(moduleContents).digest('hex').slice(0, 12);
+  let eventTemplateIndex = 0;
   // apply all JSX transformations
   ast.walkSimple(
     tree,
@@ -877,6 +1069,9 @@ export function parseJsx(
             );
           };
           context.escapeHtml = escapeHtml;
+          let eventInitializationField = 'evInitialized';
+          while (moduleContents.includes(eventInitializationField)) eventInitializationField += '_';
+          let needsEventInitializationField = false;
           for (const n1 of node.body.body) {
             if (n1.type === 'MethodDefinition') {
               const nodeName = identifierName(n1.key);
@@ -888,24 +1083,76 @@ export function parseJsx(
                   ) {
                     return [statement];
                   }
+                  let registryName = '$evBindings';
+                  while (moduleContents.includes(registryName)) registryName += '_';
+                  let registerName = '$evRegister';
+                  while (moduleContents.includes(registerName)) registerName += '_';
+                  const events: LoopEventContext = {
+                    registryName,
+                    registerName,
+                    markerName: `data-wcc-ev-${eventModuleId}-${eventTemplateIndex++}`,
+                    templates: new Set(),
+                    depth: 0,
+                    used: false,
+                  };
+                  // Keep per-item registrations local to this render return, including nested loops.
+                  // e.g. `<div>{items.map(item => <button onclick={() => this.#select(item.id)} />)}</div>`
+                  // collects callbacks here; a later helper return uses its independent compilation path.
+                  context.loopEvents = events;
                   const template = ast.createHtmlTemplateLiteralBuilder(moduleContents, escapeHtml);
                   const htmlTree = createHtmlTreeFromJsx(
                     statement.argument,
                     template,
-                    inferredObservability,
-                    hasShadowRoot,
-                    1,
                     undefined,
                     context,
-                  );
-                  return ast.createRenderStatements(
-                    template.build(htmlTree),
                     hasShadowRoot,
-                    templateName,
                   );
+                  const renderTemplate = template.build(htmlTree);
+                  context.loopEvents = undefined;
+                  const listeners = template.listeners(hasShadowRoot);
+                  const reuseShadowRoot = hasShadowRoot && (listeners.length > 0 || events.used);
+                  // Existing DSD only needs the event-bearing loops, e.g.
+                  // `items.map(item => ($evRegister([['click', () => this.#select(item.id)]]), ''))`.
+                  // Keep the server's HTML and create the closures that its marker indices refer to.
+                  const initialBindings: E.Statement[] =
+                    events.used && hasShadowRoot
+                      ? renderTemplate.expressions
+                          .filter((expression) =>
+                            containsLoopRegistration(expression, registerName),
+                          )
+                          .map((expression) => ({
+                            type: 'ExpressionStatement',
+                            expression: compileLoopBindingsOnly(
+                              expression,
+                              context,
+                              events,
+                            ) as E.Expression,
+                          }))
+                      : [];
+                  needsEventInitializationField ||= reuseShadowRoot;
+                  // e.g. `return <button onclick={this.#increment}>` becomes an innerHTML
+                  // assignment followed by its listener. The first Shadow DOM render reuses DSD
+                  // nodes when present, while keeping local callback captures in render() scope.
+                  return [
+                    ...(events.used ? ast.createLoopEventSetup(registryName, registerName) : []),
+                    ...ast.createRenderStatements(
+                      renderTemplate,
+                      hasShadowRoot,
+                      templateName,
+                      reuseShadowRoot ? eventInitializationField : undefined,
+                      initialBindings,
+                    ),
+                    ...listeners,
+                    ...(events.used
+                      ? ast.createLoopEventBindings(registryName, events.markerName, hasShadowRoot)
+                      : []),
+                  ];
                 });
               }
             }
+          }
+          if (needsEventInitializationField) {
+            node.body.body.unshift(ast.createEventInitializationField(eventInitializationField));
           }
 
           compileJsxValueExpressions(node, context, hasShadowRoot);
@@ -1031,7 +1278,11 @@ export function parseJsx(
   tree.body.unshift(...declarations);
 
   // TODO: why does this compilation run twice?  logging here will output the message twice
-  if (inferredObservability && observedAttributes.length > 0 && !hasOwnObservedAttributes) {
+  if (
+    inferredObservability &&
+    (observedAttributes.length > 0 || privateSignals.size > 0 || hasPrivateSignals) &&
+    !hasOwnObservedAttributes
+  ) {
     // here we do the following with all the work we've done so far tracking attributes, signals, effects, etc
     // 1. setup static template functions and observed attributes that we've tracked so far to inject into the top of the class body
     // 2. append all effects to the end of the connectedCallback function
@@ -1047,6 +1298,8 @@ export function parseJsx(
           ) {
             // TODO: do we even need this filter?
             const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
+            // Only public State fields become HTML inputs, e.g. `<my-counter count="3">`.
+            // Computeds derive their values, and private signals are kept outside this attribute list.
             const stateAttrs = trackingAttrs.filter(
               (attr) => constructorMembersSignals.get(attr)?.isState,
             );
