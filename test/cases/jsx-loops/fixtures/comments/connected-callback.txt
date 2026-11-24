@@ -1,0 +1,14 @@
+connectedCallback() {
+  this.render();
+  this.$el0 = this.querySelector('article > button:nth-of-type(1)');
+  this.$el1 = this.querySelector('article > ul:nth-of-type(1)');
+  this.$eff0 = effect(() => {
+    this.$el0.textContent = Comments.$$tmpl0(this.label.get());
+  });
+  this.$eff1 = effect(() => {
+    this.$el0.setAttribute('aria-expanded', this.open.get());
+  });
+  this.$eff2 = effect(() => {
+    this.$el1.setAttribute('style', this.visibility.get());
+  });
+}

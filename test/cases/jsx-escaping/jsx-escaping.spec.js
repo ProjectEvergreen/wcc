@@ -16,6 +16,7 @@ describe('JSX HTML escaping', () => {
 
     expect(source.replace(/\s+/g, '')).to.contain(expected.replace(/\s+/g, ''));
     expect(source.match(/static \$\$escapeHtml =/g)).to.have.length(1);
+    expect(source).to.contain('return Escaping.$$escapeHtml(`${value}`);');
   });
 
   for (const [attribute, text] of [
@@ -152,9 +153,9 @@ describe('JSX HTML escaping', () => {
       expect(actual).to.contain(expected.replace(/\s+/g, ''));
     });
 
-    for (const [label, component] of [
-      ['Light DOM', 'light-dom-escape-helper'],
-      ['Shadow DOM', 'shadow-dom-escape-helper'],
+    for (const [label, component, className] of [
+      ['Light DOM', 'light-dom-escape-helper', 'LightDomEscapeHelper'],
+      ['Shadow DOM', 'shadow-dom-escape-helper', 'ShadowDomEscapeHelper'],
     ]) {
       it(`should emit the complete ${label} render method`, async () => {
         const { metadata } = await renderToString(
@@ -167,6 +168,7 @@ describe('JSX HTML escaping', () => {
 
         const actual = metadata[`wcc-${component}`].source.replace(/\s+/g, '');
         expect(actual).to.contain(expected.replace(/\s+/g, ''));
+        expect(actual).to.contain(`return${className}.$$escapeHtml_(\`\${value}\`);`);
       });
     }
 

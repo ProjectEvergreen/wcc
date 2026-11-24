@@ -7,7 +7,7 @@ render() {
     }
   };
   this.innerHTML = `<section title="${ExpressionEvaluation.$$escapeHtml(`${readText()}`, true)}" data-reads="${ExpressionEvaluation.$$escapeHtml(`${++reads}`, true)}">
-        <p>${ExpressionEvaluation.$$escapeHtml(`${readText()}`)}</p>
-        <p>${ExpressionEvaluation.$$escapeHtml(`${values.label}`)}</p>
+        <p>${ExpressionEvaluation.$$wccChild(readText())}</p>
+        <p>${ExpressionEvaluation.$$wccChild(values.label)}</p>
       </section>`;
 }

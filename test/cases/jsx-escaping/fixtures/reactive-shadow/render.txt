@@ -2,7 +2,7 @@ render() {
   const {label, markup} = this;
   const $$template = document.createElement('template');
   $$template.innerHTML = `<section title="${ReactiveShadowEscaping.$$escapeHtml(`${label.get()}`, true)}">
-        <p title="${ReactiveShadowEscaping.$$escapeHtml(`${label.get()}`, true)}">Label &amp; $ value: ${ReactiveShadowEscaping.$$escapeHtml(`${label.get()}`)}</p>
+        <p title="${ReactiveShadowEscaping.$$escapeHtml(`${label.get()}`, true)}">Label &amp; $ value: ${ReactiveShadowEscaping.$$wccChild(label.get())}</p>
         <div>${markup.get()}</div>
       </section>`;
   if (!this.shadowRoot) {

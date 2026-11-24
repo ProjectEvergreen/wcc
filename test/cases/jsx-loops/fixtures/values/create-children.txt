@@ -1,0 +1,3 @@
+export function createChildren(text) {
+  return [$$wccMarkup(`<strong title="${$$wccEscapeHtml(`${text}`, true)}">${$$wccChild(text)}</strong>`), `<strong>${text}</strong>`];
+}

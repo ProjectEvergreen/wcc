@@ -1,7 +1,7 @@
 render() {
   const {label, markup} = this;
   this.innerHTML = `<section title="${ReactiveEscaping.$$escapeHtml(`${label.get()}`, true)}">
-        <p title="${ReactiveEscaping.$$escapeHtml(`${label.get()}`, true)}">Label &amp; $ value: ${ReactiveEscaping.$$escapeHtml(`${label.get()}`)}</p>
+        <p title="${ReactiveEscaping.$$escapeHtml(`${label.get()}`, true)}">Label &amp; $ value: ${ReactiveEscaping.$$wccChild(label.get())}</p>
         <div>${markup.get()}</div>
       </section>`;
 }
