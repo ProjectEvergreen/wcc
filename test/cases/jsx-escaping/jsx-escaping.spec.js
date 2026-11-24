@@ -1,8 +1,23 @@
 import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
-import { renderFromHTML } from 'wc-compiler';
+import fs from 'fs/promises';
+import { renderFromHTML, renderToString } from 'wc-compiler';
 
 describe('JSX HTML escaping', () => {
+  it('should share one static helper for escaped text and attributes', async () => {
+    const { metadata } = await renderFromHTML('<wcc-escaping></wcc-escaping>', [
+      new URL('./src/escaping.jsx', import.meta.url),
+    ]);
+    const expected = await fs.readFile(
+      new URL('./fixtures/escaping/escape-html.txt', import.meta.url),
+      'utf-8',
+    );
+    const source = metadata['wcc-escaping'].source;
+
+    expect(source.replace(/\s+/g, '')).to.contain(expected.replace(/\s+/g, ''));
+    expect(source.match(/static \$\$escapeHtml =/g)).to.have.length(1);
+  });
+
   for (const [attribute, text] of [
     ['<template>', '<template>'],
     ['&lt;template&gt;', '<template>'],
@@ -114,5 +129,80 @@ describe('JSX HTML escaping', () => {
     expect(source).to.contain('this.$el1.innerHTML = this.markup.get();');
     expect(source).to.contain("this.$el2 = this.querySelector('section:nth-of-type(1)');");
     expect(source).to.contain("this.$el2.setAttribute('title', this.label.get());");
+  });
+
+  describe('Shared helper render output', () => {
+    // const readText = () => `Value ${++reads}`;
+    // const values = { get label() { return readText(); } };
+    // <section title={readText()} data-reads={++reads}>
+    //   <p>{readText()}</p>
+    //   <p>{values.label}</p>
+    // </section>
+    // Each authored occurrence evaluates once, including the separate readText() calls.
+    it('should evaluate calls, getters, and increments once per authored occurrence', async () => {
+      const { metadata } = await renderToString(
+        new URL('./src/expression-evaluation.jsx', import.meta.url),
+      );
+      const expected = await fs.readFile(
+        new URL('./fixtures/expression-evaluation/render.txt', import.meta.url),
+        'utf-8',
+      );
+      const actual = metadata['wcc-expression-evaluation'].source.replace(/\s+/g, '');
+
+      expect(actual).to.contain(expected.replace(/\s+/g, ''));
+    });
+
+    for (const [label, component] of [
+      ['Light DOM', 'light-dom-escape-helper'],
+      ['Shadow DOM', 'shadow-dom-escape-helper'],
+    ]) {
+      it(`should emit the complete ${label} render method`, async () => {
+        const { metadata } = await renderToString(
+          new URL(`./src/${component}.jsx`, import.meta.url),
+        );
+        const expected = await fs.readFile(
+          new URL(`./fixtures/${component}/render.txt`, import.meta.url),
+          'utf-8',
+        );
+
+        const actual = metadata[`wcc-${component}`].source.replace(/\s+/g, '');
+        expect(actual).to.contain(expected.replace(/\s+/g, ''));
+      });
+    }
+
+    describe('Attribute expressions', () => {
+      for (const component of ['non-reactive-attributes', 'reactive-attributes']) {
+        it(`should emit the complete ${component} render method`, async () => {
+          const { metadata } = await renderToString(
+            new URL(`./src/${component}.jsx`, import.meta.url),
+          );
+          const expected = await fs.readFile(
+            new URL(`./fixtures/${component}/render.txt`, import.meta.url),
+            'utf-8',
+          );
+          const actual = metadata[`wcc-${component}`].source.replace(/\s+/g, '');
+
+          expect(actual).to.contain(expected.replace(/\s+/g, ''));
+        });
+      }
+    });
+  });
+
+  describe('Initial signal escaping', () => {
+    for (const [label, component, extension, tag] of [
+      ['Light DOM JSX', 'reactive', 'jsx', 'wcc-reactive-escaping'],
+      ['Shadow DOM TSX', 'reactive-shadow', 'tsx', 'wcc-reactive-shadow-escaping'],
+    ]) {
+      it(`should escape signal text and attributes while preserving explicit markup in ${label}`, async () => {
+        const { metadata } = await renderToString(
+          new URL(`./src/${component}.${extension}`, import.meta.url),
+        );
+        const expected = await fs.readFile(
+          new URL(`./fixtures/${component}/render.txt`, import.meta.url),
+          'utf-8',
+        );
+        expect(metadata[tag].source.replace(/\s+/g, '')).to.contain(expected.replace(/\s+/g, ''));
+      });
+    }
   });
 });

@@ -1,0 +1,4 @@
+this.$el0 = this.querySelector('section > div:nth-of-type(1)');
+this.$eff0 = effect(() => {
+  this.$el0.innerHTML = this.markup.get();
+});

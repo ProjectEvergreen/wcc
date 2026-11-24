@@ -1,0 +1,4 @@
+static $$escapeHtml = (value, attribute) => {
+  value = value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  return attribute ? value.replaceAll('"', '&quot;') : value;
+};

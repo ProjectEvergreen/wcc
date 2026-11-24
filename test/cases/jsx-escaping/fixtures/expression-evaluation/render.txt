@@ -1,0 +1,13 @@
+render() {
+  let reads = 0;
+  const readText = () => `Value ${++reads}`;
+  const values = {
+    get label() {
+      return readText();
+    }
+  };
+  this.innerHTML = `<section title="${ExpressionEvaluation.$$escapeHtml(`${readText()}`, true)}" data-reads="${ExpressionEvaluation.$$escapeHtml(`${++reads}`, true)}">
+        <p>${ExpressionEvaluation.$$escapeHtml(`${readText()}`)}</p>
+        <p>${ExpressionEvaluation.$$escapeHtml(`${values.label}`)}</p>
+      </section>`;
+}
