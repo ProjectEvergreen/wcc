@@ -18,6 +18,20 @@ export default defineConfig({
     },
   },
   copy: [
+    {
+      from: 'node_modules/html-element-attributes/license',
+      to: 'dist/licenses/html-element-attributes',
+    },
+    {
+      from: 'node_modules/svg-element-attributes/license',
+      to: 'dist/licenses/svg-element-attributes',
+    },
+    { from: 'node_modules/property-information/license', to: 'dist/licenses/property-information' },
+    { from: 'node_modules/html-validate/LICENSE', to: 'dist/licenses/html-validate' },
+    {
+      from: 'node_modules/@vscode/web-custom-data/LICENSE.md',
+      to: 'dist/licenses/vscode-web-custom-data',
+    },
     { from: 'node_modules/@types/estree/LICENSE', to: 'dist/node_modules/@types/estree' },
     { from: 'node_modules/@types/estree-jsx/LICENSE', to: 'dist/node_modules/@types/estree-jsx' },
   ],

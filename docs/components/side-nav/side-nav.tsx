@@ -72,3 +72,9 @@ export default class SideNav extends HTMLElement {
 }
 
 customElements.define('wcc-side-nav', SideNav);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-side-nav': SideNav;
+  }
+}

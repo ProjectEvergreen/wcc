@@ -21,6 +21,8 @@ jobs:
           npm ci
       - name: Build
         run: |
+          # Check before the build regenerates declarations and hides stale committed output
+          npm run jsx-types:check
           npm run build
       # Greenwood specific patches
       - name: Run patch-package

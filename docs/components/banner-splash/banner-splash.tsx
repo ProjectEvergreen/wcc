@@ -16,3 +16,9 @@ export default class BannerSplash extends HTMLElement {
 }
 
 customElements.define('wcc-banner-splash', BannerSplash);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-banner-splash': BannerSplash;
+  }
+}

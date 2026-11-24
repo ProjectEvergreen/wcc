@@ -44,6 +44,10 @@ export default class CopyToClipboardButton extends HTMLElement {
 customElements.define('wcc-ctc-button', CopyToClipboardButton);
 
 declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-ctc-button': CopyToClipboardButton;
+  }
+
   namespace JSX {
     interface IntrinsicElements {
       'wcc-ctc-button': {

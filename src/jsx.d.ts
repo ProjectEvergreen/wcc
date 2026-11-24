@@ -1,68 +1,43 @@
-export {};
+import type { HtmlAttributes, SvgAttributes } from './jsx-attributes.js';
+
+type EventAttributes<Events> = {
+  // WCC supports inline assignments/updates, e.g. onclick={this.count += 1}.
+  [Name in keyof Events & string as `on${Name}`]?:
+    | ((event: Events[Name]) => unknown)
+    | number
+    | boolean
+    | void;
+};
+
+type WccCustomAttributes = {
+  // Allow JSX child values such as text, expressions, and nested elements.
+  // unknown keeps this permissive; it is separate from the DOM's children collection.
+  children?: unknown;
+  // WCC inserts this string as unescaped child markup instead of an HTML attribute.
+  // Cannot be combined with JSX children or used on void elements.
+  innerHTML?: string;
+};
+
+type HtmlIntrinsicElements = {
+  [Tag in keyof HtmlAttributes]: HtmlAttributes[Tag] &
+    EventAttributes<HTMLElementEventMap> &
+    WccCustomAttributes;
+};
+
+type SvgIntrinsicElements = {
+  [Tag in keyof SvgAttributes]: SvgAttributes[Tag] &
+    EventAttributes<SVGElementEventMap> &
+    WccCustomAttributes;
+};
+
+type IntrinsicElementsMap = {
+  // JSX cannot distinguish HTML <a> from <a> inside SVG. Accept either set.
+  [Tag in keyof HtmlIntrinsicElements | keyof SvgIntrinsicElements]:
+    | (Tag extends keyof HtmlIntrinsicElements ? HtmlIntrinsicElements[Tag] : never)
+    | (Tag extends keyof SvgIntrinsicElements ? SvgIntrinsicElements[Tag] : never);
+};
 
 declare global {
-  // to support `style` attributes, we override `CSSStyleDeclaration` with `string`
-  type IsCSSStyleDeclaration<T> = T extends CSSStyleDeclaration ? string : T;
-
-  // creates a utility type to extract the attributes from any given element's DOM interface from `HTMLElementTagNameMap`
-  type ElementAttributes<E extends HTMLElement> = {
-    // Extract all properties from the element, including inherited ones
-    [A in keyof E]?: E[A] extends (...args: any) => any ? any : IsCSSStyleDeclaration<E[A]>;
-  } & {
-    class?: string;
-    children?: any;
-  };
-
-  // creates a utility type for SVG attributes, allowing string values for SVG-specific attributes
-  type SVGElementAttributes<E extends SVGElement> = {
-    [A in keyof E]?: string | undefined;
-  } & {
-    class?: string;
-    fill?: string;
-    stroke?: string;
-    d?: string;
-    viewBox?: string;
-    xmlns?: string;
-    preserveAspectRatio?: string;
-    [key: string]: any;
-  };
-
-  type PopoverState = 'auto' | 'manual' | 'hint';
-  type PopoverTargetAction = 'show' | 'hide' | 'toggle';
-  type PopoverAttributes = {
-    // have to manage this manually, can't seem to get this from TypeScript itself (not sure if just skill issue? :D)
-    // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1790
-    // it should be there per https://github.com/mdn/browser-compat-data/pull/21875
-    // https://github.com/ProjectEvergreen/wcc/issues/236
-    // per the spec, this should only apply to <button> and <input> elements.
-    popover?: PopoverState;
-    popovertarget?: string;
-    popovertargetaction?: PopoverTargetAction;
-  };
-
-  // map each HTML tag to its attributes
-  type IntrinsicElementsFromDom = {
-    [E in keyof HTMLElementTagNameMap]: ElementAttributes<HTMLElementTagNameMap[E]> &
-      (E extends 'button' | 'input' ? PopoverAttributes : {}) &
-      (E extends 'button' ? { tabindex?: number | string } : {});
-  };
-
-  // map each SVG tag to its attributes
-  type IntrinsicElementsFromSVG = {
-    [E in keyof SVGElementTagNameMap]: SVGElementAttributes<SVGElementTagNameMap[E]>;
-  };
-
-  type IntrinsicElementAttributes<E extends string> = (E extends keyof HTMLElementTagNameMap
-    ? ElementAttributes<HTMLElementTagNameMap[E]> &
-        (E extends 'button' | 'input' ? PopoverAttributes : {}) &
-        (E extends 'button' ? { tabindex?: number | string } : {})
-    : {}) &
-    (E extends keyof SVGElementTagNameMap ? SVGElementAttributes<SVGElementTagNameMap[E]> : {});
-
-  type IntrinsicElementsMap = {
-    [E in keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap]: IntrinsicElementAttributes<E>;
-  };
-
   namespace JSX {
     interface IntrinsicElements extends IntrinsicElementsMap {}
   }

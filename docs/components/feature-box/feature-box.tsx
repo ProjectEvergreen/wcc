@@ -32,3 +32,9 @@ export default class FeatureBox extends HTMLElement {
 }
 
 customElements.define('wcc-feature-box', FeatureBox);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-feature-box': FeatureBox;
+  }
+}
