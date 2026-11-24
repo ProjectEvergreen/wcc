@@ -132,6 +132,26 @@ describe('JSX HTML escaping', () => {
   });
 
   describe('Shared helper render output', () => {
+    // const readText = () => `Value ${++reads}`;
+    // const values = { get label() { return readText(); } };
+    // <section title={readText()} data-reads={++reads}>
+    //   <p>{readText()}</p>
+    //   <p>{values.label}</p>
+    // </section>
+    // Each authored occurrence evaluates once, including the separate readText() calls.
+    it('should evaluate calls, getters, and increments once per authored occurrence', async () => {
+      const { metadata } = await renderToString(
+        new URL('./src/expression-evaluation.jsx', import.meta.url),
+      );
+      const expected = await fs.readFile(
+        new URL('./fixtures/expression-evaluation/render.txt', import.meta.url),
+        'utf-8',
+      );
+      const actual = metadata['wcc-expression-evaluation'].source.replace(/\s+/g, '');
+
+      expect(actual).to.contain(expected.replace(/\s+/g, ''));
+    });
+
     for (const [label, component] of [
       ['Light DOM', 'light-dom-escape-helper'],
       ['Shadow DOM', 'shadow-dom-escape-helper'],
