@@ -48,7 +48,9 @@ function tags(name: string): string[] {
     (node): node is ts.InterfaceDeclaration =>
       ts.isInterfaceDeclaration(node) && node.name.text === name,
   );
+
   if (!declaration) throw new Error(`Missing TypeScript DOM interface: ${name}`);
+
   return declaration.members.map((member) => {
     if (!member.name || (!ts.isIdentifier(member.name) && !ts.isStringLiteral(member.name)))
       throw new Error(`Unexpected tag declaration in ${name}`);
@@ -100,13 +102,17 @@ const keywordCorrections: Record<string, MetaAttribute> = {
 // step 4 - select each attribute's rule: corrections, validator, then completion data.
 function attributeRule(tag: string, name: string): MetaAttribute | undefined {
   if (keywordCorrections[name]) return keywordCorrections[name];
+
   const rule = htmlRules[tag]?.attributes?.[name] ?? htmlRules['*'].attributes?.[name];
   if (Array.isArray(rule)) return { enum: rule };
+
   // Even non-finite validator rules take precedence over completion data.
   if (rule?.enum || rule?.boolean) return rule;
+
   const completion = webTags.get(tag)?.get(name) ?? webGlobals.get(name);
   const set = completion?.valueSet ?? name;
   if (openValueSets.has(set)) return undefined;
+
   const values = valueSets.get(set);
   return values && { enum: values };
 }
@@ -125,25 +131,32 @@ function valueType(schema: Schema, name: string, tag: string): string {
   // ARIA uses the same keywords in HTML and SVG.
   // HTML-specific enums must not constrain unrelated SVG attributes such as <animate type="rotate">.
   const rule = schema === html || name.startsWith('aria-') ? attributeRule(tag, name) : undefined;
+
   if (rule?.boolean) return `boolean | '' | ${JSON.stringify(name)} | null`;
+
   if (
     rule?.enum?.length &&
     !rule.list &&
     rule.enum.every((value) => typeof value === 'string' && !value.startsWith('/'))
   ) {
     const types = new Set(rule.enum.map((value) => JSON.stringify(value)));
+
     if (rule.omit || overloadedBooleanNames.has(name)) types.add("''");
+
     if (
       (rule.enum.includes('true') && rule.enum.includes('false')) ||
       overloadedBooleanNames.has(name)
     )
       types.add('boolean');
+
     return [...types, 'null'].join(' | ');
   }
+
   if (['value', 'min', 'max', 'step'].includes(name)) return 'string | number | null';
   if (info.boolean) return `boolean | '' | ${JSON.stringify(name)} | null`;
   if (info.booleanish || info.overloadedBoolean) return 'string | boolean | null';
   if (info.number || schema.space === 'svg') return 'string | number | null';
+
   return 'string | null';
 }
 
@@ -160,16 +173,19 @@ const lines = [
   `// Sources: ${provenance} (MIT).`,
   '// TypeScript DOM maps supply tag names only, never attribute names or values.',
 ];
+
 for (const [prefix, map, schema, domMap] of [
   ['Html', htmlElementAttributes, html, 'HTMLElementTagNameMap'],
   ['Svg', svgElementAttributes, svg, 'SVGElementTagNameMap'],
 ] as const) {
   const globals = [...map['*'], ...shared, 'xmlns'];
+
   if (prefix === 'Html')
     globals.push(
       ...Object.keys(htmlRules['*'].attributes ?? {}),
       ...webData.globalAttributes.filter((a) => !a.name.startsWith('on')).map((a) => a.name),
     );
+
   // XML and XLink vocabularies are excluded by svg-element-attributes.
   if (prefix === 'Svg')
     globals.push(
@@ -177,10 +193,12 @@ for (const [prefix, map, schema, domMap] of [
         .filter((info) => ['xml', 'xlink', 'xmlns'].includes(info.space ?? ''))
         .map((info) => info.attribute),
     );
+
   lines.push(
     `interface ${prefix}GlobalAttributes { ${members(globals, schema)}\n [name: \`data-\${string}\`]: string | number | boolean | null | undefined; }`,
   );
   lines.push(`export interface ${prefix}Attributes {`);
+
   for (const tag of [
     ...new Set([...tags(domMap), ...Object.keys(map).filter((tag) => tag !== '*')]),
   ].sort()) {
@@ -198,8 +216,10 @@ for (const [prefix, map, schema, domMap] of [
     const base = overrides.length
       ? `Omit<${prefix}GlobalAttributes, ${overrides.map((n) => JSON.stringify(n)).join(' | ')}>`
       : `${prefix}GlobalAttributes`;
+
     lines.push(`${JSON.stringify(tag)}: ${base} & { ${members(own, schema, tag)} };`);
   }
+
   lines.push('}');
 }
 
@@ -209,6 +229,7 @@ const result = await format(lines.join('\n'), {
   printWidth: 100,
   singleQuote: true,
 });
+
 if (process.argv.includes('--check')) {
   const current = await fs.readFile(output, 'utf8').catch(() => '');
   if (current !== result) {
