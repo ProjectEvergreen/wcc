@@ -2,6 +2,7 @@
 import * as acorn from 'acorn';
 import { generate } from 'astring';
 import fs from 'fs';
+import { createHash } from 'node:crypto';
 // ideally we can eventually adopt an ESM compatible version of this plugin
 // https://github.com/acornjs/acorn-jsx/issues/112
 // but it does have a default export?
@@ -9,8 +10,8 @@ import jsx from '@projectevergreen/acorn-jsx-esm';
 import { transform } from 'sucrase';
 import * as ast from './jsx-ast-utils.js';
 import { Signal } from 'signal-polyfill';
-import type * as E from 'estree-jsx';
 import { html } from 'parse5';
+import type * as E from 'estree-jsx';
 import type { DefaultTreeAdapterTypes as H } from 'parse5';
 import type { ResolveHook, LoadHook } from 'node:module';
 import type { PathOrFileDescriptor } from 'node:fs';
@@ -216,8 +217,11 @@ function createHtmlTreeFromJsx(
                     : hasPrivateReference(child),
                 ));
             if (hasPrivateReference(expression)) {
+              // TODO: Preserve private callbacks and their captured values in saved JSX and helper returns.
+              // https://github.com/ProjectEvergreen/wcc/issues/306
+              // https://github.com/ProjectEvergreen/wcc/issues/307
               throw new Error(
-                'Private event handlers in nested JSX require per-instance DOM binding.',
+                'Private event handlers in saved JSX or helper returns are not supported.',
               );
             }
             if (expression.type === 'ArrowFunctionExpression') {
@@ -327,6 +331,79 @@ interface JsxCompilationContext {
   escapeHtml?: (expression: E.Expression, context: 'text' | 'attribute') => E.Expression;
   moduleEscapeHelperName: string;
   needsModuleEscapeHelper: boolean;
+  loopEvents?: LoopEventContext;
+}
+
+// Direct-loop callbacks share a render-local registry while retaining their own item bindings.
+// e.g. `items.map(item => <button onclick={() => this.#select(item.id)} />)` registers
+// one callback per item in `$evBindings`, with a marker index identifying each button.
+interface LoopEventContext {
+  registryName: string;
+  registerName: string;
+  markerName: string;
+  templates: Set<E.TemplateLiteral>;
+  depth: number;
+  used: boolean;
+}
+
+// Find registrations even inside nested loops, e.g.
+// `rows.map(row => row.items.map(item => $evRegister(handlers)))` still needs a DSD binding pass.
+function containsLoopRegistration(value: unknown, registerName: string): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const node = value as E.Node;
+  if (
+    node.type === 'CallExpression' &&
+    node.callee.type === 'Identifier' &&
+    node.callee.name === registerName
+  )
+    return true;
+  return Object.values(value).some((child) =>
+    Array.isArray(child)
+      ? child.some((value) => containsLoopRegistration(value, registerName))
+      : containsLoopRegistration(child, registerName),
+  );
+}
+
+// DSD needs the same per-item callbacks as a normal render, but already has the markup.
+// Clone the compiled loop, replacing only generated HTML templates with registration expressions.
+// e.g. a generated `<button data-wcc-ev-...="${$evRegister(handlers)}">${label}</button>`
+// becomes `($evRegister(handlers), '')`: collect callbacks without evaluating the label or HTML.
+// Authored locals such as `const id = item.id` keep their values and lexical scope.
+function compileLoopBindingsOnly(
+  node: E.Node,
+  context: JsxCompilationContext,
+  events: LoopEventContext,
+): E.Node {
+  if (node.type === 'TemplateLiteral' && events.templates.has(node)) {
+    const expressions = node.expressions
+      .filter((expression) => containsLoopRegistration(expression, events.registerName))
+      .map((expression) => compileLoopBindingsOnly(expression, context, events) as E.Expression);
+    return expressions.length
+      ? {
+          type: 'SequenceExpression',
+          expressions: [...expressions, { type: 'Literal', value: '', raw: "''" }],
+        }
+      : { type: 'Literal', value: '', raw: "''" };
+  }
+  // Child serialization and JSX-value wrapping are unnecessary when only collecting callbacks.
+  // e.g. `$$wccChild([$$wccMarkup(buttonTemplate)])` becomes an array of registrations.
+  if (
+    node.type === 'CallExpression' &&
+    (context.childNormalizerCalls.includes(node) ||
+      (node.callee.type === 'Identifier' && node.callee.name === context.markupFunctionName))
+  ) {
+    return compileLoopBindingsOnly(node.arguments[0] as E.Expression, context, events);
+  }
+  const copy = { ...node } as unknown as Record<string, unknown>;
+  for (const [key, value] of Object.entries(copy)) {
+    if (Array.isArray(value))
+      copy[key] = value.map((child) =>
+        child?.type ? compileLoopBindingsOnly(child, context, events) : child,
+      );
+    else if (value && typeof value === 'object' && 'type' in value)
+      copy[key] = compileLoopBindingsOnly(value as E.Node, context, events);
+  }
+  return copy as unknown as E.Node;
 }
 
 // Compiled modules share this marker so an imported JSX helper's values retain their identity.
@@ -426,6 +503,10 @@ function compileJsxChildLoop(
       // `posts.map(post => post.title)` stays a data map, wrapped in `Posts.$$wccChild(...)`.
       // A callback returning `<li>...</li>` instead returns HTML templates that can be joined.
       if (containsJsx(callback.body)) {
+        const events = context.loopEvents;
+        // e.g. `rows.map(row => row.items.map(item => <button onclick={...} />))` shares
+        // one registry; restore the outer depth before compiling its next sibling.
+        if (events) events.depth += 1;
         if (callback.body.type !== 'BlockStatement') {
           callback.body = compileJsxChildExpression(callback.body, context, hasShadowRoot, depth);
         } else {
@@ -456,6 +537,7 @@ function compileJsxChildLoop(
           };
           compileReturns(callback.body);
         }
+        if (events) events.depth -= 1;
         // Add a CallExpression/MemberExpression around the transformed map: `posts.map(...).join('')`.
         // Missing block returns become undefined; Array#join omits these naturally.
         return ast.createCallExpression(ast.createMemberExpression(node, 'join'), [
@@ -475,6 +557,10 @@ function compileJsxTemplate(
   hasShadowRoot: boolean,
   depth: number,
 ): E.TemplateLiteral {
+  const events = context.loopEvents;
+  // e.g. a button inside `return <div>{items.map(...)}</div>` can register with render().
+  // A separate `renderButton() { return <button ... />; }` has no active loop registry.
+  const bindLoopEvents = events !== undefined && events.depth > 0;
   // Nested loop templates share the owning component's escaping helper, just like its root.
   // Standalone JSX helpers use one module helper because they have no owning component.
   const template = ast.createHtmlTemplateLiteralBuilder(
@@ -487,6 +573,15 @@ function compileJsxTemplate(
           location === 'attribute' ? [expression, { type: 'Literal', value: true }] : [expression],
         );
       }),
+    bindLoopEvents
+      ? {
+          registerName: events.registerName,
+          markerName: events.markerName,
+          onRegistration() {
+            events.used = true;
+          },
+        }
+      : undefined,
   );
   const tree = createHtmlTreeFromJsx(
     node,
@@ -495,9 +590,11 @@ function compileJsxTemplate(
     context,
     hasShadowRoot,
     depth,
-    false,
+    bindLoopEvents,
   );
-  return template.build(tree, depth - 1);
+  const result = template.build(tree, depth - 1);
+  if (bindLoopEvents) events.templates.add(result);
+  return result;
 }
 
 // Compile JSX used as JavaScript values while preserving their original lexical scope.
@@ -934,6 +1031,11 @@ export function parseJsx(
 
   const escapeHelpers = new Map<E.ClassDeclaration, string>();
   const componentsNeedingEscape = new Set<E.ClassDeclaration>();
+  // Stable module / return identifiers keep one component's loop targets distinct from another's.
+  // Callback indices restart on every render, matching the markers emitted by the same SSR source.
+  // e.g. `data-wcc-ev-abc123def456-0="2"` identifies callback group 2 in return template 0.
+  const eventModuleId = createHash('sha256').update(moduleContents).digest('hex').slice(0, 12);
+  let eventTemplateIndex = 0;
   // apply all JSX transformations
   ast.walkSimple(
     tree,
@@ -981,6 +1083,22 @@ export function parseJsx(
                   ) {
                     return [statement];
                   }
+                  let registryName = '$evBindings';
+                  while (moduleContents.includes(registryName)) registryName += '_';
+                  let registerName = '$evRegister';
+                  while (moduleContents.includes(registerName)) registerName += '_';
+                  const events: LoopEventContext = {
+                    registryName,
+                    registerName,
+                    markerName: `data-wcc-ev-${eventModuleId}-${eventTemplateIndex++}`,
+                    templates: new Set(),
+                    depth: 0,
+                    used: false,
+                  };
+                  // Keep per-item registrations local to this render return, including nested loops.
+                  // e.g. `<div>{items.map(item => <button onclick={() => this.#select(item.id)} />)}</div>`
+                  // collects callbacks here; a later helper return uses its independent compilation path.
+                  context.loopEvents = events;
                   const template = ast.createHtmlTemplateLiteralBuilder(moduleContents, escapeHtml);
                   const htmlTree = createHtmlTreeFromJsx(
                     statement.argument,
@@ -990,20 +1108,44 @@ export function parseJsx(
                     hasShadowRoot,
                   );
                   const renderTemplate = template.build(htmlTree);
+                  context.loopEvents = undefined;
                   const listeners = template.listeners(hasShadowRoot);
-                  const reuseShadowRoot = hasShadowRoot && listeners.length > 0;
+                  const reuseShadowRoot = hasShadowRoot && (listeners.length > 0 || events.used);
+                  // Existing DSD only needs the event-bearing loops, e.g.
+                  // `items.map(item => ($evRegister([['click', () => this.#select(item.id)]]), ''))`.
+                  // Keep the server's HTML and create the closures that its marker indices refer to.
+                  const initialBindings: E.Statement[] =
+                    events.used && hasShadowRoot
+                      ? renderTemplate.expressions
+                          .filter((expression) =>
+                            containsLoopRegistration(expression, registerName),
+                          )
+                          .map((expression) => ({
+                            type: 'ExpressionStatement',
+                            expression: compileLoopBindingsOnly(
+                              expression,
+                              context,
+                              events,
+                            ) as E.Expression,
+                          }))
+                      : [];
                   needsEventInitializationField ||= reuseShadowRoot;
                   // e.g. `return <button onclick={this.#increment}>` becomes an innerHTML
                   // assignment followed by its listener. The first Shadow DOM render reuses DSD
                   // nodes when present, while keeping local callback captures in render() scope.
                   return [
+                    ...(events.used ? ast.createLoopEventSetup(registryName, registerName) : []),
                     ...ast.createRenderStatements(
                       renderTemplate,
                       hasShadowRoot,
                       templateName,
                       reuseShadowRoot ? eventInitializationField : undefined,
+                      initialBindings,
                     ),
                     ...listeners,
+                    ...(events.used
+                      ? ast.createLoopEventBindings(registryName, events.markerName, hasShadowRoot)
+                      : []),
                   ];
                 });
               }

@@ -1,0 +1,3 @@
+#renderHelper() {
+  return $$wccMarkup(`<button onclick="this.getRootNode().host.action(event)">Helper</button>`);
+}

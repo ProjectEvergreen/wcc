@@ -1,6 +1,7 @@
 export const inferredObservability = true;
 
 export default class CommentThread extends HTMLElement {
+  #selected = new Signal.State('');
   open;
   label;
   visibility;
@@ -22,8 +23,13 @@ export default class CommentThread extends HTMLElement {
     this.open.set(!this.open.get());
   }
 
+  #selectReply(author) {
+    this.#selected.set(`Selected reply by ${author}`);
+  }
+
   render() {
     const { open, label, visibility } = this;
+    const selected = this.#selected;
     const replies = [
       { author: 'Alex', text: 'Can JSX render a list of comments?' },
       { author: 'Sam', text: 'Yes! Text such as <template> & symbols stays escaped.' },
@@ -34,12 +40,16 @@ export default class CommentThread extends HTMLElement {
         <button type="button" aria-expanded={open.get()} onclick={this.toggle}>
           {label.get()}
         </button>
+        <p aria-live="polite">{selected.get()}</p>
         <ul style={visibility.get()}>
           {replies.map(({ author, text }) => (
             <li>
               <article>
                 <h4>{author}</h4>
                 <p>{text}</p>
+                <button type="button" onclick={() => this.#selectReply(author)}>
+                  Select reply
+                </button>
               </article>
             </li>
           ))}

@@ -1,9 +1,9 @@
 import { Parser } from 'acorn';
 import * as acornWalk from 'acorn-walk';
 import { generate, GENERATOR } from 'astring';
-import type { Generator, State } from 'astring';
 import { defaultTreeAdapter, html, parse, parseFragment, serialize } from 'parse5';
 import type * as E from 'estree-jsx';
+import type { Generator, State } from 'astring';
 import type { DefaultTreeAdapterTypes as H, Token } from 'parse5';
 
 type Visitors = {
@@ -83,6 +83,13 @@ export interface ReactiveSignal {
   // Keep the template parameter separate from its read, e.g. `count` and `this.#count.get()`.
   name: string;
   expression?: E.Expression;
+}
+
+/** @internal Identifies callbacks collected while rendering individual loop iterations. */
+export interface LoopEventRegistration {
+  registerName: string;
+  markerName: string;
+  onRegistration(): void;
 }
 
 /**
@@ -491,8 +498,8 @@ function createEventCallback(expression: E.Expression): E.ArrowFunctionExpressio
   return undefined;
 }
 
-// Separately lowered JSX values retain master's inline handlers and DOM-depth accounting.
-// Root render templates use class-scoped listeners; dynamic list items need per-instance binding.
+// Saved JSX values and helper returns retain their existing inline-handler depth accounting.
+// Root render templates and their direct loops use class-scoped listeners.
 function createComponentReference(depth: number, hasShadowRoot: boolean): E.Expression {
   if (hasShadowRoot) {
     return createMemberExpression(
@@ -623,6 +630,7 @@ export function generateInlineEventHandler(
 export function createHtmlTemplateLiteralBuilder(
   moduleContents: string,
   escape: (expression: E.Expression, context: 'text' | 'attribute') => E.Expression,
+  loopEvents?: LoopEventRegistration,
 ): HtmlTemplateLiteralBuilder {
   let prefix = 'wcc-expression-';
   while (moduleContents.includes(prefix)) prefix += '-';
@@ -665,7 +673,9 @@ export function createHtmlTemplateLiteralBuilder(
       handlers.set(marker, { name: name.slice(2), callback });
       return marker;
     },
-    // Preserve the existing dynamic-template path until per-instance loop listeners are implemented.
+    // Saved JSX values and helper returns retain their existing inline-handler path.
+    // e.g. `renderButton() { return <button onclick={this.action} />; }` in Shadow DOM
+    // emits `onclick="this.getRootNode().host.action(event)"` instead of a render-local listener.
     inlineHandler(create) {
       const marker = token();
       inlineHandlers.set(marker, create);
@@ -737,6 +747,7 @@ export function createHtmlTemplateLiteralBuilder(
         );
       });
       // One block keeps generated references local without shadowing the authored render scope.
+      // e.g. `const step = 2; { const $evEl0 = ...; /* callback captures step */ }`.
       return statements.length ? [createBlockStatement(statements)] : [];
     },
     // Normalize HTML and restore its interpolations to produce a template literal node.
@@ -757,6 +768,7 @@ export function createHtmlTemplateLiteralBuilder(
         const counts = new Map<string, number>();
         for (const node of 'childNodes' in parent ? parent.childNodes : []) {
           if (!('tagName' in node)) continue;
+          // Count siblings by tag: `<button /><span /><button />` gives button indices 1 and 2.
           const index = (counts.get(node.tagName) ?? 0) + 1;
           counts.set(node.tagName, index);
           const nodePath = [...path, `${node.tagName}:nth-of-type(${index})`];
@@ -774,7 +786,27 @@ export function createHtmlTemplateLiteralBuilder(
             bindings.push(handler);
             return false;
           });
-          if (bindings.length)
+          if (bindings.length && loopEvents) {
+            // A loop can produce several copies of the same path. Register callbacks while
+            // `item` is in scope, e.g. `$evRegister([['click', () => this.#select(item.id)]])`.
+            // Its returned index identifies this particular element in the rendered HTML.
+            // e.g. the first and second buttons receive `data-wcc-ev-...="0"` and `"1"`.
+            const marker = token();
+            expressions.set(
+              marker,
+              createCallExpression(createIdentifier(loopEvents.registerName), [
+                {
+                  type: 'ArrayExpression',
+                  elements: bindings.map(({ name, callback }) => ({
+                    type: 'ArrayExpression',
+                    elements: [createLiteral(name), callback],
+                  })),
+                },
+              ]),
+            );
+            node.attrs.push(createHtmlAttribute(loopEvents.markerName, marker));
+            loopEvents.onRegistration();
+          } else if (bindings.length)
             targets.push({
               rootSelector: nodePath[0],
               selector: nodePath.slice(1).join(' > '),
@@ -812,6 +844,45 @@ export function createEventInitializationField(name: string): E.PropertyDefiniti
 }
 
 /**
+ * @internal Allocate callbacks per render; their closures are created inside the authored loops.
+ * e.g. `$evRegister([['click', () => this.#select(item.id)]])` stores the handler group
+ * in `$evBindings` and returns its index (`0`, `1`, ...) for that element's HTML attribute.
+ */
+export function createLoopEventSetup(registryName: string, registerName: string): E.Statement[] {
+  return parseModule(`
+    const ${registryName} = [];
+    const ${registerName} = handlers => ${registryName}.push(handlers) - 1;
+  `).body as E.Statement[];
+}
+
+/** @internal Bind each marked loop element to its own callbacks after mounting or reusing DSD. */
+export function createLoopEventBindings(
+  registryName: string,
+  markerName: string,
+  hasShadowRoot: boolean,
+): E.Statement[] {
+  const root = hasShadowRoot ? 'this.shadowRoot' : 'this';
+  // The module-specific attribute distinguishes our targets from other component templates.
+  // e.g. `<button data-wcc-ev-abc123def456-0="2">` uses `$evBindings[2]`; after binding,
+  // `removeAttribute('data-wcc-ev-abc123def456-0')` removes its temporary runtime marker.
+  // ShadowRoot queries stop at nested shadow boundaries. Light DOM also checks the owning
+  // same-tag ancestor so a recursive instance can bind its own elements.
+  // e.g. `<my-list><my-list><button ... /></my-list></my-list>` leaves the inner button
+  // for its own instance: `button.parentElement.closest(this.localName) !== this` in the outer one.
+  // These attributes survive SSR (unlike parse5 placeholders) and are removed after client binding.
+  return parseModule(`
+    for (const $evEl of ${root}.querySelectorAll(${JSON.stringify(`[${markerName}]`)}) ?? []) {
+      ${hasShadowRoot ? '' : 'if ($evEl.parentElement?.closest(this.localName) !== this) continue;'}
+      const $evHandlers = ${registryName}[Number($evEl.getAttribute(${JSON.stringify(markerName)}))];
+      for (const [$evName, $evHandler] of $evHandlers ?? []) {
+        $evEl.addEventListener($evName, $evHandler);
+      }
+      $evEl.removeAttribute(${JSON.stringify(markerName)});
+    }
+  `).body as E.Statement[];
+}
+
+/**
  * @internal Emit the existing HTML-string render path for Light DOM or Shadow DOM.
  * The loader chooses templateName to avoid collisions with authored render locals.
  *
@@ -829,6 +900,7 @@ export function createRenderStatements(
   hasShadowRoot: boolean,
   templateName: string,
   eventInitializationField?: string,
+  initialBindings: E.Statement[] = [],
 ): E.Statement[] {
   if (hasShadowRoot && eventInitializationField) {
     const initialized = createMemberExpression(createThisExpression(), {
@@ -854,7 +926,9 @@ export function createRenderStatements(
           }),
         ),
         consequent: createBlockStatement(createRenderStatements(template, true, templateName)),
-        alternate: null,
+        // Existing DSD still needs per-item closures, but none of its markup interpolations.
+        // e.g. `else { items.map(item => ($evRegister(handlers), '')); }` leaves its nodes intact.
+        alternate: initialBindings.length ? createBlockStatement(initialBindings) : null,
       },
       // Subsequent explicit render() calls update the DOM and rebind listeners as usual.
       createExpressionStatement(createAssignmentExpression(initialized, createLiteral(true))),

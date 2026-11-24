@@ -473,6 +473,14 @@ class Counter extends HTMLElement {
 }
 ```
 
+Private event callbacks in direct `.map()` and `.flatMap()` loops can use each item's values:
+
+```jsx
+{
+  items.map((item) => <button onclick={() => this.#select(item.id)}>{item.label}</button>);
+}
+```
+
 - Event handlers receive the event, with `this` referring to the component. Call `render()` after changing ordinary state.
 - Private Signals work with [inferred observability](#inferred-observability-signals) to update bound text and attributes automatically.
 

@@ -9,11 +9,13 @@ describe('JSX private members and event listeners', () => {
   let counter;
   let heading;
   let signals;
+  let loopEvents;
 
   before(async () => {
     counter = await renderToString(new URL('./src/counter.jsx', import.meta.url));
     heading = await renderToString(new URL('./src/heading.tsx', import.meta.url));
     signals = await renderToString(new URL('./src/signals-counter.jsx', import.meta.url));
+    loopEvents = await renderToString(new URL('./src/loop-events.tsx', import.meta.url));
   });
 
   it('should render private fields, accessors, and instance and static method calls with escaping', () => {
@@ -102,5 +104,24 @@ describe('JSX private members and event listeners', () => {
     expect(source).to.contain('PrivateHeading.$$tmpl0(this.#greeting.get())');
     expect(source).to.contain("this.$el0.setAttribute('title', this.#greeting.get())");
     expect(compact(source)).to.contain('staticgetobservedAttributes(){return[];}');
+  });
+  it('should emit per-item private loop listeners and a binding-only pass for existing DSD', async () => {
+    const source = loopEvents.metadata['wcc-private-loop-events'].source;
+    const expected = await fs.readFile(
+      new URL('./fixtures/loop-events/render.txt', import.meta.url),
+      'utf8',
+    );
+
+    expect(compact(source)).to.contain(compact(expected));
+  });
+
+  it('should compile a helper-returned public handler alongside direct private loop listeners', async () => {
+    const source = loopEvents.metadata['wcc-private-loop-events'].source;
+    const expected = await fs.readFile(
+      new URL('./fixtures/loop-events/helper.txt', import.meta.url),
+      'utf8',
+    );
+
+    expect(compact(source)).to.contain(compact(expected));
   });
 });

@@ -1,16 +1,30 @@
 render() {
-  const $$template = document.createElement('template');
-  $$template.innerHTML = `<ul>
+  const $evBindings = [];
+  const $evRegister = handlers => $evBindings.push(handlers) - 1;
+  if (this.#evInitialized || !this.shadowRoot?.firstChild) {
+    const $$template = document.createElement('template');
+    $$template.innerHTML = `<ul>
         ${[1, 2].map(value => `<li>
-            <button onclick="this.getRootNode().host.action(event)">${ShadowList.$$wccChild(value)}</button>
+            <button data-wcc-ev-4b97c4f4157c-0="${$evRegister([['click', event => this.action(event)]])}">${ShadowList.$$wccChild(value)}</button>
           </li>`).join('')}
       </ul>`;
-  if (!this.shadowRoot) {
-    this.attachShadow({
-      mode: 'open'
-    });
-    this.shadowRoot.appendChild($$template.content.cloneNode(true));
+    if (!this.shadowRoot) {
+      this.attachShadow({
+        mode: 'open'
+      });
+      this.shadowRoot.appendChild($$template.content.cloneNode(true));
+    } else {
+      this.shadowRoot.innerHTML = $$template.innerHTML;
+    }
   } else {
-    this.shadowRoot.innerHTML = $$template.innerHTML;
+    [1, 2].map(value => ($evRegister([['click', event => this.action(event)]]), '')).join('');
+  }
+  this.#evInitialized = true;
+  for (const $evEl of this.shadowRoot.querySelectorAll("[data-wcc-ev-4b97c4f4157c-0]") ?? []) {
+    const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-4b97c4f4157c-0"))];
+    for (const [$evName, $evHandler] of $evHandlers ?? []) {
+      $evEl.addEventListener($evName, $evHandler);
+    }
+    $evEl.removeAttribute("data-wcc-ev-4b97c4f4157c-0");
   }
 }
