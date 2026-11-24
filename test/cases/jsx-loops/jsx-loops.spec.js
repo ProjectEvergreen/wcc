@@ -99,7 +99,7 @@ describe('JSX loops compiler output', () => {
       expectOutput(sources.get('mixed.tsx'), 'mixed/child-serializer');
     });
 
-    it('marks JSX returned from a separately compiled helper module', () => {
+    it('marks standalone helper JSX and shares module escaping for text and attributes', () => {
       const source = sources.get('values.jsx');
       expectOutput(source, 'values/create-children');
       expectOutput(source, 'values/wrapper');

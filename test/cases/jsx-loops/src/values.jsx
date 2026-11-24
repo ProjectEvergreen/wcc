@@ -1,5 +1,5 @@
 export function createChildren(text) {
-  return [<strong>{text}</strong>, `<strong>${text}</strong>`];
+  return [<strong title={text}>{text}</strong>, `<strong>${text}</strong>`];
 }
 
 export default class ValueSource extends HTMLElement {
