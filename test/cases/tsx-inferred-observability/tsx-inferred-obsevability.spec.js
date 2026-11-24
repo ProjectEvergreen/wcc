@@ -9,6 +9,7 @@
  * src/
  *   counter.tsx
  *   greeting.tsx
+ *   greeting-disabled.tsx
  */
 import { expect } from 'chai';
 import fs from 'fs/promises';
@@ -209,6 +210,23 @@ describe('Run WCC For ', function () {
         const heading = dom.window.document.querySelector('wcc-greeting-jsx h3');
 
         expect(heading.getAttribute('data-name')).to.equal('World');
+      });
+    });
+
+    describe('<GreetingDisabled> component with Inferred Observability disabled', function () {
+      it('should not generate observability output when inferredObservability is false', async () => {
+        const { html, metadata } = await renderToString(
+          new URL('./src/greeting-disabled.tsx', import.meta.url),
+        );
+        const source = metadata['wcc-greeting-disabled-tsx'].source.replace(/\s+/g, '');
+
+        expect(source).not.to.contain('observedAttributes');
+        expect(source).not.to.contain('attributeChangedCallback');
+        expect(source).not.to.contain('disconnectedCallback');
+        expect(source).not.to.contain('$$tmpl');
+        expect(source).not.to.contain('$eff');
+        expect(source).not.to.contain(effectImport);
+        expect(html).to.contain('Hello World 👋');
       });
     });
   });
