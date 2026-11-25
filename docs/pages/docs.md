@@ -560,6 +560,27 @@ To render HTML or SVG from a string, use WCC’s `innerHTML` JSX prop. WCC inter
 
 <!-- prettier-ignore-end -->
 
+### Conditionals
+
+Use ternaries and logical expressions to render JSX children, including inside lists:
+
+```jsx
+<section>
+  {ready ? <p>Ready</p> : null}
+  {events.length > 0 && (
+    <ul>
+      {events.map((event) => (
+        <li>{event.title}</li>
+      ))}
+    </ul>
+  )}
+</section>
+```
+
+Only the selected branch is evaluated. `null`, `undefined`, and boolean children render nothing, and numbers such as `0` still render. Ordinary text remains escaped, while JSX renders as markup.
+
+> Reactivity for conditions is not supported yet.
+
 ### Lists
 
 You can render lists in loops using `.map()`.
