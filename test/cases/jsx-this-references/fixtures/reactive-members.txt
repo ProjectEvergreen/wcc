@@ -1,0 +1,8 @@
+static $$tmpl0 = count => `The count is ${count}`;
+static $$tmpl1 = parity => `${parity}`;
+static $$tmpl2 = total => `Total: ${total}`;
+static $$tmpl3 = current => `Current: ${current}`;
+static $$tmpl4 = total => `Tasks: ${total}`;
+static get observedAttributes() {
+  return ['count'];
+}

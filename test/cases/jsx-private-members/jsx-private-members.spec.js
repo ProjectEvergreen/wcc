@@ -88,7 +88,8 @@ describe('JSX private members and event listeners', () => {
     );
 
     expect(compact(source)).to.contain(compact(expected));
-    expect(compact(source)).to.contain('staticgetobservedAttributes(){return[];}');
+    // <p>Public: {this.count.get()}</p> observes the public State even alongside this.#count.
+    expect(compact(source)).to.contain("staticgetobservedAttributes(){return['count'];}");
     expect(compact(source)).to.contain(
       'disconnectedCallback(){this.$eff0();this.$eff1();this.$eff2();this.$eff3();this.$eff4();this.$eff5();}',
     );
