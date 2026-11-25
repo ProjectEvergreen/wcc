@@ -1,0 +1,11 @@
+connectedCallback() {
+  this.render();
+  this.$el0 = this.$$root('[data-wcc-target-faa3b9ee673a-0]', true);
+  this.$el0?.removeAttribute('data-wcc-target-faa3b9ee673a-0');
+  this.$eff0 = effect(() => {
+    this.$el0.textContent = Conditions.$$tmpl0(this.#value.get());
+  });
+  this.$eff1 = effect(() => {
+    this.$el0.setAttribute('title', this.#value.get());
+  });
+}

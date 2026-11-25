@@ -128,6 +128,8 @@ export interface ReactiveTemplate {
  */
 export interface ReactiveElement {
   selector: string;
+  // Conditional markup makes structural sibling counts unreliable during initial binding.
+  marker?: string;
   effect?: ReactiveTemplate;
   attributes: Array<{ name: string; value: string; expression?: E.Expression }>;
 }
@@ -612,14 +614,47 @@ export function generateInlineEventHandler(
   );
 }
 
-/** @internal Tracks whether a component needs its shared Shadow DOM lookup method. */
+/** @internal Tracks whether a component needs its shared DOM lookup method. */
 export interface RootElementLookup {
   name: string;
   used: boolean;
+  marked?: boolean;
 }
 
-// Emit this once per component, shared by reactive references and event bindings.
-export function createRootLookupMethod(name: string): E.MethodDefinition {
+// Create the generated $$root lookup helper once per component, shared by reactive references and event bindings.
+// Structural Shadow DOM lookups match immediate roots; marked targets can be descendants
+// in either DOM mode. Ownership checks exclude recursively nested Light DOM instances.
+export function createRootLookupMethod(name: string, markedTargets = false): E.MethodDefinition {
+  const root = createBinaryExpression(
+    '??',
+    createThisMemberExpression('shadowRoot'),
+    createThisExpression(),
+  );
+  const markedElements = createCallExpression(
+    createMemberExpression(createIdentifier('Array'), 'from'),
+    [
+      createBinaryExpression(
+        '??',
+        createCallExpression(createMemberExpression(root, 'querySelectorAll'), [
+          createIdentifier('selector'),
+        ]),
+        { type: 'ArrayExpression', elements: [] },
+      ),
+    ],
+  );
+  const owner = {
+    type: 'ChainExpression',
+    expression: createCallExpression(
+      {
+        ...createMemberExpression(
+          createMemberExpression(createIdentifier('element'), 'parentElement'),
+          'closest',
+        ),
+        optional: true,
+      },
+      [createThisMemberExpression('localName')],
+    ),
+  } satisfies E.ChainExpression;
   const children = createCallExpression(createMemberExpression(createIdentifier('Array'), 'from'), [
     createBinaryExpression(
       '??',
@@ -630,23 +665,43 @@ export function createRootLookupMethod(name: string): E.MethodDefinition {
       },
     ),
   ]);
-  return createMethodDefinition(
-    name,
-    ['selector'],
-    [
-      {
-        type: 'ReturnStatement',
-        argument: createCallExpression(createMemberExpression(children, 'find'), [
-          createArrowFunctionExpression(
-            ['element'],
-            createCallExpression(createMemberExpression(createIdentifier('element'), 'matches'), [
-              createIdentifier('selector'),
+  return createMethodDefinition(name, markedTargets ? ['selector', 'marked'] : ['selector'], [
+    ...(markedTargets
+      ? [
+          {
+            type: 'IfStatement',
+            test: createIdentifier('marked'),
+            consequent: createBlockStatement([
+              {
+                type: 'ReturnStatement',
+                argument: createCallExpression(createMemberExpression(markedElements, 'find'), [
+                  createArrowFunctionExpression(
+                    ['element'],
+                    createBinaryExpression(
+                      '||',
+                      createThisMemberExpression('shadowRoot'),
+                      createBinaryExpression('===', owner, createThisExpression()),
+                    ),
+                  ),
+                ]),
+              },
             ]),
-          ),
-        ]),
-      },
-    ],
-  );
+            alternate: null,
+          } satisfies E.IfStatement,
+        ]
+      : []),
+    {
+      type: 'ReturnStatement',
+      argument: createCallExpression(createMemberExpression(children, 'find'), [
+        createArrowFunctionExpression(
+          ['element'],
+          createCallExpression(createMemberExpression(createIdentifier('element'), 'matches'), [
+            createIdentifier('selector'),
+          ]),
+        ),
+      ]),
+    },
+  ]);
 }
 
 // querySelector searches all descendants, and nth-of-type counts siblings under each parent.
@@ -658,7 +713,16 @@ function createRootElementReference(
   selector: string,
   hasShadowRoot: boolean,
   rootLookup: RootElementLookup,
+  marked = false,
 ): E.Expression {
+  if (marked) {
+    rootLookup.used = true;
+    rootLookup.marked = true;
+    return createCallExpression(createThisMemberExpression(rootLookup.name), [
+      createLiteral(selector),
+      createLiteral(true),
+    ]);
+  }
   if (!hasShadowRoot) {
     return createCallExpression(createMemberExpression(createThisExpression(), 'querySelector'), [
       createLiteral(`:scope > ${selector}`),
@@ -1332,21 +1396,40 @@ export function createReactiveClassMembers(
   ];
 }
 
-// Cache reactive DOM nodes using paths anchored to the component's immediate children.
+// Cache reactive DOM nodes through the shared structural or marker lookup path.
 /** @internal */
 export function createElementReferenceStatements(
   reactiveElements: ReactiveElement[],
   hasShadowRoot: boolean,
   rootLookup: RootElementLookup,
 ): E.Statement[] {
-  return reactiveElements.map((el, idx) =>
-    createExpressionStatement(
-      createAssignmentExpression(
-        createThisMemberExpression(`$el${idx}`),
-        createRootElementReference(el.selector, hasShadowRoot, rootLookup),
+  return reactiveElements.flatMap((el, idx) => {
+    return [
+      createExpressionStatement(
+        createAssignmentExpression(
+          createThisMemberExpression(`$el${idx}`),
+          createRootElementReference(el.selector, hasShadowRoot, rootLookup, Boolean(el.marker)),
+        ),
       ),
-    ),
-  );
+      ...(el.marker
+        ? [
+            createExpressionStatement({
+              type: 'ChainExpression',
+              expression: createCallExpression(
+                {
+                  ...createMemberExpression(
+                    createThisMemberExpression(`$el${idx}`),
+                    'removeAttribute',
+                  ),
+                  optional: true,
+                },
+                [createLiteral(el.marker)],
+              ),
+            }),
+          ]
+        : []),
+    ];
+  });
 }
 
 // Import the effect helper: `import { effect } from 'wc-compiler/effect'`.

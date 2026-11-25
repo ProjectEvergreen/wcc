@@ -7,20 +7,25 @@ render() {
     author: 'Sam',
     text: 'Second & reply'
   }];
+  const $evBindings = [];
+  const $evRegister = handlers => $evBindings.push(handlers) - 1;
   this.innerHTML = `<article>
-        <button type="button" aria-expanded="${Comments.$$escapeHtml(`${open.get()}`, true)}">
+        <button type="button" aria-expanded="${Comments.$$escapeHtml(`${open.get()}`, true)}" data-wcc-target-376c9b0f09b7-0="" data-wcc-ev-376c9b0f09b7-0="${$evRegister([['click', event => this.toggle(event)]])}">
           ${Comments.$$wccChild(label.get())}
         </button>
-        <ul style="${Comments.$$escapeHtml(`${visibility.get()}`, true)}">
+        <ul style="${Comments.$$escapeHtml(`${visibility.get()}`, true)}" data-wcc-target-376c9b0f09b7-1="">
           ${replies.map(({author, text}, index) => `<li data-index="${Comments.$$escapeHtml(`${index}`, true)}">
               <h3>${Comments.$$wccChild(author)}</h3>
               <p>${Comments.$$wccChild(text)}</p>
             </li>`).join('')}
         </ul>
       </article>`;
-  {
-    const $evRoot0 = this.querySelector(':scope > article:nth-of-type(1)');
-    const $evEl0 = $evRoot0?.querySelector(':scope > button:nth-of-type(1)');
-    $evEl0?.addEventListener('click', event => this.toggle(event));
+  for (const $evEl of this.querySelectorAll("[data-wcc-ev-376c9b0f09b7-0]") ?? []) {
+    if ($evEl.parentElement?.closest(this.localName) !== this) continue;
+    const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-376c9b0f09b7-0"))];
+    for (const [$evName, $evHandler] of $evHandlers ?? []) {
+      $evEl.addEventListener($evName, $evHandler);
+    }
+    $evEl.removeAttribute("data-wcc-ev-376c9b0f09b7-0");
   }
 }

@@ -560,6 +560,54 @@ To render HTML or SVG from a string, use WCC’s `innerHTML` JSX prop. WCC inter
 
 <!-- prettier-ignore-end -->
 
+### Conditionals
+
+Use ternaries and logical expressions to render JSX children, including inside lists:
+
+```jsx
+<section>
+  {ready ? <p>Ready</p> : null}
+  {events.length > 0 && (
+    <ul>
+      {events.map((event) => (
+        <li>{event.title}</li>
+      ))}
+    </ul>
+  )}
+</section>
+```
+
+Only the selected branch is evaluated. `null`, `undefined`, and boolean children render nothing, and numbers such as `0` still render. Ordinary text remains escaped, while JSX renders as markup.
+
+Event handlers in conditional JSX can use local variables and private methods:
+
+```jsx
+render() {
+  const user = this.user;
+
+  return (
+    <section>
+      {user && (
+        <button onclick={() => this.#select(user.id)}>Select {user.name}</button>
+      )}
+    </section>
+  );
+}
+```
+
+When using [inferred observability](#inferred-observability-signals), put Signal-backed text in its own element beside a conditional:
+
+```jsx
+<section>
+  {ready ? <p>Ready</p> : null}
+  <span>{label.get()}</span>
+</section>
+```
+
+Placing `{label.get()}` directly beside the conditional without the wrapping `<span>` is currently unsupported.
+
+> Signal changes do not automatically update conditional content yet. Call `render()` to refresh it. Follow [#311](https://github.com/ProjectEvergreen/wcc/issues/311) for reactive conditional support.
+
 ### Lists
 
 You can render lists in loops using `.map()`.

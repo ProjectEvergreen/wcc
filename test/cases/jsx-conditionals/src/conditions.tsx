@@ -1,0 +1,114 @@
+/* eslint-disable no-constant-binary-expression, no-constant-condition -- Exercise constant branches and short-circuit values in JSX. */
+type Day = { date: number | null; events: string[] };
+
+export const inferredObservability = true;
+
+const heading = (active: boolean) => (active ? <strong>Helper</strong> : null);
+
+export default class Conditions extends HTMLElement {
+  #label = '<selected> & text';
+  #value = new Signal.State('Reactive sibling');
+
+  #select(id: number) {
+    return id;
+  }
+
+  #reset() {}
+
+  select(id: number) {
+    return this.#select(id);
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    const active = this.hasAttribute('active');
+    const user = { id: 42 };
+    const fallback = this.getAttribute('fallback');
+    let reads = 0;
+    const read = () => ++reads;
+    const saved = active ? <em>Saved</em> : '<fallback>';
+    const fail = () => {
+      throw new Error('An unselected branch was evaluated');
+    };
+
+    const week: Day[] = [
+      { date: null, events: [] },
+      { date: 1, events: [] },
+      { date: 2, events: ['Music <live>', 'Art & craft'] },
+    ];
+
+    return (
+      <section>
+        {true ? <p id="conditional-sibling">Conditional sibling</p> : null}
+        <p id="reactive-sibling" title={this.#value.get()}>
+          {this.#value.get()}
+        </p>
+        {active ? (
+          <>
+            <button id="captured-handler" onclick={() => this.select(user.id)}>
+              Select user
+            </button>
+            <button id="private-handler" onclick={this.#reset}>
+              Select
+            </button>
+          </>
+        ) : null}
+        {active && (
+          <button id="logical-handler" onclick={() => this.#select(user.id)}>
+            Logical
+          </button>
+        )}
+        {fallback ?? (
+          <button id="nullish-handler" onclick={this.#reset}>
+            Fallback
+          </button>
+        )}
+        <button id="static-handler" onclick={() => this.#select(user.id)}>
+          Static button
+        </button>
+        <p id="ternary">{active ? <b>{this.#label}</b> : <i>Inactive</i>}</p>
+        <p id="and">{active && <span>Active</span>}</p>
+        <p id="or">{active || <span>Fallback</span>}</p>
+        <p id="nullish">{fallback ?? <span>Nullish</span>}</p>
+        <p id="zero">{0 && <span>Unused</span>}</p>
+        <p id="empty">{active ? null : false}</p>
+        <p id="saved">
+          {saved}
+          {heading(active)}
+        </p>
+        <div id="fragment">
+          {active ? (
+            <>
+              <b>First</b>
+              <i>Second</i>
+            </>
+          ) : null}
+        </div>
+        <p id="lazy">
+          {read() === 1 ? <span>{read()}</span> : fail()}
+          {false && fail()}
+          {true || fail()}
+        </p>
+        <p id="reads">{reads}</p>
+        {week.map((day) => (
+          <div class="day">
+            {!day.date ? <span class="empty"></span> : null}
+            {day.date && !day.events.length ? day.date : null}
+            {day.events.length
+              ? day.events.map((event) => (
+                  <a href={`/events/${day.date}/`} title={event}>
+                    {event}
+                  </a>
+                ))
+              : null}
+          </div>
+        ))}
+      </section>
+    );
+  }
+}
+
+customElements.define('wcc-conditions', Conditions);

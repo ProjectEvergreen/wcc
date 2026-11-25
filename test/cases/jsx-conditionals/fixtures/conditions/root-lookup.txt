@@ -1,0 +1,6 @@
+$$root(selector, marked) {
+  if (marked) {
+    return Array.from((this.shadowRoot ?? this).querySelectorAll(selector) ?? []).find(element => this.shadowRoot || element.parentElement?.closest(this.localName) === this);
+  }
+  return Array.from(this.shadowRoot.children ?? []).find(element => element.matches(selector));
+}
