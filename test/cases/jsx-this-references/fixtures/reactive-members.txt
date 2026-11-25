@@ -1,8 +1,11 @@
-static $$tmpl0 = count => `The count is ${count}`;
+static $$tmpl0 = (count, count_1) => `The count is ${count} / ${count_1}`;
 static $$tmpl1 = parity => `${parity}`;
 static $$tmpl2 = total => `Total: ${total}`;
 static $$tmpl3 = current => `Current: ${current}`;
 static $$tmpl4 = total => `Tasks: ${total}`;
+static $$tmpl5 = (count, count_1) => `${count} / ${count_1}`;
+static $$tmpl6 = (count, count_1) => `${count} / ${count_1}`;
+static $$tmpl7 = (defaultCount, fallbackCount, localCount, lazyCount) => `${defaultCount} / ${fallbackCount} / ${localCount} / ${lazyCount}`;
 static get observedAttributes() {
   return ['count'];
 }

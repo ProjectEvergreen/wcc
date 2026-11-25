@@ -1,0 +1,6 @@
+const {count: defaultCount = this.count, missing: fallbackCount = this.getFallback(), optional: localCount = current, count: lazyCount = this.unexpectedFallback(), nullable = this.unexpectedFallback()} = this;
+this.$$wccAlias0 = defaultCount;
+this.$$wccAlias1 = fallbackCount;
+this.$$wccAlias2 = localCount;
+this.$$wccAlias3 = lazyCount;
+this.$$wccAlias4 = nullable;

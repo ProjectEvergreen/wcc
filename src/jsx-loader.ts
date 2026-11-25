@@ -96,8 +96,8 @@ function getSignalName(
 }
 
 // Track component properties, e.g. `this.count = 0`, `const count = this.count`, or `const { count } = this`.
-// TODO: handle if / else statements
-// https://github.com/ProjectEvergreen/wcc/issues/88
+// TODO: track branch-local aliases and conditional initialization with scope-aware control-flow analysis.
+// https://github.com/ProjectEvergreen/wcc/issues/311
 function findThisReferences(
   context: 'render' | 'constructor',
   statement: E.Statement,
@@ -736,6 +736,7 @@ export function parseJsx(
   // Effects run outside render(), so aliases must resolve back to their class members.
   // e.g. `const count = this.#count; <span>{count.get()}</span>` needs `this.#count.get()` in its effect.
   const signalAliases = new Map<string, E.Expression>();
+  let aliasIndex = 0;
   const signalReadExpression = (expression: E.CallExpression & { callee: E.MemberExpression }) => {
     const object = expression.callee.object;
     const reference = object.type === 'Identifier' ? signalAliases.get(object.name) : undefined;
@@ -754,16 +755,33 @@ export function parseJsx(
   // while its caller passes the original `this.#count.get()` expression from instance scope.
   const signalReference = (
     expression: E.CallExpression & { callee: E.MemberExpression },
+    signals: ast.ReactiveSignal[],
   ): ast.ReactiveSignal => {
     const object = expression.callee.object;
-    // Both `count.get()` and `this.count.get()` need a parameter named `count` in the static template.
+    // Start with the signal name: `count.get()` and `this.count.get()` both suggest `count`.
     let name = getSignalName(expression) ?? 'undefined';
     if (object.type === 'MemberExpression' && object.property.type === 'PrivateIdentifier') {
       // Private names cannot be template-function parameters. Use a generated parameter instead.
       name = `$privateSignal${privateSignalIndex++}`;
       while (moduleContents.includes(name)) name += '_';
     }
-    return { name, expression: signalReadExpression(expression) };
+    // `<p>{this.count.get()} / {this.count.get()}</p>` -> `(count, count_1) => ...`.
+    // `const { parity: count } = this; <p>{count.get()} / {this.count.get()}</p>`
+    // also needs distinct parameters; the caller passes `this.parity.get(), this.count.get()`.
+    const baseName = name;
+    let suffix = 1;
+    while (signals.some((signal) => signal.name === name)) name = `${baseName}_${suffix++}`;
+    return {
+      name,
+      expression:
+        signalReadExpression(expression) ??
+        ast.createCallExpression(
+          ast.createMemberExpression(
+            ast.createMemberExpression({ type: 'ThisExpression' }, baseName),
+            'get',
+          ),
+        ),
+    };
   };
   let hasSignalReads = false;
   let componentName = '';
@@ -861,6 +879,7 @@ export function parseJsx(
                   }
                 };
                 findSignalReads(n1.value.body);
+                const captures = new Map<E.Statement, E.Statement[]>();
                 for (const n2 in n1.value.body.body) {
                   const n = n1.value.body.body[n2];
 
@@ -879,6 +898,32 @@ export function parseJsx(
                         // `this.count.get()` in effects, never `this.total.get()`.
                         for (const property of id.properties) {
                           if (
+                            property.type === 'Property' &&
+                            property.value.type === 'AssignmentPattern' &&
+                            property.value.left.type === 'Identifier'
+                          ) {
+                            // `const { count: total = fallback } = this` evaluates the default
+                            // once in render scope, and only for undefined (never null).
+                            // Keep the declaration, then emit `this.$$wccAlias0 = total;`.
+                            // Effects read `this.$$wccAlias0.get()`, preserving the selected
+                            // signal without re-running `fallback` (which may be a local or a call).
+                            const reference = ast.createMemberExpression(
+                              { type: 'ThisExpression' },
+                              `${helperPrefix}Alias${aliasIndex++}`,
+                            );
+                            signalAliases.set(property.value.left.name, reference);
+                            const assignments = captures.get(n) ?? [];
+                            assignments.push({
+                              type: 'ExpressionStatement',
+                              expression: {
+                                type: 'AssignmentExpression',
+                                operator: '=',
+                                left: reference,
+                                right: property.value.left,
+                              },
+                            });
+                            captures.set(n, assignments);
+                          } else if (
                             property.type === 'Property' &&
                             property.value.type === 'Identifier'
                           ) {
@@ -899,6 +944,12 @@ export function parseJsx(
                     ];
                   }
                 }
+                // `const { count: total = getFallback() } = this;` must execute before
+                // `this.$$wccAlias0 = total;`, so capture after its declaration, not before render().
+                n1.value.body.body = n1.value.body.body.flatMap((statement) => [
+                  statement,
+                  ...(captures.get(statement) ?? []),
+                ]);
               }
             }
           }
@@ -1009,7 +1060,7 @@ export function parseJsx(
                       parentTemplate.text(ast.createHtmlTextNode(child.raw, parentTag).value);
                     } else if (child.type === 'JSXExpressionContainer') {
                       if (isSignalRead(child.expression)) {
-                        const signal = signalReference(child.expression);
+                        const signal = signalReference(child.expression, parentSignals);
                         parentTemplate.expression(ast.createIdentifier(signal.name));
                         parentSignals.push(signal);
                         parentHasReactiveTemplate = true;
@@ -1058,7 +1109,7 @@ export function parseJsx(
                             c.type === 'JSXExpressionContainer' &&
                             isSignalRead(c.expression)
                           ) {
-                            const signal = signalReference(c.expression);
+                            const signal = signalReference(c.expression, signals);
                             template.expression(ast.createIdentifier(signal.name));
                             signals.push(signal);
                           }

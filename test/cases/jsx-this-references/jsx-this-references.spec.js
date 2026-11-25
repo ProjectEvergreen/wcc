@@ -36,7 +36,7 @@ describe('JSX literal and derivative this references', () => {
   it('renders literal this expressions and signal values in Shadow DOM', () => {
     expect(content.querySelector('h2').textContent).to.equal('You have 2 TODOs left');
     expect(content.querySelector('h2').getAttribute('title')).to.equal('2');
-    expect(content.querySelector('section > p').textContent).to.equal('The count is 2');
+    expect(content.querySelector('section > p').textContent.trim()).to.equal('The count is 2 / 2');
     expect(content.querySelector('section > p').getAttribute('data-count')).to.equal('2');
     expect(content.querySelector('span').className).to.equal('even');
     expect(content.querySelector('span').textContent).to.equal('even');
@@ -83,5 +83,25 @@ describe('JSX literal and derivative this references', () => {
     const paragraph = content.querySelector('section + p');
     expect(paragraph.textContent).to.equal('Tasks: 2');
     expect(paragraph.getAttribute('title')).to.equal('2');
+  });
+
+  // <p>{this.count.get()} / {this.count.get()}</p>
+  // const { parity: count } = this;
+  // <p>{count.get()} / {this.count.get()}</p> -> "even / 2", with independent parameters.
+  it('renders repeated reads and alias/direct-name collisions independently', () => {
+    expect(content.querySelector('#repeated').textContent.trim()).to.equal('2 / 2');
+    expect(content.querySelector('#collision').textContent.trim()).to.equal('even / 2');
+  });
+
+  // const { count: defaultCount = this.count, missing: fallbackCount = this.getFallback() } = this;
+  // const { optional: localCount = current, nullable = this.unexpectedFallback() } = this;
+  // Missing values use their fallback; an existing null must not call unexpectedFallback().
+  it('captures defaulted aliases after destructuring while preserving local fallbacks and null', async () => {
+    expect(source).to.contain(await readFixture('default-aliases'));
+    expect(content.querySelector('#defaults').textContent.replace(/\s+/g, ' ').trim()).to.equal(
+      '2 / 9 / 2 / 2',
+    );
+    expect(content.querySelector('#defaults').getAttribute('title')).to.equal('9');
+    expect(content.querySelector('#nullable').textContent).to.equal('null preserved');
   });
 });
