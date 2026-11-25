@@ -771,13 +771,11 @@ If you create your own custom elements and use them in your TSX components, you'
 
 ### Declarative Shadow DOM
 
-To opt-in to Declarative Shadow DOM with JSX, you will need to signal to the WCC compiler your intentions so it can accurately mount from a `shadowRoot` on the client side. To opt-in, simply make a call to `attachShadow` in your `connectedCallback` method before calling `render`. That's it!
+To opt in to Declarative Shadow DOM with JSX, call `attachShadow()` in `connectedCallback()` before calling `render()`, as shown below. WCC uses this call to identify Shadow DOM components.
 
-> Call `render()` in `connectedCallback()` to initialize event handlers. Existing declarative Shadow DOM is reused on the first call; later calls render updated content.
->
-> Light DOM components replace their existing content whenever `render()` runs.
+During hydration, `this.shadowRoot` may already contain server-rendered HTML, but that HTML does not initialize ordinary JavaScript fields, like a class member. Read attributes and initialize the state needed by calling `render()` outside the shadow-root guard.
 
-Using, the Counter example from above, we would amend it like so:
+For example, the Counter component can read its initial count from an attribute:
 
 <!-- prettier-ignore-start -->
 
@@ -785,14 +783,11 @@ Using, the Counter example from above, we would amend it like so:
 
   ```js
   export default class Counter extends HTMLElement {
-    constructor() {
-      super();
-      this.count = 0;
-    }
-
     connectedCallback() {
+      this.count = Number(this.getAttribute('count') ?? 0);
+
       if (!this.shadowRoot) {
-        this.attachShadow({ mode: 'open' }); // this is required for DSD support
+        this.attachShadow({ mode: 'open' });
       }
 
       this.render();
@@ -807,6 +802,8 @@ Using, the Counter example from above, we would amend it like so:
 </wcc-ctc-block>
 
 <!-- prettier-ignore-end -->
+
+> For Shadow DOM templates with event bindings, the first `render()` call reuses populated declarative Shadow DOM to attach listeners; later calls render updated content. Templates without event bindings can replace existing content on the first call. Light DOM components replace their content whenever `render()` runs.
 
 ### Inferred Observability (Signals)
 
