@@ -1,0 +1,3 @@
+$$root_(selector) {
+  return Array.from(this.shadowRoot.children ?? []).find(element => element.matches(selector));
+}

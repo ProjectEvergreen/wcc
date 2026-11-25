@@ -1,5 +1,5 @@
 {
-  const $evRoot_0 = this.querySelector('section:nth-of-type(1)');
+  const $evRoot_0 = this.querySelector(':scope > section:nth-of-type(1)');
   const $evEl_0 = $evRoot_0?.querySelector(':scope > button:nth-of-type(1)');
   $evEl_0?.addEventListener('click', event => this.#increment(event));
   const $evEl_1 = $evRoot_0?.querySelector(':scope > button:nth-of-type(2)');

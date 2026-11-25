@@ -1,0 +1,7 @@
+{
+      const $evRoot0 = this.querySelector(':scope > div:nth-of-type(1)');
+      const $evRoot1 = this.querySelector(':scope > button:nth-of-type(1)');
+      const $evEl0 = $evRoot0?.querySelector(':scope > button:nth-of-type(1)');
+      $evEl0?.addEventListener('click', event => this.increment(event));
+      $evRoot1?.addEventListener('click', () => this.increment());
+    }

@@ -1,0 +1,18 @@
+render() {
+    const $evBindings = [];
+    const $evRegister = handlers => $evBindings.push(handlers) - 1;
+    this.innerHTML = `
+        ${[1, 2].map(id => `
+            <button data-wcc-ev-32465a6fbb01-0="${$evRegister([['click', () => this.select(id)]])}">Item ${FragmentLoops.$$wccChild(id)}</button>
+            <span>${FragmentLoops.$$wccChild(id)}</span>
+          `).join('')}
+      `;
+    for (const $evEl of this.querySelectorAll("[data-wcc-ev-32465a6fbb01-0]") ?? []) {
+      if ($evEl.parentElement?.closest(this.localName) !== this) continue;
+      const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-32465a6fbb01-0"))];
+      for (const [$evName, $evHandler] of $evHandlers ?? []) {
+        $evEl.addEventListener($evName, $evHandler);
+      }
+      $evEl.removeAttribute("data-wcc-ev-32465a6fbb01-0");
+    }
+  }

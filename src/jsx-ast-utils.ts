@@ -9,7 +9,10 @@ import type { DefaultTreeAdapterTypes as H, Token } from 'parse5';
 type Visitors = {
   [K in E.Node['type']]?: (node: Extract<E.Node, { type: K }>) => void;
 };
-type WalkerBase = typeof acornWalk.base & { JSXElement?: () => void };
+type WalkerBase = typeof acornWalk.base & {
+  JSXElement?: () => void;
+  JSXFragment?: () => void;
+};
 
 // Only the node/visitor assertions adapt generated ESTree nodes to Acorn's types.
 export const baseWalker = acornWalk.base;
@@ -75,7 +78,7 @@ export interface HtmlTemplateLiteralBuilder {
   expression(node: E.Expression, context?: 'text' | 'attribute' | 'raw'): string;
   handler(name: string, expression: E.Expression): string | undefined;
   inlineHandler(create: (depth: number) => string | undefined): string;
-  listeners(hasShadowRoot: boolean): E.Statement[];
+  listeners(hasShadowRoot: boolean, rootLookup: RootElementLookup): E.Statement[];
   build(tree: H.ParentNode, depthOffset?: number): E.TemplateLiteral;
 }
 
@@ -119,7 +122,7 @@ export interface ReactiveTemplate {
  *   attributes: [{ name: 'title', value: 'label' }]
  * };
  * // Generated element reference and effect body:
- * this.$el0 = this.querySelector('div > span:nth-of-type(1)');
+ * this.$el0 = this.querySelector(':scope > div > span:nth-of-type(1)');
  * this.$el0.setAttribute('title', this.label.get());
  * ```
  */
@@ -609,6 +612,75 @@ export function generateInlineEventHandler(
   );
 }
 
+/** @internal Tracks whether a component needs its shared Shadow DOM lookup method. */
+export interface RootElementLookup {
+  name: string;
+  used: boolean;
+}
+
+// Emit this once per component, shared by reactive references and event bindings.
+export function createRootLookupMethod(name: string): E.MethodDefinition {
+  const children = createCallExpression(createMemberExpression(createIdentifier('Array'), 'from'), [
+    createBinaryExpression(
+      '??',
+      createMemberExpression(createThisMemberExpression('shadowRoot'), 'children'),
+      {
+        type: 'ArrayExpression',
+        elements: [],
+      },
+    ),
+  ]);
+  return createMethodDefinition(
+    name,
+    ['selector'],
+    [
+      {
+        type: 'ReturnStatement',
+        argument: createCallExpression(createMemberExpression(children, 'find'), [
+          createArrowFunctionExpression(
+            ['element'],
+            createCallExpression(createMemberExpression(createIdentifier('element'), 'matches'), [
+              createIdentifier('selector'),
+            ]),
+          ),
+        ]),
+      },
+    ],
+  );
+}
+
+// querySelector searches all descendants, and nth-of-type counts siblings under each parent.
+// For <><div><span>Nested</span></div><span>Root</span></>, both spans are nth-of-type(1).
+// With `this.querySelector(':scope > span:nth-of-type(1)')`, `:scope` refers to this component
+// element, so > restricts the match to its immediate children and selects the root span.
+// A ShadowRoot is not an element, so select from shadowRoot.children first, then follow any remaining descendant path.
+function createRootElementReference(
+  selector: string,
+  hasShadowRoot: boolean,
+  rootLookup: RootElementLookup,
+): E.Expression {
+  if (!hasShadowRoot) {
+    return createCallExpression(createMemberExpression(createThisExpression(), 'querySelector'), [
+      createLiteral(`:scope > ${selector}`),
+    ]);
+  }
+
+  const [rootSelector, ...descendants] = selector.split(' > ');
+  rootLookup.used = true;
+  const root = createCallExpression(createThisMemberExpression(rootLookup.name), [
+    createLiteral(rootSelector),
+  ]);
+  return descendants.length
+    ? {
+        type: 'ChainExpression',
+        expression: createCallExpression(
+          { ...createMemberExpression(root, 'querySelector'), optional: true },
+          [createLiteral(`:scope > ${descendants.join(' > ')}`)],
+        ),
+      }
+    : root;
+}
+
 /**
  * @internal Normalize HTML with parse5 while keeping JavaScript expressions as AST nodes.
  * Placeholders such as `wcc-expression-0-end` survive parsing and are restored as interpolations.
@@ -684,12 +756,9 @@ export function createHtmlTemplateLiteralBuilder(
     // Emit bindings after mounting, e.g. `$evEl0?.addEventListener('click', event => this.#increment(event))`.
     // The initial Shadow DOM render can bind existing DSD nodes; later renders bind replacement nodes.
     // Keeping callbacks here preserves access to render-local values such as `const step = 2`.
-    listeners(hasShadowRoot) {
-      const root = hasShadowRoot
-        ? createThisMemberExpression('shadowRoot')
-        : createThisExpression();
+    listeners(hasShadowRoot, rootLookup) {
       const rootSelectors = [...new Set(targets.map(({ rootSelector }) => rootSelector))];
-      // Cache each distinct template root once per render, e.g. `const $evRoot0 = this.querySelector('div:nth-of-type(1)')`.
+      // Cache each distinct immediate template root once per render.
       // Number roots independently of targets: `$evEl0` and `$evEl1` can both query `$evRoot0`.
       const statements: E.Statement[] = rootSelectors.map((selector, index) => ({
         type: 'VariableDeclaration',
@@ -698,9 +767,7 @@ export function createHtmlTemplateLiteralBuilder(
           {
             type: 'VariableDeclarator',
             id: createIdentifier(`${rootPrefix}${index}`),
-            init: createCallExpression(createMemberExpression(root, 'querySelector'), [
-              createLiteral(selector),
-            ]),
+            init: createRootElementReference(selector, hasShadowRoot, rootLookup),
           },
         ],
       }));
@@ -721,9 +788,9 @@ export function createHtmlTemplateLiteralBuilder(
               ),
             }
           : templateRoot;
-        const reference = createIdentifier(`${referencePrefix}${index}`);
-        statements.push(
-          {
+        const reference = selector ? createIdentifier(`${referencePrefix}${index}`) : templateRoot;
+        if (selector)
+          statements.push({
             type: 'VariableDeclaration',
             kind: 'const',
             declarations: [
@@ -733,7 +800,8 @@ export function createHtmlTemplateLiteralBuilder(
                 init: target,
               },
             ],
-          },
+          });
+        statements.push(
           ...handlers.map(({ name, callback }) =>
             // SSR querySelector() returns undefined; `$evEl0?.addEventListener(...)` skips binding there.
             createExpressionStatement({
@@ -1264,20 +1332,18 @@ export function createReactiveClassMembers(
   ];
 }
 
-// Cache reactive DOM nodes, e.g. `this.$el0 = this.shadowRoot.querySelector('span');`.
+// Cache reactive DOM nodes using paths anchored to the component's immediate children.
 /** @internal */
 export function createElementReferenceStatements(
   reactiveElements: ReactiveElement[],
   hasShadowRoot: boolean,
+  rootLookup: RootElementLookup,
 ): E.Statement[] {
-  const root = hasShadowRoot ? createThisMemberExpression('shadowRoot') : createThisExpression();
   return reactiveElements.map((el, idx) =>
     createExpressionStatement(
       createAssignmentExpression(
         createThisMemberExpression(`$el${idx}`),
-        createCallExpression(createMemberExpression(root, 'querySelector'), [
-          createLiteral(el.selector),
-        ]),
+        createRootElementReference(el.selector, hasShadowRoot, rootLookup),
       ),
     ),
   );

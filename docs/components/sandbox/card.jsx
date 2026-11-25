@@ -35,12 +35,14 @@ export default class CardJsx extends HTMLElement {
     const { thumbnail, title } = this;
 
     return (
-      <div class="card">
+      <>
         <style>{styles}</style>
-        <h3>{title}</h3>
-        <img src={thumbnail} alt={title} loading="lazy" width="200" height="200" />
-        <button onclick={this.selectItem}>View Item Details</button>
-      </div>
+        <div class="card">
+          <h3>{title}</h3>
+          <img src={thumbnail} alt={title} loading="lazy" width="200" height="200" />
+          <button onclick={this.selectItem}>View Item Details</button>
+        </div>
+      </>
     );
   }
 }

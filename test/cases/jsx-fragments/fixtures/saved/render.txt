@@ -1,0 +1,8 @@
+render() {
+    const value = '<text>';
+    const saved = $$wccMarkup(`
+        <span>Saved</span>
+        <span>${SavedFragments.$$wccChild(value)}</span>
+      `);
+    this.innerHTML = `${SavedFragments.$$wccChild(saved)}`;
+  }

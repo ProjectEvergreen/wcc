@@ -128,7 +128,7 @@ describe('JSX HTML escaping', () => {
     );
     expect(source).to.contain("this.$el0.setAttribute('title', this.label.get());");
     expect(source).to.contain('this.$el1.innerHTML = this.markup.get();');
-    expect(source).to.contain("this.$el2 = this.querySelector('section:nth-of-type(1)');");
+    expect(source).to.contain("this.$el2 = this.querySelector(':scope > section:nth-of-type(1)');");
     expect(source).to.contain("this.$el2.setAttribute('title', this.label.get());");
   });
 
