@@ -1,10 +1,23 @@
-/* eslint-disable no-constant-binary-expression -- Exercise short-circuit values and skipped branches in JSX. */
+/* eslint-disable no-constant-binary-expression, no-constant-condition -- Exercise constant branches and short-circuit values in JSX. */
 type Day = { date: number | null; events: string[] };
+
+export const inferredObservability = true;
 
 const heading = (active: boolean) => (active ? <strong>Helper</strong> : null);
 
 export default class Conditions extends HTMLElement {
   #label = '<selected> & text';
+  #value = new Signal.State('Reactive sibling');
+
+  #select(id: number) {
+    return id;
+  }
+
+  #reset() {}
+
+  select(id: number) {
+    return this.#select(id);
+  }
 
   connectedCallback() {
     this.render();
@@ -12,6 +25,7 @@ export default class Conditions extends HTMLElement {
 
   render() {
     const active = this.hasAttribute('active');
+    const user = { id: 42 };
     const fallback = this.getAttribute('fallback');
     let reads = 0;
     const read = () => ++reads;
@@ -28,6 +42,33 @@ export default class Conditions extends HTMLElement {
 
     return (
       <section>
+        {true ? <p id="conditional-sibling">Conditional sibling</p> : null}
+        <p id="reactive-sibling" title={this.#value.get()}>
+          {this.#value.get()}
+        </p>
+        {active ? (
+          <>
+            <button id="captured-handler" onclick={() => this.select(user.id)}>
+              Select user
+            </button>
+            <button id="private-handler" onclick={this.#reset}>
+              Select
+            </button>
+          </>
+        ) : null}
+        {active && (
+          <button id="logical-handler" onclick={() => this.#select(user.id)}>
+            Logical
+          </button>
+        )}
+        {fallback ?? (
+          <button id="nullish-handler" onclick={this.#reset}>
+            Fallback
+          </button>
+        )}
+        <button id="static-handler" onclick={() => this.#select(user.id)}>
+          Static button
+        </button>
         <p id="ternary">{active ? <b>{this.#label}</b> : <i>Inactive</i>}</p>
         <p id="and">{active && <span>Active</span>}</p>
         <p id="or">{active || <span>Fallback</span>}</p>

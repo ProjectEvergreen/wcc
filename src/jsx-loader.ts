@@ -358,7 +358,7 @@ interface JsxCompilationContext {
   loopEvents?: LoopEventContext;
 }
 
-// Direct-loop callbacks share a render-local registry while retaining their own item bindings.
+// Nested render expressions share a callback registry while retaining their lexical bindings.
 // e.g. `items.map(item => <button onclick={() => this.#select(item.id)} />)` registers
 // one callback per item in `$evBindings`, with a marker index identifying each button.
 interface LoopEventContext {
@@ -366,7 +366,6 @@ interface LoopEventContext {
   registerName: string;
   markerName: string;
   templates: Set<E.TemplateLiteral>;
-  depth: number;
   used: boolean;
 }
 
@@ -483,6 +482,37 @@ function containsJsx(value: unknown): boolean {
   );
 }
 
+// Conditional markup can change sibling counts even when its condition is constant.
+function containsDynamicJsx(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  if (
+    'type' in value &&
+    (value.type === 'ConditionalExpression' ||
+      value.type === 'LogicalExpression' ||
+      value.type === 'JSXExpressionContainer') &&
+    containsJsx(value)
+  )
+    return true;
+  return Object.values(value).some((child) =>
+    Array.isArray(child) ? child.some(containsDynamicJsx) : containsDynamicJsx(child),
+  );
+}
+
+function validateReactiveTextChildren(children: E.JSXElement['children']): void {
+  if (
+    children.some(
+      (child) => child.type === 'JSXExpressionContainer' && isSignalRead(child.expression),
+    ) &&
+    children.some(
+      (child) => child.type === 'JSXExpressionContainer' && containsJsx(child.expression),
+    )
+  ) {
+    throw new Error(
+      'Reactive text cannot share a parent with dynamic JSX. Wrap the signal read in its own element.',
+    );
+  }
+}
+
 // Compile a child expression, e.g. `{title}` -> `${Posts.$$wccChild(title)}`.
 // JSX elements become templates; `.map()` / `.flatMap()` expressions use compileJsxChildLoop.
 function compileJsxChildExpression(
@@ -527,10 +557,6 @@ function compileJsxChildLoop(
       // `posts.map(post => post.title)` stays a data map, wrapped in `Posts.$$wccChild(...)`.
       // A callback returning `<li>...</li>` instead returns HTML templates that can be joined.
       if (containsJsx(callback.body)) {
-        const events = context.loopEvents;
-        // e.g. `rows.map(row => row.items.map(item => <button onclick={...} />))` shares
-        // one registry; restore the outer depth before compiling its next sibling.
-        if (events) events.depth += 1;
         if (callback.body.type !== 'BlockStatement') {
           callback.body = compileJsxChildExpression(callback.body, context, hasShadowRoot, depth);
         } else {
@@ -561,7 +587,6 @@ function compileJsxChildLoop(
           };
           compileReturns(callback.body);
         }
-        if (events) events.depth -= 1;
         // Add a CallExpression/MemberExpression around the transformed map: `posts.map(...).join('')`.
         // Missing block returns become undefined; Array#join omits these naturally.
         return ast.createCallExpression(ast.createMemberExpression(node, 'join'), [
@@ -582,9 +607,10 @@ function compileJsxTemplate(
   depth: number,
 ): E.TemplateLiteral {
   const events = context.loopEvents;
-  // e.g. a button inside `return <div>{items.map(...)}</div>` can register with render().
+  // Nested JSX in a direct render expression shares its registry, including conditional
+  // branches and nullish fallbacks lowered by Sucrase. Keep callbacks in lexical scope.
   // A separate `renderButton() { return <button ... />; }` has no active loop registry.
-  const bindLoopEvents = events !== undefined && events.depth > 0;
+  const bindLoopEvents = events !== undefined;
   // Nested loop templates share the owning component's escaping helper, just like its root.
   // Standalone JSX helpers use one module helper because they have no owning component.
   const template = ast.createHtmlTemplateLiteralBuilder(
@@ -690,6 +716,23 @@ export function parseJsx(
   let observedAttributes: Array<string | E.VariableDeclarator> = [];
   const constructorMembersSignals = new Map<string, { isState: boolean; isComputed: boolean }>();
   const reactiveElements: ast.ReactiveElement[] = [];
+  let targetPrefix = `data-wcc-target-${createHash('sha256').update(moduleContents).digest('hex').slice(0, 12)}-`;
+  while (moduleContents.includes(targetPrefix)) targetPrefix += 'x-';
+  let targetIndex = 0;
+  const reactiveTarget = (
+    element: E.JSXElement,
+    selector: string,
+    stableTargets: boolean,
+  ): Pick<ast.ReactiveElement, 'selector' | 'marker'> => {
+    if (!stableTargets) return { selector };
+    const marker = `${targetPrefix}${targetIndex++}`;
+    element.openingElement.attributes.push({
+      type: 'JSXAttribute',
+      name: { type: 'JSXIdentifier', name: marker },
+      value: null,
+    });
+    return { selector: `[${marker}]`, marker };
+  };
   // Effects run outside render(), so private aliases must resolve back to their class members.
   // e.g. `const count = this.#count; <span>{count.get()}</span>` needs `this.#count.get()` in its effect.
   const privateSignals = new Map<string, E.Expression>();
@@ -906,6 +949,7 @@ export function parseJsx(
       {
         MethodDefinition(node) {
           if (identifierName(node.key) === 'render') {
+            const stableTargets = containsDynamicJsx(node.value.body);
             for (const n2 in node.value.body.body) {
               const n = node.value.body.body[n2];
 
@@ -934,6 +978,7 @@ export function parseJsx(
                   const parentHasReactiveAttributes =
                     rootNode.openingElement.attributes.some(isReactiveAttribute);
                   const parentSignals: ast.ReactiveSignal[] = [];
+                  validateReactiveTextChildren(flattenJsxChildren(rootNode.children));
 
                   for (const child of flattenJsxChildren(rootNode.children)) {
                     if (child.type === 'JSXText') {
@@ -970,12 +1015,17 @@ export function parseJsx(
 
                       if (hasReactiveTemplate || hasReactiveAttributes) {
                         reactiveElements.push({
-                          selector: `${childSelectorPrefix} > ${childTag}:nth-of-type(${children[childTag].length})`,
+                          ...reactiveTarget(
+                            child,
+                            `${childSelectorPrefix} > ${childTag}:nth-of-type(${children[childTag].length})`,
+                            stableTargets,
+                          ),
                           attributes: [],
                         });
                       }
 
                       if (hasReactiveTemplate) {
+                        validateReactiveTextChildren(flattenJsxChildren(child.children));
                         const signals: ast.ReactiveSignal[] = [];
                         const template = ast.createTemplateLiteralParts();
 
@@ -1021,7 +1071,7 @@ export function parseJsx(
 
                   if (parentHasReactiveTemplate || parentHasReactiveAttributes) {
                     reactiveElements.push({
-                      selector: parentSelector,
+                      ...reactiveTarget(rootNode, parentSelector, stableTargets),
                       effect: parentHasReactiveTemplate
                         ? ast.createReactiveTemplate(
                             `$$tmpl${reactiveElements.length}`,
@@ -1133,14 +1183,27 @@ export function parseJsx(
                     registerName,
                     markerName: `data-wcc-ev-${eventModuleId}-${eventTemplateIndex++}`,
                     templates: new Set(),
-                    depth: 0,
                     used: false,
                   };
                   // Keep per-item registrations local to this render return, including nested loops.
                   // e.g. `<div>{items.map(item => <button onclick={() => this.#select(item.id)} />)}</div>`
                   // collects callbacks here; a later helper return uses its independent compilation path.
                   context.loopEvents = events;
-                  const template = ast.createHtmlTemplateLiteralBuilder(moduleContents, escapeHtml);
+                  // Root listeners need stable targets too: a preceding branch can insert
+                  // another element of the same tag and invalidate nth-of-type selectors.
+                  const template = ast.createHtmlTemplateLiteralBuilder(
+                    moduleContents,
+                    escapeHtml,
+                    containsDynamicJsx(n1.value.body)
+                      ? {
+                          registerName,
+                          markerName: events.markerName,
+                          onRegistration() {
+                            events.used = true;
+                          },
+                        }
+                      : undefined,
+                  );
                   const htmlTree = createHtmlTreeFromJsx(
                     statement.argument,
                     template,
@@ -1396,7 +1459,8 @@ export function parseJsx(
   }
 
   for (const [component, rootLookup] of rootLookups) {
-    if (rootLookup.used) component.body.body.push(ast.createRootLookupMethod(rootLookup.name));
+    if (rootLookup.used)
+      component.body.body.push(ast.createRootLookupMethod(rootLookup.name, rootLookup.marked));
   }
 
   return tree;

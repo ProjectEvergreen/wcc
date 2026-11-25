@@ -1,0 +1,85 @@
+render() {
+  const active = this.hasAttribute('active');
+  const user = {
+    id: 42
+  };
+  const fallback = this.getAttribute('fallback');
+  let reads = 0;
+  const read = () => ++reads;
+  const saved = active ? $$wccMarkup(`<em>Saved</em>`) : '<fallback>';
+  const fail = () => {
+    throw new Error('An unselected branch was evaluated');
+  };
+  const week = [{
+    date: null,
+    events: []
+  }, {
+    date: 1,
+    events: []
+  }, {
+    date: 2,
+    events: ['Music <live>', 'Art & craft']
+  }];
+  const $evBindings = [];
+  const $evRegister = handlers => $evBindings.push(handlers) - 1;
+  this.innerHTML = `<section>
+        ${Conditions.$$wccChild(true ? $$wccMarkup(`<p id="conditional-sibling">Conditional sibling</p>`) : null)}
+        <p id="reactive-sibling" title="${Conditions.$$escapeHtml(`${this.#value.get()}`, true)}" data-wcc-target-faa3b9ee673a-0="">
+          ${Conditions.$$wccChild(this.#value.get())}
+        </p>
+        ${Conditions.$$wccChild(active ? $$wccMarkup(`
+            <button id="captured-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', () => this.select(user.id)]])}">
+              Select user
+            </button>
+            <button id="private-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', event => this.#reset(event)]])}">
+              Select
+            </button>
+          `) : null)}
+        ${Conditions.$$wccChild(active && $$wccMarkup(`<button id="logical-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', () => this.#select(user.id)]])}">
+            Logical
+          </button>`))}
+        ${Conditions.$$wccChild(_nullishCoalesce(fallback, () => $$wccMarkup(`<button id="nullish-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', event => this.#reset(event)]])}">
+            Fallback
+          </button>`)))}
+        <button id="static-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', () => this.#select(user.id)]])}">
+          Static button
+        </button>
+        <p id="ternary">${Conditions.$$wccChild(active ? $$wccMarkup(`<b>${Conditions.$$wccChild(this.#label)}</b>`) : $$wccMarkup(`<i>Inactive</i>`))}</p>
+        <p id="and">${Conditions.$$wccChild(active && $$wccMarkup(`<span>Active</span>`))}</p>
+        <p id="or">${Conditions.$$wccChild(active || $$wccMarkup(`<span>Fallback</span>`))}</p>
+        <p id="nullish">${Conditions.$$wccChild(_nullishCoalesce(fallback, () => $$wccMarkup(`<span>Nullish</span>`)))}</p>
+        <p id="zero">${Conditions.$$wccChild(0 && $$wccMarkup(`<span>Unused</span>`))}</p>
+        <p id="empty">${Conditions.$$wccChild(active ? null : false)}</p>
+        <p id="saved">
+          ${Conditions.$$wccChild(saved)}
+          ${Conditions.$$wccChild(heading(active))}
+        </p>
+        <div id="fragment">
+          ${Conditions.$$wccChild(active ? $$wccMarkup(`
+              <b>First</b>
+              <i>Second</i>
+            `) : null)}
+        </div>
+        <p id="lazy">
+          ${Conditions.$$wccChild(read() === 1 ? $$wccMarkup(`<span>${Conditions.$$wccChild(read())}</span>`) : fail())}
+          ${Conditions.$$wccChild(false && fail())}
+          ${Conditions.$$wccChild(true || fail())}
+        </p>
+        <p id="reads">${Conditions.$$wccChild(reads)}</p>
+        ${week.map(day => `<div class="day">
+            ${Conditions.$$wccChild(!day.date ? $$wccMarkup(`<span class="empty"></span>`) : null)}
+            ${Conditions.$$wccChild(day.date && !day.events.length ? day.date : null)}
+            ${Conditions.$$wccChild(day.events.length ? day.events.map(event => $$wccMarkup(`<a href="${Conditions.$$escapeHtml(`${`/events/${day.date}/`}`, true)}" title="${Conditions.$$escapeHtml(`${event}`, true)}">
+                    ${Conditions.$$wccChild(event)}
+                  </a>`)) : null)}
+          </div>`).join('')}
+      </section>`;
+  for (const $evEl of this.querySelectorAll("[data-wcc-ev-faa3b9ee673a-0]") ?? []) {
+    if ($evEl.parentElement?.closest(this.localName) !== this) continue;
+    const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-faa3b9ee673a-0"))];
+    for (const [$evName, $evHandler] of $evHandlers ?? []) {
+      $evEl.addEventListener($evName, $evHandler);
+    }
+    $evEl.removeAttribute("data-wcc-ev-faa3b9ee673a-0");
+  }
+}

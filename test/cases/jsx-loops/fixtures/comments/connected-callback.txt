@@ -1,7 +1,9 @@
 connectedCallback() {
   this.render();
-  this.$el0 = this.querySelector(':scope > article > button:nth-of-type(1)');
-  this.$el1 = this.querySelector(':scope > article > ul:nth-of-type(1)');
+  this.$el0 = this.$$root('[data-wcc-target-376c9b0f09b7-0]', true);
+  this.$el0?.removeAttribute('data-wcc-target-376c9b0f09b7-0');
+  this.$el1 = this.$$root('[data-wcc-target-376c9b0f09b7-1]', true);
+  this.$el1?.removeAttribute('data-wcc-target-376c9b0f09b7-1');
   this.$eff0 = effect(() => {
     this.$el0.textContent = Comments.$$tmpl0(this.label.get());
   });
