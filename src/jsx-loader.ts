@@ -630,14 +630,9 @@ function compileJsxValueExpressions(
   hasShadowRoot = false,
   depth = 1,
 ): E.Node {
-  // Preserve scalar conditions such as `title={active ? 'active' : ''}`.
-  // JSX branches such as `{active && <p>Active</p>}` are outside loop lowering.
-  if (node.type === 'ConditionalExpression' || node.type === 'LogicalExpression') {
-    if (containsJsx(node)) {
-      throw new Error('Conditional JSX is not supported.');
-    }
-    return node;
-  }
+  // Traverse conditional branches just like other expressions. JSX values retain their markup
+  // identity, while JavaScript preserves branch selection and short-circuit evaluation.
+  // E.g. `active ? <p>{title}</p> : null` wraps only the selected JSX value at runtime.
   if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
     context.needsMarkupWrapper = true;
     return ast.createCallExpression(ast.createIdentifier(context.markupFunctionName), [

@@ -117,6 +117,7 @@
     <script type="module" src="../components/sandbox/header.jsx"></script>
     <script type="module" src="../components/sandbox/comment.jsx"></script>
     <script type="module" src="../components/sandbox/comment-thread.jsx"></script>
+    <script type="module" src="../components/sandbox/conditional-calendar.tsx"></script>
     <script type="module" src="../components/sandbox/mixed-children.jsx"></script>
     <script type="module" src="../components/sandbox/private-counter.jsx"></script>
     <script type="module" src="../components/sandbox/private-signal-counter.tsx"></script>
@@ -282,6 +283,19 @@
       {comments.map(({ author, text }) =&gt; (
         &lt;li&gt;&lt;h4&gt;{author}&lt;/h4&gt;&lt;p&gt;{text}&lt;/p&gt;&lt;/li&gt;
       ))}
+    </pre>
+    <hr />
+
+    <h2>TSX + Conditional Calendar</h2>
+
+    <p>Show or hide event names. Calendar dates stay visible.</p>
+
+    <sb-conditional-calendar-tsx></sb-conditional-calendar-tsx>
+
+    <pre class="interpolation-example">
+      {showEvents &amp;&amp; day.events.length &gt; 0
+        ? day.events.map((event) =&gt; &lt;p&gt;{event}&lt;/p&gt;)
+        : null}
     </pre>
     <hr />
 
