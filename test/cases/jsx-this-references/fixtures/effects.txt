@@ -1,0 +1,50 @@
+this.$el0 = this.$$root('section:nth-of-type(1)')?.querySelector(':scope > p:nth-of-type(1)');
+this.$el1 = this.$$root('section:nth-of-type(1)')?.querySelector(':scope > span:nth-of-type(1)');
+this.$el2 = this.$$root('section:nth-of-type(1)')?.querySelector(':scope > p:nth-of-type(2)');
+this.$el3 = this.$$root('section:nth-of-type(1)')?.querySelector(':scope > span:nth-of-type(2)');
+this.$el4 = this.$$root('p:nth-of-type(1)');
+this.$el5 = this.$$root('p:nth-of-type(2)');
+this.$el6 = this.$$root('p:nth-of-type(3)');
+this.$el7 = this.$$root('p:nth-of-type(4)');
+this.$eff0 = effect(() => {
+  this.$el0.textContent = ThisReferences.$$tmpl0(this.count.get(), this.count.get());
+});
+this.$eff1 = effect(() => {
+  this.$el0.setAttribute('data-count', this.count.get());
+});
+this.$eff2 = effect(() => {
+  this.$el1.textContent = ThisReferences.$$tmpl1(this.parity.get());
+});
+this.$eff3 = effect(() => {
+  this.$el1.setAttribute('class', this.parity.get());
+});
+this.$eff4 = effect(() => {
+  this.$el2.textContent = ThisReferences.$$tmpl2(this.count.get());
+});
+this.$eff5 = effect(() => {
+  this.$el2.setAttribute('data-count', this.count.get());
+});
+this.$eff6 = effect(() => {
+  this.$el3.textContent = ThisReferences.$$tmpl3(this.count.get());
+});
+this.$eff7 = effect(() => {
+  this.$el3.setAttribute('title', this.count.get());
+});
+this.$eff8 = effect(() => {
+  this.$el4.textContent = ThisReferences.$$tmpl4(this.total.get());
+});
+this.$eff9 = effect(() => {
+  this.$el4.setAttribute('title', this.total.get());
+});
+this.$eff10 = effect(() => {
+  this.$el5.textContent = ThisReferences.$$tmpl5(this.count.get(), this.count.get());
+});
+this.$eff11 = effect(() => {
+  this.$el6.textContent = ThisReferences.$$tmpl6(this.parity.get(), this.count.get());
+});
+this.$eff12 = effect(() => {
+  this.$el7.textContent = ThisReferences.$$tmpl7(this.$$wccAlias0.get(), this.$$wccAlias1.get(), this.$$wccAlias2.get(), this.$$wccAlias3.get());
+});
+this.$eff13 = effect(() => {
+  this.$el7.setAttribute('title', this.$$wccAlias1.get());
+});

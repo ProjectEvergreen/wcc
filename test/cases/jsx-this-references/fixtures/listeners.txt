@@ -1,0 +1,5 @@
+{
+  const $evRoot0 = this.$$root('section:nth-of-type(1)');
+  const $evEl0 = $evRoot0?.querySelector(':scope > button:nth-of-type(1)');
+  $evEl0?.addEventListener('click', () => this.deleteUser(user.id));
+}

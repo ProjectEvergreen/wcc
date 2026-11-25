@@ -109,6 +109,7 @@
       });
     </script>
 
+    <script type="module" src="../components/sandbox/this-counter.jsx"></script>
     <script type="module" src="../components/sandbox/signal-counter.tsx"></script>
     <script type="module" src="../components/sandbox/signal-greeting.tsx"></script>
     <script type="module" src="../components/sandbox/header.js"></script>
@@ -127,6 +128,15 @@
 
   <body>
     <h1>WCC Sandbox</h1>
+
+    <h2>JSX + Literal and Derived This References</h2>
+    <sb-this-counter-jsx></sb-this-counter-jsx>
+    <pre class="interpolation-example">
+      const { count: total } = this;
+      &lt;button title={total.get()} onclick={() =&gt; this.increment()}&gt;Increment&lt;/button&gt;
+      &lt;p&gt;Alias count: {total.get()}&lt;/p&gt;
+      &lt;p&gt;The count is {this.count.get()}&lt;/p&gt;
+    </pre>
 
     <h2>JSX + Private Members and Methods</h2>
     <sb-private-counter-jsx></sb-private-counter-jsx>

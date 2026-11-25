@@ -96,8 +96,8 @@ function getSignalName(
 }
 
 // Track component properties, e.g. `this.count = 0`, `const count = this.count`, or `const { count } = this`.
-// TODO: handle if / else statements
-// https://github.com/ProjectEvergreen/wcc/issues/88
+// TODO: track branch-local aliases and conditional initialization with scope-aware control-flow analysis.
+// https://github.com/ProjectEvergreen/wcc/issues/311
 function findThisReferences(
   context: 'render' | 'constructor',
   statement: E.Statement,
@@ -733,19 +733,20 @@ export function parseJsx(
     });
     return { selector: `[${marker}]`, marker };
   };
-  // Effects run outside render(), so private aliases must resolve back to their class members.
+  // Effects run outside render(), so aliases must resolve back to their class members.
   // e.g. `const count = this.#count; <span>{count.get()}</span>` needs `this.#count.get()` in its effect.
-  const privateSignals = new Map<string, E.Expression>();
-  const privateSignalRead = (expression: E.CallExpression & { callee: E.MemberExpression }) => {
+  const signalAliases = new Map<string, E.Expression>();
+  let aliasIndex = 0;
+  const signalReadExpression = (expression: E.CallExpression & { callee: E.MemberExpression }) => {
     const object = expression.callee.object;
-    const reference = object.type === 'Identifier' ? privateSignals.get(object.name) : undefined;
+    const reference = object.type === 'Identifier' ? signalAliases.get(object.name) : undefined;
     if (reference) {
       // An alias read such as `count.get()` becomes `this.#count.get()` when moved into an effect.
       return { ...expression, callee: { ...expression.callee, object: reference } };
     }
     // Direct `this.#count.get()` already has the right receiver; retain its PrivateIdentifier node.
-    // Public reads use the existing name-based generation, e.g. `count` becomes `this.count.get()`.
-    return object.type === 'MemberExpression' && object.property.type === 'PrivateIdentifier'
+    // Direct public reads retain their original receiver too, e.g. `this.count.get()`.
+    return object.type === 'MemberExpression' && object.object.type === 'ThisExpression'
       ? expression
       : undefined;
   };
@@ -754,18 +755,35 @@ export function parseJsx(
   // while its caller passes the original `this.#count.get()` expression from instance scope.
   const signalReference = (
     expression: E.CallExpression & { callee: E.MemberExpression },
+    signals: ast.ReactiveSignal[],
   ): ast.ReactiveSignal => {
     const object = expression.callee.object;
-    // Both `count.get()` and `this.count.get()` need a parameter named `count` in the static template.
+    // Start with the signal name: `count.get()` and `this.count.get()` both suggest `count`.
     let name = getSignalName(expression) ?? 'undefined';
     if (object.type === 'MemberExpression' && object.property.type === 'PrivateIdentifier') {
       // Private names cannot be template-function parameters. Use a generated parameter instead.
       name = `$privateSignal${privateSignalIndex++}`;
       while (moduleContents.includes(name)) name += '_';
     }
-    return { name, expression: privateSignalRead(expression) };
+    // `<p>{this.count.get()} / {this.count.get()}</p>` -> `(count, count_1) => ...`.
+    // `const { parity: count } = this; <p>{count.get()} / {this.count.get()}</p>`
+    // also needs distinct parameters; the caller passes `this.parity.get(), this.count.get()`.
+    const baseName = name;
+    let suffix = 1;
+    while (signals.some((signal) => signal.name === name)) name = `${baseName}_${suffix++}`;
+    return {
+      name,
+      expression:
+        signalReadExpression(expression) ??
+        ast.createCallExpression(
+          ast.createMemberExpression(
+            ast.createMemberExpression({ type: 'ThisExpression' }, baseName),
+            'get',
+          ),
+        ),
+    };
   };
-  let hasPrivateSignals = false;
+  let hasSignalReads = false;
   let componentName = '';
   let hasShadowRoot = false;
   let hasDisconnectedCallback = false;
@@ -835,40 +853,89 @@ export function parseJsx(
             if (n1.type === 'MethodDefinition') {
               const nodeName = identifierName(n1.key);
               if (nodeName === 'render') {
-                // Direct reads such as `<p>{this.#count.get()}</p>` need effects even without
-                // a declaration such as `const count = this.#count` to trigger alias tracking.
-                const findPrivateSignalReads = (value: unknown): void => {
+                // Direct reads such as `<p>{this.count.get()}</p>` need effects even without
+                // a declaration such as `const count = this.count` to trigger alias tracking.
+                const findSignalReads = (value: unknown): void => {
                   if (!value || typeof value !== 'object') return;
                   const expression = value as E.Node;
-                  if (
-                    isSignalRead(expression) &&
-                    expression.callee.object.type === 'MemberExpression' &&
-                    expression.callee.object.property.type === 'PrivateIdentifier'
-                  ) {
-                    hasPrivateSignals = true;
+                  if (isSignalRead(expression)) {
+                    hasSignalReads = true;
+                    // `<span>{this.count.get()}</span>` has no render-local declaration.
+                    // Observe its public State field just like `const { count } = this`.
+                    const object = expression.callee.object;
+                    if (
+                      object.type === 'MemberExpression' &&
+                      object.object.type === 'ThisExpression'
+                    ) {
+                      const name = identifierName(object.property);
+                      if (name) observedAttributes.push(name);
+                    }
                   }
                   for (const child of Object.values(value)) {
                     // JSX nodes are skipped by the general analysis walker, so inspect their expression
                     // containers here too, e.g. the read inside `<p title={this.#count.get()}>`.
-                    if (Array.isArray(child)) child.forEach(findPrivateSignalReads);
-                    else findPrivateSignalReads(child);
+                    if (Array.isArray(child)) child.forEach(findSignalReads);
+                    else findSignalReads(child);
                   }
                 };
-                findPrivateSignalReads(n1.value.body);
+                findSignalReads(n1.value.body);
+                const captures = new Map<E.Statement, E.Statement[]>();
                 for (const n2 in n1.value.body.body) {
                   const n = n1.value.body.body[n2];
 
                   if (n.type === 'VariableDeclaration') {
-                    // Save `const count = this.#count` for effect generation without adding
-                    // the private field to public HTML attribute observation (`observedAttributes`).
+                    // Save public and private aliases for effect generation. Plain derived values
+                    // such as `const label = predicate ? 'met' : 'unmet'` stay in render().
                     for (const { id, init } of n.declarations) {
                       if (
                         id.type === 'Identifier' &&
                         init?.type === 'MemberExpression' &&
-                        init.object.type === 'ThisExpression' &&
-                        init.property.type === 'PrivateIdentifier'
+                        init.object.type === 'ThisExpression'
                       ) {
-                        privateSignals.set(id.name, init);
+                        signalAliases.set(id.name, init);
+                      } else if (id.type === 'ObjectPattern' && init?.type === 'ThisExpression') {
+                        // `const { count: total } = this; <p>{total.get()}</p>` must emit
+                        // `this.count.get()` in effects, never `this.total.get()`.
+                        for (const property of id.properties) {
+                          if (
+                            property.type === 'Property' &&
+                            property.value.type === 'AssignmentPattern' &&
+                            property.value.left.type === 'Identifier'
+                          ) {
+                            // `const { count: total = fallback } = this` evaluates the default
+                            // once in render scope, and only for undefined (never null).
+                            // Keep the declaration, then emit `this.$$wccAlias0 = total;`.
+                            // Effects read `this.$$wccAlias0.get()`, preserving the selected
+                            // signal without re-running `fallback` (which may be a local or a call).
+                            const reference = ast.createMemberExpression(
+                              { type: 'ThisExpression' },
+                              `${helperPrefix}Alias${aliasIndex++}`,
+                            );
+                            signalAliases.set(property.value.left.name, reference);
+                            const assignments = captures.get(n) ?? [];
+                            assignments.push({
+                              type: 'ExpressionStatement',
+                              expression: {
+                                type: 'AssignmentExpression',
+                                operator: '=',
+                                left: reference,
+                                right: property.value.left,
+                              },
+                            });
+                            captures.set(n, assignments);
+                          } else if (
+                            property.type === 'Property' &&
+                            property.value.type === 'Identifier'
+                          ) {
+                            signalAliases.set(property.value.name, {
+                              type: 'MemberExpression',
+                              object: init,
+                              property: property.key,
+                              computed: property.computed,
+                              optional: false,
+                            } as E.MemberExpression);
+                          }
+                        }
                       }
                     }
                     observedAttributes = [
@@ -877,6 +944,12 @@ export function parseJsx(
                     ];
                   }
                 }
+                // `const { count: total = getFallback() } = this;` must execute before
+                // `this.$$wccAlias0 = total;`, so capture after its declaration, not before render().
+                n1.value.body.body = n1.value.body.body.flatMap((statement) => [
+                  statement,
+                  ...(captures.get(statement) ?? []),
+                ]);
               }
             }
           }
@@ -938,7 +1011,7 @@ export function parseJsx(
   // effects, e.g. `<p>{this.#count.get()}</p>`, even when observedAttributes has no public entries.
   if (
     inferredObservability &&
-    (observedAttributes.length > 0 || privateSignals.size > 0 || hasPrivateSignals) &&
+    (observedAttributes.length > 0 || signalAliases.size > 0 || hasSignalReads) &&
     !hasOwnObservedAttributes
   ) {
     // this scans for signals usage within the template and builds up a reactive list of templates + effects
@@ -987,7 +1060,7 @@ export function parseJsx(
                       parentTemplate.text(ast.createHtmlTextNode(child.raw, parentTag).value);
                     } else if (child.type === 'JSXExpressionContainer') {
                       if (isSignalRead(child.expression)) {
-                        const signal = signalReference(child.expression);
+                        const signal = signalReference(child.expression, parentSignals);
                         parentTemplate.expression(ast.createIdentifier(signal.name));
                         parentSignals.push(signal);
                         parentHasReactiveTemplate = true;
@@ -1036,7 +1109,7 @@ export function parseJsx(
                             c.type === 'JSXExpressionContainer' &&
                             isSignalRead(c.expression)
                           ) {
-                            const signal = signalReference(c.expression);
+                            const signal = signalReference(c.expression, signals);
                             template.expression(ast.createIdentifier(signal.name));
                             signals.push(signal);
                           }
@@ -1061,7 +1134,7 @@ export function parseJsx(
                             reactiveElements[reactiveElements.length - 1].attributes.push({
                               name: attr.name.name,
                               value,
-                              expression: privateSignalRead(attr.value.expression),
+                              expression: signalReadExpression(attr.value.expression),
                             });
                           }
                         }
@@ -1093,7 +1166,7 @@ export function parseJsx(
                             value,
                             // Preserve `this.#count.get()` (including resolved aliases) instead of
                             // reconstructing a public read such as `this.count.get()` from its name.
-                            expression: privateSignalRead(attr.value.expression),
+                            expression: signalReadExpression(attr.value.expression),
                           });
                         }
                       }
@@ -1385,7 +1458,7 @@ export function parseJsx(
   // TODO: why does this compilation run twice?  logging here will output the message twice
   if (
     inferredObservability &&
-    (observedAttributes.length > 0 || privateSignals.size > 0 || hasPrivateSignals) &&
+    (observedAttributes.length > 0 || signalAliases.size > 0 || hasSignalReads) &&
     !hasOwnObservedAttributes
   ) {
     const rootLookup = [...rootLookups].find(([node]) => node.id?.name === componentName)![1];
@@ -1406,7 +1479,7 @@ export function parseJsx(
             const trackingAttrs = observedAttributes.filter((attr) => typeof attr === 'string');
             // Only public State fields become HTML inputs, e.g. `<my-counter count="3">`.
             // Computeds derive their values, and private signals are kept outside this attribute list.
-            const stateAttrs = trackingAttrs.filter(
+            const stateAttrs = [...new Set(trackingAttrs)].filter(
               (attr) => constructorMembersSignals.get(attr)?.isState,
             );
             node.body.body.unshift(
