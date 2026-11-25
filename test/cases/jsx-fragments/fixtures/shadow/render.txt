@@ -23,11 +23,9 @@ render() {
     }
     this.#evInitialized = true;
     {
-      const $evRoot0 = this.shadowRoot.querySelector('button:nth-of-type(1)');
-      const $evRoot1 = this.shadowRoot.querySelector('button:nth-of-type(2)');
-      const $evEl0 = $evRoot0;
-      $evEl0?.addEventListener('click', event => this.greet(event));
-      const $evEl1 = $evRoot1;
-      $evEl1?.addEventListener('click', () => this.greet());
+      const $evRoot0 = this.$$root('button:nth-of-type(1)');
+      const $evRoot1 = this.$$root('button:nth-of-type(2)');
+      $evRoot0?.addEventListener('click', event => this.greet(event));
+      $evRoot1?.addEventListener('click', () => this.greet());
     }
   }

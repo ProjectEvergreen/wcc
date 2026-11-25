@@ -66,6 +66,7 @@ describe('JSX loops compiler output', () => {
 
   it('emits Shadow DOM rendering and per-item mapped listeners', () => {
     expectOutput(sources.get('shadow-dom.jsx'), 'shadow-dom/render');
+    expect(sources.get('shadow-dom.jsx')).not.to.contain('$$root(');
   });
 
   it('emits TSX reply maps alongside visibility effects, cleanup and grouped static methods', () => {

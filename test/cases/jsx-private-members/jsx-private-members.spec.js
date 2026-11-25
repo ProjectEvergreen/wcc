@@ -42,9 +42,11 @@ describe('JSX private members and event listeners', () => {
 
     expect(compact(source)).to.contain(compact(expected));
     expect(source.indexOf('this.innerHTML =')).to.be.lessThan(
-      source.indexOf("this.querySelector('section"),
+      source.indexOf("this.querySelector(':scope > section"),
     );
-    expect(source.match(/this\.querySelector\('section:nth-of-type\(1\)'\)/g)).to.have.length(1);
+    expect(
+      source.match(/this\.querySelector\(':scope > section:nth-of-type\(1\)'\)/g),
+    ).to.have.length(1);
   });
 
   it('should compile typed private handlers against the shadow root after mounting', () => {
@@ -53,9 +55,8 @@ describe('JSX private members and event listeners', () => {
 
     expect(compact(source)).to.contain(
       compact(`
-      const $evRoot0 = this.shadowRoot.querySelector('h1:nth-of-type(1)');
-      const $evEl0 = $evRoot0;
-      $evEl0?.addEventListener('click', event => this.#sayHello(event));
+      const $evRoot0 = this.$$root('h1:nth-of-type(1)');
+      $evRoot0?.addEventListener('click', event => this.#sayHello(event));
     `),
     );
     expect(source.indexOf('this.shadowRoot.innerHTML =')).to.be.lessThan(

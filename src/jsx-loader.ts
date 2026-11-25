@@ -1069,6 +1069,9 @@ export function parseJsx(
     );
   }
 
+  let rootLookupName = '$$root';
+  while (moduleContents.includes(rootLookupName)) rootLookupName += '_';
+  const rootLookups = new Map<E.ClassDeclaration, ast.RootElementLookup>();
   const escapeHelpers = new Map<E.ClassDeclaration, string>();
   const componentsNeedingEscape = new Set<E.ClassDeclaration>();
   // Stable module / return identifiers keep one component's loop targets distinct from another's.
@@ -1084,6 +1087,8 @@ export function parseJsx(
         if (identifierName(node.superClass) === 'HTMLElement') {
           // Keep generated locals and static members distinct from authored names.
           // E.g. an existing $$escapeHtml makes the generated member $$escapeHtml_.
+          const rootLookup = { name: rootLookupName, used: false };
+          rootLookups.set(node, rootLookup);
           let templateName = '$$template';
           while (moduleContents.includes(templateName)) templateName += '_';
           let escapeHelperName = '$$escapeHtml';
@@ -1150,7 +1155,7 @@ export function parseJsx(
                   );
                   const renderTemplate = template.build(htmlTree);
                   context.loopEvents = undefined;
-                  const listeners = template.listeners(hasShadowRoot);
+                  const listeners = template.listeners(hasShadowRoot, rootLookup);
                   const reuseShadowRoot = hasShadowRoot && (listeners.length > 0 || events.used);
                   // Existing DSD only needs the event-bearing loops, e.g.
                   // `items.map(item => ($evRegister([['click', () => this.#select(item.id)]]), ''))`.
@@ -1325,6 +1330,7 @@ export function parseJsx(
     (observedAttributes.length > 0 || privateSignals.size > 0 || hasPrivateSignals) &&
     !hasOwnObservedAttributes
   ) {
+    const rootLookup = [...rootLookups].find(([node]) => node.id?.name === componentName)![1];
     // here we do the following with all the work we've done so far tracking attributes, signals, effects, etc
     // 1. setup static template functions and observed attributes that we've tracked so far to inject into the top of the class body
     // 2. append all effects to the end of the connectedCallback function
@@ -1359,7 +1365,7 @@ export function parseJsx(
           // append DOM references and effect functions for signals
           if (identifierName(node.key) === 'connectedCallback') {
             node.value.body.body.push(
-              ...ast.createElementReferenceStatements(reactiveElements, hasShadowRoot),
+              ...ast.createElementReferenceStatements(reactiveElements, hasShadowRoot, rootLookup),
               ...ast.createEffectStatements(reactiveElements),
             );
           }
@@ -1392,6 +1398,10 @@ export function parseJsx(
         identifierName(member.key) === 'parseAttribute',
     );
     component.body.body.splice(parseAttributeIndex + 1, 0, normalize);
+  }
+
+  for (const [component, rootLookup] of rootLookups) {
+    if (rootLookup.used) component.body.body.push(ast.createRootLookupMethod(rootLookup.name));
   }
 
   return tree;

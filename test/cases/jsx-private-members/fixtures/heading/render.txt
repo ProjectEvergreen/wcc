@@ -15,8 +15,7 @@ render() {
   }
   this.#evInitialized = true;
   {
-    const $evRoot0 = this.shadowRoot.querySelector('h1:nth-of-type(1)');
-    const $evEl0 = $evRoot0;
-    $evEl0?.addEventListener('click', event => this.#sayHello(event));
+    const $evRoot0 = this.$$root('h1:nth-of-type(1)');
+    $evRoot0?.addEventListener('click', event => this.#sayHello(event));
   }
 }

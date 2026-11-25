@@ -66,6 +66,7 @@ describe('JSX and TSX fragments', function () {
         );
 
         expect(source.replace(/\s+/g, '')).to.contain(expected.replace(/\s+/g, ''));
+        expect(source).not.to.contain('$$root(');
         expect(source.indexOf('this.innerHTML =')).to.be.lessThan(
           source.indexOf('const $evRoot0 ='),
         );
@@ -87,10 +88,10 @@ describe('JSX and TSX fragments', function () {
           expect(element.getAttribute('data-count')).to.equal('0');
         }
         expect(source.replace(/\s+/g, '')).to.contain(
-          "this.$el0=this.querySelector('div:nth-of-type(1)>span:nth-of-type(2)')",
+          "this.$el0=this.querySelector(':scope>div:nth-of-type(1)>span:nth-of-type(2)')",
         );
         expect(source.replace(/\s+/g, '')).to.contain(
-          "this.$el1=this.querySelector('p:nth-of-type(2)')",
+          "this.$el1=this.querySelector(':scope>p:nth-of-type(2)')",
         );
         expect(source.replace(/\s+/g, '')).to.contain(
           'this.$el0.textContent=Fragments.$$tmpl0(this.count.get())',
@@ -168,6 +169,87 @@ describe('JSX and TSX fragments', function () {
       '1',
       'Item 2',
       '2',
+    ]);
+    expect(source.replace(/\s+/g, '')).to.contain(expected.replace(/\s+/g, ''));
+  });
+
+  // <>
+  //   <div><span>Nested static</span><button>Nested static</button></div>
+  //   <span data-count={count.get()}>{count.get()}</span>
+  //   <button onclick={this.increment}>Root</button>
+  // </>
+  for (const [mode, extension] of [
+    ['light', 'jsx'],
+    ['shadow', 'tsx'],
+  ]) {
+    it(`should anchor ${mode} DOM reactive references and listeners to immediate children`, async () => {
+      const { html, metadata } = await renderToString(
+        new URL(`./src/${mode}-targets.${extension}`, import.meta.url),
+      );
+      const source = metadata[`wcc-${mode}-fragment-targets`].source;
+      const references = await fs.readFile(
+        new URL(`./fixtures/${mode}-targets/references.txt`, import.meta.url),
+        'utf8',
+      );
+      const listeners = await fs.readFile(
+        new URL(`./fixtures/${mode}-targets/listeners.txt`, import.meta.url),
+        'utf8',
+      );
+      const component = new JSDOM(html).window.document.querySelector(
+        `wcc-${mode}-fragment-targets`,
+      );
+      const root = mode === 'shadow' ? component.querySelector('template').content : component;
+
+      expect(Array.from(root.children, (child) => child.tagName)).to.deep.equal([
+        'DIV',
+        'SPAN',
+        'BUTTON',
+      ]);
+      expect(Array.from(root.children[0].children, (child) => child.textContent)).to.deep.equal([
+        'Nested static',
+        'Nested static',
+      ]);
+      expect(root.children[1].textContent).to.equal('0');
+      expect(root.children[2].textContent).to.equal('Root');
+      expect(source.replace(/\s+/g, '')).to.contain(references.replace(/\s+/g, ''));
+      expect(source.replace(/\s+/g, '')).to.contain(listeners.replace(/\s+/g, ''));
+    });
+  }
+
+  // $$root() { return 'authored'; }
+  // <><span>{count.get()}</span><button onclick={this.increment}>Root</button></>
+  it('should share one Shadow DOM lookup helper without overwriting an authored method', async () => {
+    const { metadata } = await renderToString(new URL('./src/shadow-targets.tsx', import.meta.url));
+    const source = metadata['wcc-shadow-fragment-targets'].source;
+    const expected = await fs.readFile(
+      new URL('./fixtures/shadow-targets/root-lookup.txt', import.meta.url),
+      'utf8',
+    );
+
+    expect(source.replace(/\s+/g, '')).to.contain(expected.replace(/\s+/g, ''));
+    expect(source.match(/\$\$root_\(selector\)/g)).to.have.length(1);
+    expect(source).to.contain("return 'authored';");
+  });
+
+  // const value = '<text>';
+  // const saved = <><span>Saved</span><span>{value}</span></>;
+  // return <>{saved}</>;
+  it('should preserve saved fragment siblings when rendered later', async () => {
+    const { html, metadata } = await renderToString(new URL('./src/saved.jsx', import.meta.url));
+    const component = new JSDOM(html).window.document.querySelector('wcc-saved-fragments');
+    const source = metadata['wcc-saved-fragments'].source;
+    const expected = await fs.readFile(
+      new URL('./fixtures/saved/render.txt', import.meta.url),
+      'utf8',
+    );
+
+    expect(Array.from(component.children, (child) => child.tagName)).to.deep.equal([
+      'SPAN',
+      'SPAN',
+    ]);
+    expect(Array.from(component.children, (child) => child.textContent)).to.deep.equal([
+      'Saved',
+      '<text>',
     ]);
     expect(source.replace(/\s+/g, '')).to.contain(expected.replace(/\s+/g, ''));
   });

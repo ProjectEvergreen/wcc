@@ -19,7 +19,7 @@ render() {
         </ul>
       </article>`;
   {
-    const $evRoot0 = this.querySelector('article:nth-of-type(1)');
+    const $evRoot0 = this.querySelector(':scope > article:nth-of-type(1)');
     const $evEl0 = $evRoot0?.querySelector(':scope > button:nth-of-type(1)');
     $evEl0?.addEventListener('click', event => this.toggle(event));
   }
