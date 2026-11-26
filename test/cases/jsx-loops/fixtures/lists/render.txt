@@ -21,7 +21,7 @@ render() {
         <ul id="chain">
           ${items.filter(item => item.show).map(({name}) => `<li>${Lists.$$wcc_Child(name)}</li>`).join('')}
         </ul>
-        <div id="flat">${items.flatMap(({name}) => Lists.$$wcc_Child([$$wcc_Markup(`<span>${Lists.$$wcc_Child(name)}</span>`), $$wcc_Markup(`<br><br>`)])).join('')}</div>
+        <div id="flat">${items.flatMap(({name}) => Lists.$$wcc_Child([$$wcc_Markup(`<span>${Lists.$$wcc_Child(name)}</span>`), $$wcc_Markup(`<small>Details</small>`)])).join('')}</div>
         <div id="nested">
           ${[1, 2].map(number => `<section>
               ${[3, 4].map(value => `<small>${Lists.$$wcc_Child(number * value)}</small>`).join('')}
@@ -37,13 +37,13 @@ render() {
         <div id="helper">${Lists.$$wcc_Child(helper('chosen'))}</div>
         <div id="collision">${Lists.$$wcc_Child($$wccMarkup)}</div>
         <div id="inline">
-          ${items.map(({name}) => `<button data-wcc-ev-b24e606428fc-0="${$evRegister([['click', () => this.action()]])}">${Lists.$$wcc_Child(name)}</button>`).join('')}
+          ${items.map(({name}) => `<button data-wcc-ev-f3a602132f13-0="${$evRegister([['click', () => this.action()]])}">${Lists.$$wcc_Child(name)}</button>`).join('')}
         </div>
         <table>
           <tbody>
             ${items.map(({name}) => `<tr>
                 <td>
-                  <button data-wcc-ev-b24e606428fc-0="${$evRegister([['click', event => this.action(event)]])}">${Lists.$$wcc_Child(name)}</button>
+                  <button data-wcc-ev-f3a602132f13-0="${$evRegister([['click', event => this.action(event)]])}">${Lists.$$wcc_Child(name)}</button>
                 </td>
               </tr>`).join('')}
           </tbody>
@@ -52,12 +52,12 @@ render() {
           ${items.map(item => `<span data-comment="${Lists.$$escapeHtml(`${JSON.stringify(item)}`, true)}"></span>`).join('')}
         </div>
       </main>`;
-  for (const $evEl of this.querySelectorAll("[data-wcc-ev-b24e606428fc-0]") ?? []) {
+  for (const $evEl of this.querySelectorAll("[data-wcc-ev-f3a602132f13-0]") ?? []) {
     if ($evEl.parentElement?.closest(this.localName) !== this) continue;
-    const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-b24e606428fc-0"))];
+    const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-f3a602132f13-0"))];
     for (const [$evName, $evHandler] of $evHandlers ?? []) {
       $evEl.addEventListener($evName, $evHandler);
     }
-    $evEl.removeAttribute("data-wcc-ev-b24e606428fc-0");
+    $evEl.removeAttribute("data-wcc-ev-f3a602132f13-0");
   }
 }

@@ -35,7 +35,9 @@ export default class Lists extends HTMLElement {
               <li>{name}</li>
             ))}
         </ul>
-        <div id="flat">{items.flatMap(({ name }) => [<span>{name}</span>, <br />])}</div>
+        <div id="flat">
+          {items.flatMap(({ name }) => [<span>{name}</span>, <small>Details</small>])}
+        </div>
         <div id="nested">
           {[1, 2].map((number) => (
             <section>

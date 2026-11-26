@@ -303,12 +303,6 @@ function createHtmlTreeFromJsx(
         );
       }
     }
-
-    // HTML treats </br> as another <br>; JSX br output includes both line-break nodes.
-    // TODO: emit one break for JSX <br />; the extra node preserves the current compiler output.
-    if (node.tagName === 'br') {
-      ast.appendHtmlChild(parent, ast.createHtmlElement('br'));
-    }
   }
 
   if (type === 'JSXText') {
