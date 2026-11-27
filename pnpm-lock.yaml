@@ -253,7 +253,7 @@ importers:
         version: 0.2.3
       wc-compiler:
         specifier: workspace:*
-        version: link:../packages/wcc
+        version: link:../packages/wc-compiler
     devDependencies:
       '@double-great/stylelint-a11y':
         specifier: ^3.0.2
@@ -322,7 +322,7 @@ importers:
         specifier: ^4.0.18
         version: 4.1.12(@types/node@24.19.4)(@vitest/browser-playwright@4.1.12)(@vitest/browser@4.1.12)(@vitest/coverage-v8@4.1.12)(jsdom@19.0.0(supports-color@10.2.2))(vite@7.3.8(@types/node@24.19.4)(jiti@2.7.0)(terser@5.51.4)(yaml@2.9.1))
 
-  packages/wcc:
+  packages/wc-compiler:
     dependencies:
       '@projectevergreen/acorn-jsx-esm':
         specifier: ~0.1.1
@@ -5765,7 +5765,7 @@ snapshots:
       livereload: 0.9.3
       node-html-parser: 7.1.0
       rollup: 4.68.8
-      wc-compiler: link:packages/wcc
+      wc-compiler: link:packages/wc-compiler
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -5783,7 +5783,7 @@ snapshots:
       '@greenwood/cli': 0.35.0-alpha.5
       astring: 1.9.0
       node-html-parser: 7.1.0
-      wc-compiler: link:packages/wcc
+      wc-compiler: link:packages/wc-compiler
 
   '@greenwood/plugin-import-text@0.35.0-alpha.5(@greenwood/cli@0.35.0-alpha.5)':
     dependencies:

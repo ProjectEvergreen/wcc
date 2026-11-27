@@ -31,7 +31,7 @@ $ nvm use
 ## Workspace Layout
 
 - The private root owns shared tooling and convenience scripts
-- `packages/wcc/` contains the published `wc-compiler` package
+- `packages/wc-compiler/` contains the published `wc-compiler` package
 - `docs/` is a the website documentation for WCC, built using [**Greenwood**](https://www.greenwoodjs.dev)
 
 > The docs depend on the local `wc-compiler` source through `workspace:*` references in _package.json_. Make sure to uild WCC before consuming its public exports; `docs:dev` and `docs:build` do this automatically.
@@ -40,7 +40,7 @@ $ nvm use
 
 The local development workflows for WCC are:
 
-- `pnpm run build` - Build the library into `packages/wcc/dist/`
+- `pnpm run build` - Build the library into `packages/wc-compiler/dist/`
 - `pnpm run build:watch` - Rebuild the library as source files change
 - `pnpm test` - Run the standard JavaScript integration tests
 - `pnpm run test:jsx` - Run the full integration suite, including JSX and TSX, with coverage
@@ -119,7 +119,7 @@ For unreleased feature documentation related changes, open a companion PR agains
 
 ## Publishing
 
-Run the commands below from the repository root; the root and docs manifests are private. Refresh the lockfile with `pnpm install --lockfile-only` after changing the compiler version. The package README and license live in `packages/wcc/` and are included when packing.
+Run the commands below from the repository root; the root and docs manifests are private. Refresh the lockfile with `pnpm install --lockfile-only` after changing the compiler version. The package README and license live in `packages/wc-compiler/` and are included when packing.
 
 ### Local Testing
 
@@ -128,7 +128,7 @@ For local testing and generating an initial tarball.
 For example, to prepare the next minor version's first release candidate without creating a Git commit or tag:
 
 ```sh
-$ npm --prefix packages/wcc version preminor --preid rc --no-git-tag-version
+$ npm --prefix packages/wc-compiler version preminor --preid rc --no-git-tag-version
 v0.23.0-rc.0
 
 $ pnpm --filter wc-compiler pack --pack-destination ../..
@@ -149,7 +149,7 @@ $ npm publish ./wc-compiler-0.23.0-rc.0.tgz --tag rc
 To publish another candidate, increment the existing RC version and pack again:
 
 ```sh
-$ npm --prefix packages/wcc version prerelease --preid rc --no-git-tag-version
+$ npm --prefix packages/wc-compiler version prerelease --preid rc --no-git-tag-version
 v0.23.0-rc.1
 
 $ pnpm --filter wc-compiler pack --pack-destination ../..
@@ -160,7 +160,7 @@ $ pnpm --filter wc-compiler pack --pack-destination ../..
 Make sure to bump and tag the version for all RC releases:
 
 ```sh
-$ git commit packages/wcc/package.json pnpm-lock.yaml -m "chore(workspace): bump to next release version 0.23.0-rc.0"
+$ git commit packages/wc-compiler/package.json pnpm-lock.yaml -m "chore(workspace): bump to next release version 0.23.0-rc.0"
 $ git tag -a 0.23.0-rc.0 -m "chore: tagging 0.23.0-rc.0 release"
 $ git push origin <branch> --tags
 ```
@@ -172,7 +172,7 @@ To publish to **latest** on npm.
 Using the minor release above, this drops the `-rc.N`:
 
 ```sh
-$ npm --prefix packages/wcc version minor --no-git-tag-version
+$ npm --prefix packages/wc-compiler version minor --no-git-tag-version
 v0.23.0
 
 $ pnpm --filter wc-compiler pack --pack-destination ../..
@@ -182,7 +182,7 @@ $ npm publish ./wc-compiler-0.23.0.tgz --tag latest
 After publishing a stable release, make sure to bump and tag the version:
 
 ```sh
-$ git commit packages/wcc/package.json pnpm-lock.yaml -m "chore(workspace): bump to next release version 0.23.0"
+$ git commit packages/wc-compiler/package.json pnpm-lock.yaml -m "chore(workspace): bump to next release version 0.23.0"
 $ git tag -a 0.23.0 -m "chore(workspace): tagging 0.23.0 release"
 $ git push origin master --tags
 ```

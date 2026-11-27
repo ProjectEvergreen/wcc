@@ -54,7 +54,7 @@ export default [
   })),
   {
     // JSX attributes intentionally accept arbitrary custom-element values.
-    files: ['packages/wcc/src/jsx.d.ts'],
+    files: ['packages/wc-compiler/src/jsx.d.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',

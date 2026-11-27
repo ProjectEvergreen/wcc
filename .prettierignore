@@ -5,4 +5,4 @@
 **/.greenwood/
 package/
 pnpm-lock.yaml
-packages/wcc/test/cases/tsx/src/counter.tsx
+packages/wc-compiler/test/cases/tsx/src/counter.tsx
