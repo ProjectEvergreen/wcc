@@ -21,12 +21,12 @@
     "test:tdd:jsx": "pnpm --filter wc-compiler run test:tdd:jsx",
     "jsx-types:generate": "pnpm --filter wc-compiler run jsx-types:generate",
     "jsx-types:check": "pnpm --filter wc-compiler run jsx-types:check",
-    "docs:dev": "pnpm run build && pnpm --filter @wcc/docs run dev",
-    "docs:build": "pnpm run build && pnpm --filter @wcc/docs run build",
-    "docs:serve": "pnpm --filter @wcc/docs run serve",
-    "test:docs": "pnpm --filter @wcc/docs run test",
-    "test:docs:tdd": "pnpm --filter @wcc/docs run test:watch",
-    "lint:css": "pnpm --filter @wcc/docs run lint:css",
+    "docs:dev": "pnpm run build && pnpm --filter docs run dev",
+    "docs:build": "pnpm run build && pnpm --filter docs run build",
+    "docs:serve": "pnpm --filter docs run serve",
+    "test:docs": "pnpm --filter docs run test",
+    "test:docs:tdd": "pnpm --filter docs run test:watch",
+    "lint:css": "pnpm --filter docs run lint:css",
     "check:types": "tsc && pnpm -r run check:types"
   },
   "devDependencies": {

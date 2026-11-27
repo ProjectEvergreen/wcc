@@ -27,7 +27,7 @@ jobs:
           pnpm run build
       - name: Setup Playwright
         run: |
-          pnpm --filter @wcc/docs exec playwright install --with-deps
+          pnpm --filter docs exec playwright install --with-deps
       - name: Format
         run: |
           pnpm run format:check

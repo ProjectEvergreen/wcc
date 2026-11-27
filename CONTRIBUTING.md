@@ -13,7 +13,7 @@ To develop for the project, you'll want to follow these steps:
 1. Install the pinned pnpm version with `npm install --global pnpm@12.23.0`
 1. Run `pnpm install --frozen-lockfile`
 1. Run `pnpm run build`
-1. Run `pnpm --filter @wcc/docs exec playwright install`
+1. Run `pnpm --filter docs exec playwright install`
 
 ### NVM
 
