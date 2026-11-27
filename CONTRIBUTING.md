@@ -128,7 +128,7 @@ For local testing and generating an initial tarball.
 For example, to prepare the next minor version's first release candidate without creating a Git commit or tag:
 
 ```sh
-$ npm --prefix packages/wc-compiler version preminor --preid rc --no-git-tag-version
+$ pnpm --dir packages/wc-compiler version preminor --preid rc --no-git-tag-version
 v0.23.0-rc.0
 
 $ pnpm --filter wc-compiler pack --pack-destination ../..
@@ -149,7 +149,7 @@ $ npm publish ./wc-compiler-0.23.0-rc.0.tgz --tag rc
 To publish another candidate, increment the existing RC version and pack again:
 
 ```sh
-$ npm --prefix packages/wc-compiler version prerelease --preid rc --no-git-tag-version
+$ pnpm --dir packages/wc-compiler version prerelease --preid rc --no-git-tag-version
 v0.23.0-rc.1
 
 $ pnpm --filter wc-compiler pack --pack-destination ../..
@@ -172,7 +172,7 @@ To publish to **latest** on npm.
 Using the minor release above, this drops the `-rc.N`:
 
 ```sh
-$ npm --prefix packages/wc-compiler version minor --no-git-tag-version
+$ pnpm --dir packages/wc-compiler version minor --no-git-tag-version
 v0.23.0
 
 $ pnpm --filter wc-compiler pack --pack-destination ../..
