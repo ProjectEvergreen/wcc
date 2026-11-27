@@ -19,7 +19,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - name: Installing project dependencies
         run: |
-          pnpm install --frozen-lockfile
+          pnpm ci
       - name: Build
         run: |
           # Check before the build regenerates declarations and hides stale committed output
