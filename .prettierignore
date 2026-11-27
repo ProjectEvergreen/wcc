@@ -1,8 +1,0 @@
-**/node_modules/
-**/dist/
-**/coverage/
-**/public/
-**/.greenwood/
-package/
-pnpm-lock.yaml
-packages/wc-compiler/test/cases/tsx/src/counter.tsx

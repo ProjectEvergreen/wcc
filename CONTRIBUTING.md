@@ -46,21 +46,14 @@ The local development workflows for WCC are:
 - `pnpm run test:jsx` - Run the full integration suite, including JSX and TSX, with coverage
 - `pnpm run test:tdd` - Run the standard tests in watch mode
 - `pnpm run test:tdd:jsx` - Run the full integration suite in watch mode
-- `pnpm run lint` - Run all linters
+- `pnpm run lint` - Run Oxlint for JavaScript and TypeScript, ls-lint for filenames, and Stylelint for CSS
 - `pnpm run check:types` - Validate TypeScript types across the project, including docs, test fixtures, and configuration files, plus strict checking of the compiler source
-- `pnpm run format` - Auto-format all files
+- `pnpm run format` - Auto-format all files with Oxfmt
+- `pnpm run format:check` - Check formatting without writing files
 
 > _While developing, keep `pnpm run build:watch` running alongside test watchers to keep the compiled output current._
 
-For VS Code users, add this TypeScript ESLint config compatibility flag in your _.vscode/settings.json_.
-
-```json
-{
-  "eslint.options": {
-    "flags": ["unstable_native_nodejs_ts_config"]
-  }
-}
-```
+For VS Code users, install the [Oxc extension](https://marketplace.visualstudio.com/items?itemName=oxc.oxc-vscode) for lint diagnostics and select it as the default formatter. Lint rules and formatting options live in _.oxlintrc.json_ and _.oxfmtrc.json_, respectively.
 
 ## JSX Attribute Definitions
 

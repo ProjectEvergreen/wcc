@@ -1,9 +1,9 @@
 [build]
-  publish = "docs/public/"
-  command = "pnpm run docs:build"
+publish = "docs/public/"
+command = "pnpm run docs:build"
 
 [build.processing]
-  skip_processing = true
+skip_processing = true
 
 [build.environment]
-  NODE_VERSION = "24.13.1"
+NODE_VERSION = "24.13.1"

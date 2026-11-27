@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "jsPlugins": ["eslint-plugin-no-only-tests"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true,
+    "node": true,
+    "mocha": true,
+    "chai": true
+  },
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/public/**",
+    "**/.greenwood/**",
+    "package/"
+  ],
+  "rules": {
+    "no-only-tests/no-only-tests": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.spec.js"],
+      "rules": {
+        "no-unused-expressions": "off"
+      }
+    }
+  ]
+}

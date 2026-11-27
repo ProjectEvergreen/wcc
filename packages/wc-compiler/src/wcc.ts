@@ -267,7 +267,6 @@ async function initializeCustomElement(
 function renderToString(
   elementURL: URL,
   wrappingEntryTag?: boolean,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Preserve the existing public props type.
   props?: any,
 ): Promise<RenderResult>;
 async function renderToString(

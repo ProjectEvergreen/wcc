@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "singleQuote": true,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "**/node_modules/",
+    "**/dist/",
+    "**/coverage/",
+    "**/public/",
+    "**/.greenwood/",
+    "package/",
+    "pnpm-lock.yaml",
+    "packages/wc-compiler/test/cases/tsx/src/counter.tsx"
+  ],
+  "insertFinalNewline": true
+}

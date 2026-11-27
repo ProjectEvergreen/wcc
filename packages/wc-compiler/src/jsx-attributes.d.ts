@@ -14,7 +14,15 @@ interface HtmlGlobalAttributes {
   'aria-colspan'?: string | number | null;
   'aria-controls'?: string | null;
   'aria-current'?:
-    'page' | 'step' | 'location' | 'date' | 'time' | 'true' | 'false' | boolean | null;
+    | 'page'
+    | 'step'
+    | 'location'
+    | 'date'
+    | 'time'
+    | 'true'
+    | 'false'
+    | boolean
+    | null;
   'aria-describedby'?: string | null;
   'aria-details'?: string | null;
   'aria-disabled'?: 'true' | 'false' | boolean | null;
@@ -24,7 +32,15 @@ interface HtmlGlobalAttributes {
   'aria-flowto'?: string | null;
   'aria-grabbed'?: 'true' | 'false' | 'undefined' | boolean | null;
   'aria-haspopup'?:
-    'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | boolean | null;
+    | 'false'
+    | 'true'
+    | 'menu'
+    | 'listbox'
+    | 'tree'
+    | 'grid'
+    | 'dialog'
+    | boolean
+    | null;
   'aria-hidden'?: 'true' | 'false' | 'undefined' | boolean | null;
   'aria-invalid'?: 'grammar' | 'false' | 'spelling' | 'true' | boolean | null;
   'aria-keyshortcuts'?: string | null;
@@ -828,7 +844,15 @@ interface SvgGlobalAttributes {
   'aria-colspan'?: string | number | null;
   'aria-controls'?: string | number | null;
   'aria-current'?:
-    'page' | 'step' | 'location' | 'date' | 'time' | 'true' | 'false' | boolean | null;
+    | 'page'
+    | 'step'
+    | 'location'
+    | 'date'
+    | 'time'
+    | 'true'
+    | 'false'
+    | boolean
+    | null;
   'aria-describedby'?: string | number | null;
   'aria-details'?: string | number | null;
   'aria-disabled'?: 'true' | 'false' | boolean | null;
@@ -838,7 +862,15 @@ interface SvgGlobalAttributes {
   'aria-flowto'?: string | number | null;
   'aria-grabbed'?: 'true' | 'false' | 'undefined' | boolean | null;
   'aria-haspopup'?:
-    'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | boolean | null;
+    | 'false'
+    | 'true'
+    | 'menu'
+    | 'listbox'
+    | 'tree'
+    | 'grid'
+    | 'dialog'
+    | boolean
+    | null;
   'aria-hidden'?: 'true' | 'false' | 'undefined' | boolean | null;
   'aria-invalid'?: 'grammar' | 'false' | 'spelling' | 'true' | boolean | null;
   'aria-keyshortcuts'?: string | number | null;

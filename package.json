@@ -5,13 +5,13 @@
   "packageManager": "pnpm@12.23.0",
   "scripts": {
     "lint": "pnpm run lint:js && pnpm run lint:ls && pnpm run lint:css",
-    "lint:js": "eslint --flag unstable_native_nodejs_ts_config",
+    "lint:js": "oxlint",
     "lint:ls": "ls-lint",
     "commit": "cz",
     "commit:lint": "commitlint --last --verbose",
     "commit:edit": "commitlint --edit $1",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check",
+    "format": "oxfmt --write --no-error-on-unmatched-pattern",
+    "format:check": "oxfmt --check",
     "prepare": "husky",
     "build": "pnpm --filter wc-compiler run build",
     "build:watch": "pnpm --filter wc-compiler run build:watch",
@@ -32,18 +32,14 @@
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/types": "^20.5.0",
-    "@eslint/js": "^9.39.1",
     "@ls-lint/ls-lint": "^2.3.1",
     "@types/node": "^24.0.0",
     "commitizen": "^4.3.1",
-    "eslint": "^9.39.1",
-    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-no-only-tests": "^3.3.0",
-    "globals": "^15.10.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
-    "prettier": "^3.6.2",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.72.1"
+    "oxfmt": "^0.80.0",
+    "oxlint": "^1.95.0",
+    "typescript": "^6.0.3"
   }
 }

@@ -86,10 +86,10 @@
     "html-validate": "^10.17.0",
     "jsdom": "^19.0.0",
     "mocha": "^9.2.2",
-    "prettier": "^3.6.2",
     "property-information": "^7.2.0",
     "svg-element-attributes": "^2.2.0",
     "tsdown": "^0.23.7",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "oxfmt": "^0.80.0"
   }
 }
