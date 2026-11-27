@@ -7,7 +7,7 @@ WCC renders standard Web Components into HTML. This monorepo contains the compil
 ## Workspaces
 
 - [packages/wc-compiler](./packages/wc-compiler/README.md) — the published `wc-compiler` package
-- [docs](./docs/) — the Greenwood documentation website
+- [docs](./docs/) — the Greenwood based documentation website
 
 > _For installation and usage of WCC see our [documentation website](https://wcc.dev)._
 

@@ -32,9 +32,9 @@ $ nvm use
 
 - The private root owns shared tooling and convenience scripts
 - `packages/wc-compiler/` contains the published `wc-compiler` package
-- `docs/` is a the website documentation for WCC, built using [**Greenwood**](https://www.greenwoodjs.dev)
+- `docs/` is a the website documentation for WCC
 
-> The docs depend on the local `wc-compiler` source through `workspace:*` references in _package.json_. Make sure to uild WCC before consuming its public exports; `docs:dev` and `docs:build` do this automatically.
+> _The docs depend on the local `wc-compiler` source through `workspace:*` references in *package.json*. Make sure to build WCC before consuming its public exports; `pnpm run docs:dev` and `pnpm run docs:build` do this automatically._
 
 ## Local Development
 
@@ -52,7 +52,7 @@ The local development workflows for WCC are:
 
 > _While developing, keep `pnpm run build:watch` running alongside test watchers to keep the compiled output current._
 
-For VSCode users, add this TypeScript ESLint config compatibility flag in your _.vscode/settings.json_.
+For VS Code users, add this TypeScript ESLint config compatibility flag in your _.vscode/settings.json_.
 
 ```json
 {
