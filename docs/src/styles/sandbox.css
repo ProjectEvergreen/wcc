@@ -1,0 +1,301 @@
+.sandbox {
+  --sandbox-border: #dbe3ea;
+  --sandbox-muted: #52677a;
+
+  color: #193247;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 1rem 0 3rem;
+}
+
+.sandbox * {
+  font-size: inherit;
+}
+
+.sandbox [hidden] {
+  display: none !important;
+}
+
+.sandbox .sandbox-header {
+  margin-bottom: 1.5rem;
+}
+
+.sandbox h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.045em;
+  line-height: 1.2;
+  margin: 0.35rem 0 0.65rem;
+}
+
+.sandbox .eyebrow {
+  color: var(--sandbox-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.sandbox .eyebrow span {
+  margin: 0 0.5rem;
+  color: #8092a2;
+}
+
+.sandbox .sandbox-workspace {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  height: min(760px, calc(100dvh - 260px));
+  min-height: 540px;
+  border: 1px solid var(--sandbox-border);
+  border-radius: 0.85rem;
+  background: #fff;
+  box-shadow: 0 8px 32px #01355308;
+  overflow: clip;
+}
+
+.sandbox .sandbox-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.5rem 1rem;
+  background: #f6f8fa;
+  border-right: 1px solid var(--sandbox-border);
+}
+
+.sandbox label,
+.sandbox .example-count,
+.sandbox #search-empty {
+  font-size: 0.875rem;
+}
+
+.sandbox label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.sandbox input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #aabac7;
+  border-radius: 0.4rem;
+  padding: 0.55rem 0.7rem;
+  background: white;
+  color: #193247;
+  font: inherit;
+}
+
+.sandbox nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sandbox .example-count {
+  color: var(--sandbox-muted);
+  margin: 0.7rem 0 1.5rem;
+}
+
+.sandbox .example-group {
+  margin-bottom: 1.25rem;
+}
+
+.sandbox .example-group h3 {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sandbox-muted);
+  padding: 0 0.65rem;
+  margin-bottom: 0.4rem;
+}
+
+.sandbox .example-group ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sandbox .example-group a {
+  display: block;
+  padding: 0.45rem 0.65rem;
+  margin: 0.15rem 0;
+  border-radius: 0.4rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: #354c60;
+}
+
+.sandbox .example-group a:hover,
+.sandbox .example-group a:focus-visible {
+  background: #e8eef3;
+}
+
+.sandbox .example-group a[aria-current] {
+  color: #013553;
+  background: #dcecf7;
+  font-weight: 600;
+  box-shadow: inset 3px 0 #277cad;
+}
+
+.sandbox .sandbox-stage {
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.sandbox .example-heading {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--sandbox-border);
+}
+
+.sandbox .example-heading h2 {
+  font-size: 1.75rem;
+  letter-spacing: -0.035em;
+  margin: 0.5rem 0;
+}
+
+.sandbox .example-preview {
+  padding: clamp(1rem, 4vw, 3rem);
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  background: #fbfcfe;
+  overflow-wrap: anywhere;
+}
+
+.sandbox .variants {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.sandbox .variant > h3 {
+  font-size: 0.875rem;
+  color: var(--sandbox-muted);
+  margin-bottom: 1.5rem;
+}
+
+.sandbox .example-preview > button {
+  align-self: flex-start;
+}
+
+.sandbox .example-preview button {
+  font: inherit;
+  font-size: 0.875rem;
+  color: #013553;
+  background: white;
+  border: 1px solid #aabac7;
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  margin: 0.2rem;
+  cursor: pointer;
+}
+
+.sandbox .example-preview button:hover,
+.sandbox .example-preview button:focus-visible {
+  background: #e8eef3;
+}
+
+.sandbox .example-preview p {
+  margin-block: 0.75rem;
+}
+
+.sandbox .example-preview ul {
+  padding-left: 1.25rem;
+}
+
+.sandbox .example-preview h4 {
+  margin-top: 1rem;
+}
+
+.sandbox .example-code {
+  border-top: 1px solid var(--sandbox-border);
+}
+
+.sandbox summary {
+  padding: 1rem 2rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.sandbox pre {
+  margin: 0;
+  padding: 1.5rem 2rem;
+  overflow-x: auto;
+  background: #011627;
+  color: #d6e6f0;
+  line-height: 1.8;
+  white-space: pre;
+}
+
+.sandbox pre code {
+  font: 0.875rem / 1.8 var(--font-secondary, monospace);
+}
+
+.sandbox :is(a, button, input, summary):focus-visible {
+  outline: 2px solid #277cad;
+  outline-offset: 3px;
+}
+
+.sandbox .picture-frame {
+  max-width: 280px;
+  border: 1px solid var(--sandbox-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  padding-bottom: 1rem;
+  text-align: center;
+}
+
+.sandbox .picture-frame img {
+  width: 100%;
+  height: auto;
+}
+
+.sandbox sb-signal-counter-jsx .heading {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.sandbox sb-signal-counter-jsx .even,
+.sandbox sb-signal-counter-jsx .odd {
+  display: block;
+  margin-top: 1rem;
+}
+
+.sandbox sb-signal-counter-jsx .even {
+  color: #257044;
+}
+
+.sandbox sb-signal-counter-jsx .odd {
+  color: #a33c31;
+}
+
+@media (max-width: 760px) {
+  .sandbox .sandbox-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 0;
+  }
+
+  .sandbox .sandbox-stage {
+    overflow-y: visible;
+  }
+
+  .sandbox .sandbox-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--sandbox-border);
+  }
+
+  .sandbox nav {
+    flex: auto;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .sandbox .example-heading {
+    padding: 1.5rem;
+  }
+
+  .sandbox .variants {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

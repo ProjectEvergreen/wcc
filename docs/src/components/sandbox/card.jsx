@@ -2,7 +2,8 @@
 // https://stackoverflow.com/questions/27530462/tag-error-react-jsx-style-tag-error-on-render
 const styles = `
   :host .card {
-    width: 30%;
+    width: 100%;
+    max-width: 240px;
     margin: 0 auto;
     text-align: center;
   }
@@ -39,7 +40,7 @@ export default class CardJsx extends HTMLElement {
         <style>{styles}</style>
         <div class="card">
           <h3>{title}</h3>
-          <img src={thumbnail} alt={title} loading="lazy" width="200" height="200" />
+          <img src={thumbnail} alt={title} loading="lazy" width="200" height="140" />
           <button onclick={this.selectItem}>View Item Details</button>
         </div>
       </>

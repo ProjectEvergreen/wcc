@@ -1,71 +1,10 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>WCC - ${globalThis.page.title}</title>
+    <title>Sandbox · WCC</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
-    <style>
-      h1,
-      h2,
-      p,
-      sb-comment-jsx {
-        text-align: center;
-      }
-
-      h2 {
-        color: blue;
-      }
-
-      pre,
-      details {
-        width: 30%;
-        margin: 10px auto;
-        padding: 20px;
-        text-align: center;
-        white-space: collapse;
-        border: 2px dotted #222;
-      }
-
-      pre.interpolation-example {
-        width: fit-content;
-        max-width: 100%;
-        text-align: left;
-        white-space: pre-line;
-      }
-
-      button.reset {
-        display: block;
-        min-width: 5%;
-        margin: 0 auto;
-      }
-
-      sb-signal-counter-jsx,
-      sb-signal-greeting-jsx,
-      input {
-        display: block;
-        margin: 0 auto;
-        width: 50%;
-      }
-
-      sb-signal-counter-jsx {
-        text-align: center;
-
-        & .heading {
-          display: block;
-          text-decoration: underline;
-        }
-
-        & .even {
-          color: green;
-          display: block;
-        }
-
-        & .odd {
-          color: red;
-          display: block;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="../styles/sandbox.css" />
 
     <script type="importmap">
       {
@@ -80,34 +19,7 @@
 
       globalThis.Signal = Signal;
     </script>
-    <script>
-      function randomReset() {
-        return Math.floor(Math.random() * 100);
-      }
-
-      globalThis.document.addEventListener('DOMContentLoaded', () => {
-        const signalGreetingInput = document.getElementById('signal-greeting-input');
-        const signalCounterJsxResetButton = document.getElementById('signal-counter-reset');
-        const signalCounterJsxLightDomResetButton = document.getElementById(
-          'signal-counter-jsx-reset',
-        );
-
-        signalGreetingInput.addEventListener('keyup', (e) => {
-          console.log('update greeting value => ', e.target.value);
-          document.querySelector('sb-signal-greeting-jsx').setAttribute('name', e.target.value);
-        });
-
-        signalCounterJsxResetButton.addEventListener('click', () => {
-          document.querySelectorAll('sb-signal-counter-tsx').forEach((el) => {
-            el.setAttribute('count', randomReset());
-          });
-        });
-
-        signalCounterJsxLightDomResetButton.addEventListener('click', () => {
-          document.querySelector('sb-signal-counter-jsx').setAttribute('count', randomReset());
-        });
-      });
-    </script>
+    <script type="module" src="../scripts/sandbox.js"></script>
 
     <script type="module" src="../components/sandbox/this-counter.jsx"></script>
     <script type="module" src="../components/sandbox/signal-counter.tsx"></script>
@@ -127,201 +39,275 @@
   </head>
 
   <body>
-    <h1>WCC Sandbox</h1>
+    <div class="sandbox">
+      <header class="sandbox-header">
+        <h1>Sandbox</h1>
+      </header>
+      <div class="sandbox-workspace">
+        <aside class="sandbox-sidebar" aria-label="Example library">
+          <label for="example-search">Find an example</label>
+          <input id="example-search" type="search" placeholder="Search examples…" />
+          <p class="example-count" role="status">12 examples</p>
+          <nav aria-label="Examples">
+            <section class="example-group">
+              <h3>Reactivity</h3>
+              <ul>
+                <li><a href="#signal-counter">Signal counter</a></li>
+                <li><a href="#greeting">Reactive greeting</a></li>
+                <li><a href="#light-counter">Light DOM counter</a></li>
+                <li><a href="#this-references">This references & aliases</a></li>
+                <li><a href="#private-members">Private members</a></li>
+              </ul>
+            </section>
+            <section class="example-group">
+              <h3>Rendering</h3>
+              <ul>
+                <li><a href="#headers">Static headers</a></li>
+                <li><a href="#cards">Shadow DOM cards</a></li>
+                <li><a href="#slots">Slotted content</a></li>
+              </ul>
+            </section>
+            <section class="example-group">
+              <h3>Templates</h3>
+              <ul>
+                <li><a href="#comments">HTML interpolation</a></li>
+                <li><a href="#replies">Lists & signals</a></li>
+                <li><a href="#calendar">Conditional calendar</a></li>
+                <li><a href="#mixed-children">Mixed child arrays</a></li>
+              </ul>
+            </section>
+          </nav>
+          <p id="search-empty" hidden>No matching examples.</p>
+        </aside>
+        <div class="sandbox-stage">
+          <section class="example" id="signal-counter" aria-labelledby="signal-counter-title">
+            <header class="example-heading">
+              <p class="eyebrow">Reactivity <span>/</span> TSX · Shadow DOM</p>
+              <h2 id="signal-counter-title">Signal counter</h2>
+            </header>
+            <div class="example-preview">
+              <sb-signal-counter-tsx count="3"></sb-signal-counter-tsx>
 
-    <h2>JSX + Literal and Derived This References</h2>
-    <sb-this-counter-jsx></sb-this-counter-jsx>
-    <pre class="interpolation-example">
-      const { count: total } = this;
-      &lt;button title={total.get()} onclick={() =&gt; this.increment()}&gt;Increment&lt;/button&gt;
-      &lt;p&gt;Alias count: {total.get()}&lt;/p&gt;
-      &lt;p&gt;The count is {this.count.get()}&lt;/p&gt;
-    </pre>
+              <button class="reset" id="signal-counter-reset">Random Reset</button>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>&lt;sb-signal-counter-tsx
+  count="3"
+&gt;&lt;/sb-signal-counter-tsx&gt;</code></pre>
+            </details>
+          </section>
+          <section class="example" id="greeting" aria-labelledby="greeting-title">
+            <header class="example-heading">
+              <p class="eyebrow">Reactivity <span>/</span> TSX · Shadow DOM</p>
+              <h2 id="greeting-title">Reactive greeting</h2>
+            </header>
+            <div class="example-preview">
+              <label for="signal-greeting-input">Your name</label>
+              <input id="signal-greeting-input" placeholder="World" autocomplete="off" />
+              <sb-signal-greeting-jsx></sb-signal-greeting-jsx>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>&lt;sb-signal-greeting-jsx name="World"&gt;&lt;/sb-signal-greeting-jsx&gt;</code></pre>
+            </details>
+          </section>
+          <section class="example" id="light-counter" aria-labelledby="light-counter-title">
+            <header class="example-heading">
+              <p class="eyebrow">Reactivity <span>/</span> JSX · Light DOM</p>
+              <h2 id="light-counter-title">Light DOM counter</h2>
+            </header>
+            <div class="example-preview">
+              <sb-signal-counter-jsx count="3"></sb-signal-counter-jsx>
 
-    <h2>JSX + Private Members and Methods</h2>
-    <sb-private-counter-jsx></sb-private-counter-jsx>
+              <button class="reset" id="signal-counter-jsx-reset">Random Reset</button>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>&lt;sb-signal-counter-jsx
+  count="3"
+&gt;&lt;/sb-signal-counter-jsx&gt;</code></pre>
+            </details>
+          </section>
+          <section class="example" id="this-references" aria-labelledby="this-references-title">
+            <header class="example-heading">
+              <p class="eyebrow">Reactivity <span>/</span> JSX · Signals</p>
+              <h2 id="this-references-title">This references &amp; aliases</h2>
+            </header>
+            <div class="example-preview">
+              <sb-this-counter-jsx></sb-this-counter-jsx>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>const { count: total } = this;
+&lt;button title={total.get()} onclick={() =&gt; this.increment()}&gt;Increment&lt;/button&gt;
+&lt;p&gt;Alias count: {total.get()}&lt;/p&gt;
+&lt;p&gt;The count is {this.count.get()}&lt;/p&gt;</code></pre>
+            </details>
+          </section>
+          <section class="example" id="private-members" aria-labelledby="private-members-title">
+            <header class="example-heading">
+              <p class="eyebrow">Reactivity <span>/</span> JSX / TSX · Private fields</p>
+              <h2 id="private-members-title">Private members</h2>
+            </header>
+            <div class="example-preview variants">
+              <div class="variant">
+                <h3>Private fields</h3>
+                <sb-private-counter-jsx></sb-private-counter-jsx>
+              </div>
+              <div class="variant">
+                <h3>Private fields + signals</h3>
+                <sb-private-signal-counter-tsx></sb-private-signal-counter-tsx>
+              </div>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>&lt;sb-private-counter-jsx&gt;&lt;/sb-private-counter-jsx&gt;
+&lt;sb-private-signal-counter-tsx&gt;&lt;/sb-private-signal-counter-tsx&gt;</code></pre>
+            </details>
+          </section>
+          <section class="example" id="headers" aria-labelledby="headers-title">
+            <header class="example-heading">
+              <p class="eyebrow">Rendering <span>/</span> HTML / JSX · Light DOM</p>
+              <h2 id="headers-title">Static headers</h2>
+            </header>
+            <div class="example-preview variants">
+              <div class="variant">
+                <h3>HTML</h3>
+                <sb-header></sb-header>
+              </div>
+              <div class="variant">
+                <h3>JSX</h3>
+                <sb-header-jsx></sb-header-jsx>
+              </div>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>&lt;sb-header&gt;&lt;/sb-header&gt;
 
-    <h2>JSX + Private Members and Methods + Signals</h2>
-    <sb-private-signal-counter-tsx></sb-private-signal-counter-tsx>
+&lt;sb-header-jsx&gt;&lt;/sb-header-jsx&gt;</code></pre>
+            </details>
+          </section>
+          <section class="example" id="cards" aria-labelledby="cards-title">
+            <header class="example-heading">
+              <p class="eyebrow">Rendering <span>/</span> HTML / JSX · Shadow DOM</p>
+              <h2 id="cards-title">Shadow DOM cards</h2>
+            </header>
+            <div class="example-preview variants">
+              <div class="variant">
+                <h3>HTML</h3>
+                <sb-card title="WCC" thumbnail="/assets/wcc-logo-og.png"></sb-card>
+              </div>
+              <div class="variant">
+                <h3>JSX</h3>
+                <sb-card-jsx
+                  title="Compiler in action"
+                  thumbnail="/assets/wcc-splash.png"
+                ></sb-card-jsx>
+              </div>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>&lt;sb-card
+  title="WCC"
+  thumbnail="/assets/wcc-logo-og.png"
+&gt;&lt;/sb-card&gt;
 
-    <h2>JSX + DSD + inferredObservability (Greeting)</h2>
-
-    <input id="signal-greeting-input" placeholder="World" />
-    <sb-signal-greeting-jsx></sb-signal-greeting-jsx>
-
-    <hr />
-
-    <h2>JSX + DSD + inferredObservability (Counter)</h2>
-
-    <sb-signal-counter-tsx></sb-signal-counter-tsx>
-
-    <hr />
-
-    <sb-signal-counter-tsx count="3"></sb-signal-counter-tsx>
-
-    <button class="reset" id="signal-counter-reset">Random Reset</button>
-
-    <pre>
-      &lt;sb-signal-counter-tsx&gt;&lt;/sb-signal-counter-tsx&gt;
-    </pre>
-    <pre>
-      &lt;sb-signal-counter-tsx
-        count="3"
-      &gt;&lt;/sb-signal-counter-tsx&gt;
-    </pre>
-
-    <hr />
-
-    <h2>Light DOM (no JS)</h2>
-
-    <sb-header></sb-header>
-
-    <pre>
-      &lt;sb-header&gt;&lt;/sb-header&gt;
-    </pre>
-
-    <hr />
-
-    <h2>Declarative Shadow DOM (has JS)</h2>
-
-    <sb-card
-      title="iPhone 9"
-      thumbnail="https://d2e6ccujb3mkqf.cloudfront.net/f2c7f593-2e6b-4e39-9d9e-9d92c95d84a3-1_0f59d2ff-bd21-417f-9002-0aa1f1e8236e.jpg"
-    ></sb-card>
-
-    <pre>
-      &lt;sb-card
-        title="iPhone 9"
-        thumbnail="https://www.greenwoodjs.dev/assets/greenwood-logo-og.png"
-      &gt;&lt;/sb-card&gt;
-    </pre>
-
-    <hr />
-
-    <h2>HTML Web Component (Light DOM + has JS)</h2>
-
-    <style>
-      .picture-frame {
-        width: 200px;
-        margin: 0 auto;
-        border: 1px solid #222;
-        padding: 0 0 10px 0;
-        border-radius: 10px;
-
-        & .heading {
-          text-align: center;
-          text-decoration: underline;
-          font-size: 16px;
-        }
-      }
-    </style>
-
-    <sb-picture-frame title="Greenwood Logo">
-      <img src="https://www.greenwoodjs.dev/assets/greenwood-logo-og.png" alt="Greenwood logo" />
-    </sb-picture-frame>
-
-    <pre>
-      &lt;sb-picture-frame title="Greenwood Logo"&gt;
-        &lt;img
-          src="https://www.greenwoodjs.dev/assets/greenwood-logo-og.png"
-          alt="Greenwood logo"
-        /&gt;
-      &lt;/sb-picture-frame&gt;
-    </pre>
-
-    <hr />
-
-    <h2>JSX + Light DOM (no JS)</h2>
-
-    <sb-header-jsx></sb-header-jsx>
-
-    <pre>
-      &lt;sb-header-jsx&gt;&lt;/sb-header-jsx&gt;
-    </pre>
-
-    <hr />
-
-    <h2>JSX + Declarative Shadow DOM (has JS)</h2>
-
-    <sb-card-jsx
-      title="iPhone X"
-      thumbnail="https://d2e6ccujb3mkqf.cloudfront.net/7e8317d3-cc5d-42a8-8350-ba6a02560477-1_d64a25e3-e1f3-4172-b7c9-0c96e82c4d3f.jpg"
-    ></sb-card-jsx>
-
-    <pre>
-      &lt;sb-card-jsx
-        title="iPhone X"
-        thumbnail="https://d2e6ccujb3mkqf.cloudfront.net/7e8317d3-cc5d-42a8-8350-ba6a02560477-1_d64a25e3-e1f3-4172-b7c9-0c96e82c4d3f.jpg"
-      &gt;&lt;/sb-card-jsx&gt;
-    </pre>
-
-    <hr />
-
-    <h2>JSX + Light DOM + inferredObservability (has JS)</h2>
-
-    <sb-signal-counter-jsx count="3"></sb-signal-counter-jsx>
-
-    <button class="reset" id="signal-counter-jsx-reset">Random Reset</button>
-
-    <pre>
-      &lt;sb-signal-counter-jsx
-        count="3"
-      &gt;&lt;/sb-signal-counter-jsx&gt;
-    </pre>
-    <hr />
-
-    <h2>JSX + HTML Interpolation (Comment)</h2>
-
-    <sb-comment-jsx
-      author="Alex"
-      content="Great example! &lt;strong&gt;Thanks for sharing.&lt;/strong&gt;"
-    ></sb-comment-jsx>
-
-    <pre class="interpolation-example">
-      &lt;sb-comment-jsx
-        author="Alex"
-        content="Great example! &amp;lt;strong&amp;gt;Thanks for sharing.&amp;lt;/strong&amp;gt;"
-      &gt;&lt;/sb-comment-jsx&gt;
-    </pre>
-    <hr />
-
-    <h2>JSX Loops (<code>.map()</code>) + Signals (Comment Replies)</h2>
-
-    <sb-comment-thread-jsx></sb-comment-thread-jsx>
-
-    <pre class="interpolation-example">
-      {comments.map(({ author, text }) =&gt; (
-        &lt;li&gt;&lt;h4&gt;{author}&lt;/h4&gt;&lt;p&gt;{text}&lt;/p&gt;&lt;/li&gt;
-      ))}
-    </pre>
-    <hr />
-
-    <h2>TSX + Conditional Calendar</h2>
-
-    <p>Show or hide event names. Calendar dates stay visible.</p>
-
-    <sb-conditional-calendar-tsx></sb-conditional-calendar-tsx>
-
-    <pre class="interpolation-example">
-      {showEvents &amp;&amp; day.events.length &gt; 0
-        ? day.events.map((event) =&gt; &lt;p&gt;{event}&lt;/p&gt;)
-        : null}
-    </pre>
-    <hr />
-
-    <h2>JSX + Mixed Child Arrays</h2>
-
-    <p>The JSX item is bold. The ordinary string displays its HTML tags as text.</p>
-
-    <sb-mixed-children-jsx></sb-mixed-children-jsx>
-
-    <pre class="interpolation-example">
-      const children = [
-        &lt;strong&gt;Rendered as HTML&lt;/strong&gt;,
-        ' | ',
-        '&lt;strong&gt;Displayed as text&lt;/strong&gt;',
-      ];
-      return &lt;p&gt;{children}&lt;/p&gt;;
-    </pre>
+&lt;sb-card-jsx
+  title="Compiler in action"
+  thumbnail="/assets/wcc-splash.png"
+&gt;&lt;/sb-card-jsx&gt;</code></pre>
+            </details>
+          </section>
+          <section class="example" id="slots" aria-labelledby="slots-title">
+            <header class="example-heading">
+              <p class="eyebrow">Rendering <span>/</span> HTML · Light DOM</p>
+              <h2 id="slots-title">Slotted content</h2>
+            </header>
+            <div class="example-preview">
+              <sb-picture-frame title="WCC Logo">
+                <img src="/assets/wcc-logo-og.png" alt="WCC logo" />
+              </sb-picture-frame>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>&lt;sb-picture-frame title="WCC Logo"&gt;
+  &lt;img
+    src="/assets/wcc-logo-og.png"
+    alt="WCC logo"
+  /&gt;
+&lt;/sb-picture-frame&gt;</code></pre>
+            </details>
+          </section>
+          <section class="example" id="comments" aria-labelledby="comments-title">
+            <header class="example-heading">
+              <p class="eyebrow">Templates <span>/</span> JSX · Interpolation</p>
+              <h2 id="comments-title">HTML interpolation</h2>
+            </header>
+            <div class="example-preview">
+              <sb-comment-jsx
+                author="Alex"
+                content="Great example! &lt;strong&gt;Thanks for sharing.&lt;/strong&gt;"
+              ></sb-comment-jsx>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>&lt;sb-comment-jsx
+  author="Alex"
+  content="Great example! &amp;lt;strong&amp;gt;Thanks for sharing.&amp;lt;/strong&amp;gt;"
+&gt;&lt;/sb-comment-jsx&gt;</code></pre>
+            </details>
+          </section>
+          <section class="example" id="replies" aria-labelledby="replies-title">
+            <header class="example-heading">
+              <p class="eyebrow">Templates <span>/</span> JSX · Loops</p>
+              <h2 id="replies-title">Lists &amp; signals</h2>
+            </header>
+            <div class="example-preview">
+              <sb-comment-thread-jsx></sb-comment-thread-jsx>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>{comments.map(({ author, text }) =&gt; (
+  &lt;li&gt;&lt;h4&gt;{author}&lt;/h4&gt;&lt;p&gt;{text}&lt;/p&gt;&lt;/li&gt;
+))}</code></pre>
+            </details>
+          </section>
+          <section class="example" id="calendar" aria-labelledby="calendar-title">
+            <header class="example-heading">
+              <p class="eyebrow">Templates <span>/</span> TSX · Conditionals</p>
+              <h2 id="calendar-title">Conditional calendar</h2>
+            </header>
+            <div class="example-preview">
+              <sb-conditional-calendar-tsx></sb-conditional-calendar-tsx>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>{showEvents &amp;&amp; day.events.length &gt; 0
+  ? day.events.map((event) =&gt; &lt;p&gt;{event}&lt;/p&gt;)
+  : null}</code></pre>
+            </details>
+          </section>
+          <section class="example" id="mixed-children" aria-labelledby="mixed-children-title">
+            <header class="example-heading">
+              <p class="eyebrow">Templates <span>/</span> JSX · Arrays</p>
+              <h2 id="mixed-children-title">Mixed child arrays</h2>
+            </header>
+            <div class="example-preview">
+              <sb-mixed-children-jsx></sb-mixed-children-jsx>
+            </div>
+            <details class="example-code">
+              <summary>Example code</summary>
+              <pre><code>const children = [
+  &lt;strong&gt;Rendered as HTML&lt;/strong&gt;,
+  ' | ',
+  '&lt;strong&gt;Displayed as text&lt;/strong&gt;',
+];
+return &lt;p&gt;{children}&lt;/p&gt;;</code></pre>
+            </details>
+          </section>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
