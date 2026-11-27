@@ -1,3 +1,11 @@
+async function getPost(postId) {
+  return {
+    id: postId,
+    title: 'sunt aut facere repellat provident occaecati excepturi optio reprehenderit',
+    body: 'quia et suscipit',
+  };
+}
+
 export default class PostPage extends HTMLElement {
   constructor(postId) {
     super();
@@ -7,9 +15,7 @@ export default class PostPage extends HTMLElement {
 
   async connectedCallback() {
     const { postId } = this;
-    const post = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`).then((resp) =>
-      resp.json(),
-    );
+    const post = await getPost(postId);
     const { id, title, body } = post;
 
     this.innerHTML = `
