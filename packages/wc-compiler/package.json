@@ -75,6 +75,7 @@
     "sucrase": "^3.35.0"
   },
   "devDependencies": {
+    "@types/estree": "^1.0.8",
     "@types/estree-jsx": "^1.0.5",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.13.4",
@@ -85,11 +86,10 @@
     "html-validate": "^10.17.0",
     "jsdom": "^19.0.0",
     "mocha": "^9.2.2",
+    "prettier": "^3.6.2",
     "property-information": "^7.2.0",
     "svg-element-attributes": "^2.2.0",
     "tsdown": "^0.23.7",
-    "typescript": "^6.0.3",
-    "prettier": "^3.6.2",
-    "@types/estree": "^1.0.8"
+    "typescript": "^6.0.3"
   }
 }
