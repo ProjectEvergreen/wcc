@@ -121,6 +121,8 @@ For unreleased feature documentation related changes, open a companion PR agains
 
 Run the commands below from the repository root; the root and docs manifests are private. Refresh the lockfile with `pnpm install --lockfile-only` after changing the compiler version. The package README and license live in `packages/wc-compiler/` and are included when packing.
 
+> _If you have local changes that you are aware of, you can add `--no-git-checks` to the pnpm commands below._
+
 ### Local Testing
 
 For local testing and generating an initial tarball.
