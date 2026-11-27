@@ -16,16 +16,17 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 22
+      - uses: pnpm/action-setup@v4
       - name: Installing project dependencies
         run: |
-          npm ci
+          pnpm install --frozen-lockfile
       - name: Build
         run: |
-          npm run build
+          pnpm run build
       - name: Use Node.js ${{ matrix.node }} for tests
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
       - name: Test
         run: |
-          npm run test:jsx
+          pnpm run test:jsx

@@ -1,1 +1,8 @@
-test/cases/tsx/src/counter.tsx
+**/node_modules/
+**/dist/
+**/coverage/
+**/public/
+**/.greenwood/
+package/
+pnpm-lock.yaml
+packages/wcc/test/cases/tsx/src/counter.tsx

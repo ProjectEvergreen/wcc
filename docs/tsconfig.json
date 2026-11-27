@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "checkJs": false,
+    "allowJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "types": ["node"],
+    "jsx": "preserve",
+    "jsxImportSource": "wc-compiler",
+    "lib": ["DOM"]
+  },
+  "exclude": ["node_modules", "dist", "package"],
+  "include": ["src/**/*", "*.ts"]
+}

@@ -1,0 +1,13 @@
+packages:
+  - 'packages/*'
+  - docs
+
+overrides:
+  wc-compiler: workspace:*
+
+allowBuilds:
+  # Vite / Vitest use esbuild and its postinstall script installs a platform-specific binary
+  esbuild: true
+
+minimumReleaseAgeExclude:
+  - '@greenwood/*'
