@@ -171,7 +171,7 @@ $ npm publish ./wc-compiler-0.23.0.tgz --tag latest
 After publishing a stable release, make sure to bump and tag the version:
 
 ```sh
-$ git commit package.json package-lock.json -m "chore: bump to next release version 0.23.0"
+$ git commit package.json package-lock.json -m "chore(workspace): bump to next release version 0.23.0"
 $ git tag -a 0.23.0 -m "chore(workspace): tagging 0.23.0 release"
 $ git push origin master --tags
 ```
