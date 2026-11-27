@@ -9,7 +9,14 @@ import type { Linter } from 'eslint';
 export default [
   {
     // https://github.com/eslint/eslint/discussions/18304#discussioncomment-9069706
-    ignores: ['node_modules/*', 'dist/*', 'coverage/*', 'public/*', 'package/'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/public/**',
+      '**/.greenwood/**',
+      'package/',
+    ],
   },
   {
     languageOptions: {
@@ -43,14 +50,21 @@ export default [
   },
   ...tslint.configs.recommended.map((config) => ({
     ...config,
-    files: ['src/**/*.ts', 'tsdown.config.ts'],
+    files: ['packages/**/*.{ts,tsx}', 'docs/**/*.{ts,tsx}'],
   })),
   {
     // JSX attributes intentionally accept arbitrary custom-element values.
-    files: ['src/jsx.d.ts'],
+    files: ['packages/wc-compiler/src/jsx.d.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
+    },
+  },
+  {
+    files: ['packages/**/*.{ts,tsx}', 'docs/**/*.{ts,tsx}'],
+    rules: {
+      // Custom elements augment the JSX namespace in ambient declarations.
+      '@typescript-eslint/no-namespace': ['error', { allowDeclarations: true }],
     },
   },
   eslintConfigPrettier,

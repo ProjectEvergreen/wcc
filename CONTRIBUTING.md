@@ -10,10 +10,10 @@ To develop for the project, you'll want to follow these steps:
 
 1. Clone the repository
 1. Have the Node.js version in [.nvmrc](./.nvmrc) installed, or use `nvm` (see below)
-1. Run `npm ci`
-1. Run `npm run build`
-1. Run `npx patch-package`
-1. Run `npx playwright install`
+1. Install the pinned pnpm version with `npm install --global pnpm@12.23.0`
+1. Run `pnpm install --frozen-lockfile`
+1. Run `pnpm run build`
+1. Run `pnpm --filter docs exec playwright install`
 
 ### NVM
 
@@ -28,24 +28,31 @@ And then running `nvm use`
 $ nvm use
 ```
 
+## Workspace Layout
+
+- The private root owns shared tooling and convenience scripts
+- `packages/wc-compiler/` contains the published `wc-compiler` package
+- `docs/` is a the website documentation for WCC
+
+> _The docs depend on the local `wc-compiler` source through `workspace:*` references in *package.json*. Make sure to build WCC before consuming its public exports; `pnpm run docs:dev` and `pnpm run docs:build` do this automatically._
+
 ## Local Development
 
 The local development workflows for WCC are:
 
-- `npm run build` - Build the library into `dist/`
-- `npm run build:watch` - Rebuild the library as source files change
-- `npm test` - Run the standard JavaScript integration tests
-- `npm run test:jsx` - Run the full integration suite, including JSX and TSX, with coverage
-- `npm run test:tdd` - Run the standard tests in watch mode
-- `npm run test:tdd:jsx` - Run the full integration suite in watch mode
-- `npm run lint` - Run all linters
-- `npm run check:types` - Validate TypeScript types across the project, including docs, test fixtures, and configuration files
-- `npm run check:types:src` - Validate TypeScript types in `src/` with strict checking
-- `npm run format` - Auto-format all files
+- `pnpm run build` - Build the library into `packages/wc-compiler/dist/`
+- `pnpm run build:watch` - Rebuild the library as source files change
+- `pnpm test` - Run the standard JavaScript integration tests
+- `pnpm run test:jsx` - Run the full integration suite, including JSX and TSX, with coverage
+- `pnpm run test:tdd` - Run the standard tests in watch mode
+- `pnpm run test:tdd:jsx` - Run the full integration suite in watch mode
+- `pnpm run lint` - Run all linters
+- `pnpm run check:types` - Validate TypeScript types across the project, including docs, test fixtures, and configuration files, plus strict checking of the compiler source
+- `pnpm run format` - Auto-format all files
 
-> _While developing, keep `npm run build:watch` running alongside test watchers to keep the compiled output current._
+> _While developing, keep `pnpm run build:watch` running alongside test watchers to keep the compiled output current._
 
-For VSCode users, add this TypeScript ESLint config compatibility flag in your _.vscode/settings.json_.
+For VS Code users, add this TypeScript ESLint config compatibility flag in your _.vscode/settings.json_.
 
 ```json
 {
@@ -67,8 +74,8 @@ During the build, `generate-jsx-attributes.ts` combines all these sources into t
 
 When updating the generator or its metadata:
 
-- Run `npm run jsx-types:generate` and commit the generated file so changes can be reviewed.
-- Run `npm run jsx-types:check` to check freshness without writing files. CI runs this before the build, since regeneration would otherwise hide stale committed output.
+- Run `pnpm run jsx-types:generate` and commit the generated file so changes can be reviewed.
+- Run `pnpm run jsx-types:check` to check freshness without writing files. CI runs this before the build, since regeneration would otherwise hide stale committed output.
 
 Notes:
 
@@ -81,20 +88,20 @@ Notes:
 
 The website is built with [**Greenwood**](https://www.greenwoodjs.dev). To run the website locally, use one of the following commands:
 
-- `npm run docs:dev` - Start the dev server
-- `npm run docs:build` - Generate a production build
-- `npm run docs:serve` - Serve a production build
+- `pnpm run docs:dev` - Start the dev server
+- `pnpm run docs:build` - Generate a production build
+- `pnpm run docs:serve` - Serve a production build
 
-To run tests for the website, first run `npm run build` followed by `npm run docs:build`, then:
+To run tests for the website, first run `pnpm run build` followed by `pnpm run docs:build`, then:
 
-- `npm run test:docs` - Run a single suite of tests with Vitest
-- `npm run test:docs:tdd` - Run the test suite with Vitest in watch mode
+- `pnpm run test:docs` - Run a single suite of tests with Vitest
+- `pnpm run test:docs:tdd` - Run the test suite with Vitest in watch mode
 
 ### Sandbox
 
 To assist in local development of WCC, there is a "sandbox" app built into the website, that can be used to validate a number of examples in the browser. (think of it as a storybook for WCC).
 
-After starting the dev server, visit the `/sandbox/` route in your browser. All code for the examples are in _./docs/components/sandbox/_.
+After starting the dev server, visit the `/sandbox/` route in your browser. All code for the examples are in _./docs/src/components/sandbox/_.
 
 ### Playground
 
@@ -104,11 +111,17 @@ The website also hosts a Playground (REPL) for seeing WCC output in the browser 
 
 Generally, it's best to open an issue first before submitting a Pull Request. This is a good opportunity to validate the work first, and ask any questions.
 
-This project uses conventional commits when submitting pull requests in combination with Husky pre-commit hooks that runs linting and formatting scripts. When ready to commit code to submit a PR, run `npm run commit` and follow the prompts.
+This project uses conventional commits when submitting pull requests in combination with Husky pre-commit hooks that runs linting and formatting scripts. When ready to commit code to submit a PR, run `pnpm run commit` and follow the prompts.
+
+### Documentation
+
+For unreleased feature documentation related changes, open a companion PR against `docs/release-0.x.y` and link it from the feature PR. Routine docs fixes that can go live anytime can be included in the original PR.
 
 ## Publishing
 
-Below are the workflows steps for publishing WCC.
+Run the commands below from the repository root; the root and docs manifests are private. Refresh the lockfile with `pnpm install --lockfile-only` after changing the compiler version. The package README and license live in `packages/wc-compiler/` and are included when packing.
+
+> _If you have local changes that you are aware of, you can add `--no-git-checks` to the pnpm commands below._
 
 ### Local Testing
 
@@ -117,13 +130,13 @@ For local testing and generating an initial tarball.
 For example, to prepare the next minor version's first release candidate without creating a Git commit or tag:
 
 ```sh
-$ npm version preminor --preid rc --no-git-tag-version
-v0.2.0-rc.0
+$ pnpm --dir packages/wc-compiler version preminor --preid rc --no-git-tag-version
+v0.23.0-rc.0
 
-$ npm pack
+$ pnpm --filter wc-compiler pack --pack-destination ../..
 ```
 
-> _`npm pack` runs the `prepack` build automatically and creates `wc-compiler-<version>.tgz`. You can check that the archive contains the correct files. You can also install the tarball in a separate project with `npm install /absolute/path/wc-compiler-<version>.tgz`._
+> _`pnpm --filter wc-compiler pack` runs the `prepack` build automatically and creates `wc-compiler-<version>.tgz`. You can check that the archive contains the correct files. You can also install the tarball in a separate project with `npm install /absolute/path/wc-compiler-<version>.tgz`._
 
 ### Release Candidate
 
@@ -138,10 +151,10 @@ $ npm publish ./wc-compiler-0.23.0-rc.0.tgz --tag rc
 To publish another candidate, increment the existing RC version and pack again:
 
 ```sh
-$ npm version prerelease --preid rc --no-git-tag-version
+$ pnpm --dir packages/wc-compiler version prerelease --preid rc --no-git-tag-version
 v0.23.0-rc.1
 
-$ npm pack
+$ pnpm --filter wc-compiler pack --pack-destination ../..
 ```
 
 ---
@@ -149,7 +162,7 @@ $ npm pack
 Make sure to bump and tag the version for all RC releases:
 
 ```sh
-$ git commit package.json package-lock.json -m "chore(workspace): bump to next release version 0.23.0-rc.0"
+$ git commit packages/wc-compiler/package.json pnpm-lock.yaml -m "chore(workspace): bump to next release version 0.23.0-rc.0"
 $ git tag -a 0.23.0-rc.0 -m "chore: tagging 0.23.0-rc.0 release"
 $ git push origin <branch> --tags
 ```
@@ -161,17 +174,17 @@ To publish to **latest** on npm.
 Using the minor release above, this drops the `-rc.N`:
 
 ```sh
-$ npm version minor --no-git-tag-version
+$ pnpm --dir packages/wc-compiler version minor --no-git-tag-version
 v0.23.0
 
-$ npm pack
+$ pnpm --filter wc-compiler pack --pack-destination ../..
 $ npm publish ./wc-compiler-0.23.0.tgz --tag latest
 ```
 
 After publishing a stable release, make sure to bump and tag the version:
 
 ```sh
-$ git commit package.json package-lock.json -m "chore(workspace): bump to next release version 0.23.0"
+$ git commit packages/wc-compiler/package.json pnpm-lock.yaml -m "chore(workspace): bump to next release version 0.23.0"
 $ git tag -a 0.23.0 -m "chore(workspace): tagging 0.23.0 release"
 $ git push origin master --tags
 ```

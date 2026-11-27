@@ -15,3 +15,7 @@ We love contributions and appreciate any help you can offer!
 1. [x] Other thing I updated
 1. [x] Docs I updated
 -->
+
+## Documentation
+
+<!-- For feature based docs, open a companion docs PR against docs/release-0.x.y and link it here. Routine docs fixes that can go live anytime can be made as part of this PR. -->

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "checkJs": false,
+    "allowJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "types": ["mocha", "node"],
+    "jsx": "preserve",
+    "jsxImportSource": "wc-compiler",
+    "paths": {
+      "wc-compiler/jsx-runtime": ["./src/jsx-runtime.ts"]
+    },
+    "lib": ["DOM"]
+  },
+  "exclude": ["node_modules", "dist", "package"]
+}

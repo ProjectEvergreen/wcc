@@ -1,0 +1,58 @@
+import copy from '../../assets/copy-button.svg?type=text';
+import sheet from './ctc-button.css' with { type: 'css' };
+
+const template = document.createElement('template');
+
+template.innerHTML = `
+  <button id="icon" title="Copy to clipboard">${copy}</button>
+`;
+
+export default class CopyToClipboardButton extends HTMLElement {
+  root: ShadowRoot | null;
+
+  constructor() {
+    super();
+    this.root = null;
+  }
+
+  connectedCallback() {
+    // bail of out of SSR entirely
+    if (!this.shadowRoot && typeof window !== 'undefined') {
+      this.root = this.attachShadow({ mode: 'open' });
+
+      if (this.root) {
+        this.root.appendChild(template.content.cloneNode(true));
+
+        this.root.adoptedStyleSheets = [sheet];
+
+        this.root.getElementById('icon')?.addEventListener('click', () => {
+          const contents = this.getAttribute('content');
+
+          if (!contents) {
+            console.warn('No content provided to copy to clipboard');
+            return;
+          }
+
+          navigator.clipboard.writeText(contents);
+          console.log('copying the following contents to your clipboard =>', contents);
+        });
+      }
+    }
+  }
+}
+
+customElements.define('wcc-ctc-button', CopyToClipboardButton);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'wcc-ctc-button': CopyToClipboardButton;
+  }
+
+  namespace JSX {
+    interface IntrinsicElements {
+      'wcc-ctc-button': {
+        content: string;
+      };
+    }
+  }
+}

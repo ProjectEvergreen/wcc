@@ -1,0 +1,95 @@
+{
+  "name": "wc-compiler",
+  "version": "0.24.0",
+  "description": "WCC supports server-rendering of standard Web Components, generating HTML directly from your custom element definitions.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProjectEvergreen/wcc.git",
+    "directory": "packages/wc-compiler"
+  },
+  "type": "module",
+  "main": "./dist/wcc.js",
+  "types": "./dist/wcc.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/wcc.d.ts",
+      "default": "./dist/wcc.js"
+    },
+    "./register": {
+      "types": "./dist/register.d.ts",
+      "default": "./dist/register.js"
+    },
+    "./dom-shim": {
+      "types": "./dist/dom-shim.d.ts",
+      "default": "./dist/dom-shim.js"
+    },
+    "./jsx-loader": {
+      "types": "./dist/jsx-loader.d.ts",
+      "default": "./dist/jsx-loader.js"
+    },
+    "./jsx-runtime": {
+      "types": "./dist/jsx-runtime.d.ts",
+      "default": "./dist/jsx-runtime.js"
+    },
+    "./effect": {
+      "types": "./dist/effect.d.ts",
+      "default": "./dist/effect.js"
+    }
+  },
+  "author": "Owen Buckley <owen@thegreenhouse.io>",
+  "keywords": [
+    "Web Components",
+    "SSR",
+    "JSX",
+    "Greenwood"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist/"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "pnpm run jsx-types:generate && tsdown",
+    "build:watch": "pnpm run jsx-types:generate && tsdown --watch",
+    "test": "mocha --exclude \"./test/cases/jsx*/**\" --exclude \"./test/cases/ts*/**\" --exclude \"./test/cases/custom-extension/**\" \"./test/**/**/*.spec.js\"",
+    "test:jsx": "c8 node --import ./test-register.ts --experimental-strip-types ./node_modules/mocha/bin/mocha \"./test/**/**/*.spec.js\"",
+    "test:tdd": "pnpm run test --watch",
+    "test:tdd:jsx": "pnpm run test:jsx --watch",
+    "prepack": "pnpm run build",
+    "jsx-types:generate": "node --experimental-strip-types generate-jsx-attributes.ts",
+    "jsx-types:check": "node --experimental-strip-types generate-jsx-attributes.ts --check",
+    "check:types": "tsc && tsc --project tsconfig.build.json"
+  },
+  "dependencies": {
+    "@projectevergreen/acorn-jsx-esm": "~0.1.1",
+    "acorn": "^8.14.0",
+    "acorn-walk": "^8.3.4",
+    "astring": "^1.9.0",
+    "parse5": "^7.2.1",
+    "signal-polyfill": "^0.2.2",
+    "sucrase": "^3.35.0"
+  },
+  "devDependencies": {
+    "@types/estree": "^1.0.8",
+    "@types/estree-jsx": "^1.0.5",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.13.4",
+    "@vscode/web-custom-data": "^0.6.4",
+    "c8": "^7.11.2",
+    "chai": "^6.2.2",
+    "html-element-attributes": "^3.5.0",
+    "html-validate": "^10.17.0",
+    "jsdom": "^19.0.0",
+    "mocha": "^9.2.2",
+    "prettier": "^3.6.2",
+    "property-information": "^7.2.0",
+    "svg-element-attributes": "^2.2.0",
+    "tsdown": "^0.23.7",
+    "typescript": "^6.0.3"
+  }
+}

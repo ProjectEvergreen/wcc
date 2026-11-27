@@ -16,34 +16,30 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
+      - uses: pnpm/action-setup@v4
       - name: Installing project dependencies
         run: |
-          npm ci
+          pnpm install --frozen-lockfile
       - name: Build
         run: |
           # Check before the build regenerates declarations and hides stale committed output
-          npm run jsx-types:check
-          npm run build
-      # Greenwood specific patches
-      - name: Run patch-package
-        run: |
-          npx patch-package
+          pnpm run jsx-types:check
+          pnpm run build
       - name: Setup Playwright
         run: |
-          npx playwright install --with-deps
+          pnpm --filter docs exec playwright install --with-deps
       - name: Format
         run: |
-          npm run format:check
+          pnpm run format:check
       - name: Lint
         run: |
-          npm run lint
+          pnpm run lint
       - name: Build the website
         run: |
-          npm run docs:build
+          pnpm run docs:build
       - name: Check Types
         run: |
-          npm run check:types
-          npm run check:types:src
+          pnpm run check:types
       - name: Test Docs
         run: |
-          npm run test:docs
+          pnpm run test:docs

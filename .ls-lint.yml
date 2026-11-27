@@ -22,3 +22,10 @@ ignore:
   - node_modules
   - public
   - .greenwood
+  - packages/wc-compiler/node_modules
+  - packages/wc-compiler/dist
+  - packages/wc-compiler/coverage
+  - docs/node_modules
+  - docs/public
+  - docs/.greenwood
+  - docs/coverage
