@@ -34,7 +34,7 @@
     "@commitlint/types": "^20.5.0",
     "@eslint/js": "^9.39.1",
     "@ls-lint/ls-lint": "^2.3.1",
-    "@types/node": "^22.13.4",
+    "@types/node": "^24.0.0",
     "commitizen": "^4.3.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
