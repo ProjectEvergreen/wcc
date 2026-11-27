@@ -8,7 +8,6 @@ const types = [
   },
   { value: 'fix', name: 'fix:             🐛  A bug fix' },
   { value: 'chore', name: "chore:           🛠   Other changes that don't modify src files" },
-  { value: 'docs', name: 'docs:            📚  Documentation only changes' },
   { value: 'revert', name: 'revert:          🗑   Reverts a previous commit' },
 ];
 
@@ -28,6 +27,10 @@ const scopes = [
   {
     value: 'workspace',
     name: 'workspace:    🏗️   Changes to the repo or CI',
+  },
+  {
+    value: 'docs',
+    name: 'docs:            📚  Documentation only changes',
   },
 ];
 
