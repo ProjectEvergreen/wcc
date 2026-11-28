@@ -32,7 +32,7 @@ export function getParse(html: string) {
 }
 
 function isShadowRoot(element: SsrNode): element is ShadowRoot {
-  return Object.getPrototypeOf(element).constructor.name === 'ShadowRoot';
+  return element instanceof ShadowRoot;
 }
 
 function deepClone<T>(obj: T, map = new WeakMap<object, unknown>()): T {

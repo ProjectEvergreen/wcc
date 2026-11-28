@@ -2,6 +2,8 @@ import { greenwoodPluginMarkdown } from '@greenwood/plugin-markdown';
 import { greenwoodPluginImportJsx } from '@greenwood/plugin-import-jsx';
 import { greenwoodPluginCssModules } from '@greenwood/plugin-css-modules';
 import { greenwoodPluginImportText } from '@greenwood/plugin-import-text';
+import { replBundlerResourcePlugin } from './repl-bundler-plugin.ts';
+import { monacoEditorEsmShimPlugin } from './monaco-editor-esm-shim-plugin.ts';
 import type { Config } from '@greenwood/cli';
 
 const config: Config = {
@@ -12,6 +14,8 @@ const config: Config = {
     importAttributes: ['css'],
   },
   plugins: [
+    replBundlerResourcePlugin(),
+    monacoEditorEsmShimPlugin(),
     greenwoodPluginImportText(),
     greenwoodPluginCssModules(),
     greenwoodPluginImportJsx(),

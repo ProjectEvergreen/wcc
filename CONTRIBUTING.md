@@ -98,7 +98,7 @@ After starting the dev server, visit the `/sandbox/` route in your browser. All 
 
 ### Playground
 
-The website also hosts a Playground (REPL) for seeing WCC output in the browser in real time. Development happens in [this repo](https://github.com/ProjectEvergreen/playground.wcc.dev).
+The website also hosts a Playground (REPL) for seeing WCC output in the browser in real time. Run `pnpm run docs:dev` and visit `/playground/`. It uses the local workspace compiler, so rebuild WCC after compiler changes (or run `pnpm run build:watch` alongside the docs server).
 
 ## Pull Requests
 

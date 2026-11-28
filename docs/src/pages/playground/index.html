@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>WCC Playground</title>
+    <link rel="stylesheet" href="/node_modules/monaco-editor/min/vs/editor/editor.main.css" />
+    <link rel="stylesheet" href="../../styles/playground.css" />
+    <script type="module" src="../../scripts/playground/repl-init.ts"></script>
+  </head>
+  <body>
+    <h1>WCC Playground</h1>
+    <p>Edit a JavaScript Web Component to see its server-rendered HTML.</p>
+    <p id="playground-status" role="status">Loading editor…</p>
+    <div id="playground-container">
+      <section aria-labelledby="input-heading">
+        <h2 id="input-heading">Input</h2>
+        <div id="input-content"></div>
+      </section>
+      <section aria-labelledby="output-heading">
+        <h2 id="output-heading">Output</h2>
+        <div id="output-content"></div>
+      </section>
+    </div>
+  </body>
+</html>
