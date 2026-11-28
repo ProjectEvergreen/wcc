@@ -1,0 +1,39 @@
+#playground-container {
+  display: flex;
+  gap: var(--size-4);
+  margin-block: var(--size-4);
+}
+
+#playground-container section {
+  flex: 1;
+  min-width: 0;
+}
+
+#input-content,
+#output-content {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  margin-top: var(--size-2);
+}
+
+/* Keep Monaco's automatic layout from expanding its flex container. */
+#playground-container .monaco-editor {
+  position: absolute;
+}
+
+#playground-status {
+  min-height: 1.5em;
+  margin-top: var(--size-2);
+}
+
+@media (max-width: 768px) {
+  #playground-container {
+    flex-direction: column;
+  }
+
+  #input-content,
+  #output-content {
+    height: 50vh;
+  }
+}

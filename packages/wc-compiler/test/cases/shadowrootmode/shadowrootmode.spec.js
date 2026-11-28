@@ -35,6 +35,28 @@ describe('Run WCC For ', function () {
       ).to.equal(1);
     });
 
+    it('should preserve shadow templates when class names are minified', async function () {
+      const root = new HTMLElement().attachShadow({ mode: 'open' });
+      const constructor = Object.getPrototypeOf(root).constructor;
+      const name = Object.getOwnPropertyDescriptor(constructor, 'name');
+
+      try {
+        Object.defineProperty(constructor, 'name', { value: 'MinifiedClass' });
+        const { html } = await renderToString(new URL('./src/index.js', import.meta.url));
+        const document = new JSDOM(html).window.document;
+
+        for (const mode of ['open', 'closed']) {
+          const template = document.querySelector(
+            `${mode}-shadow-component template[shadowrootmode="${mode}"]`,
+          );
+          expect(template, `${mode} shadow template`).to.not.equal(null);
+          expect(template.content.querySelector('h2').textContent).to.include('Shadow Root');
+        }
+      } finally {
+        Object.defineProperty(constructor, 'name', name);
+      }
+    });
+
     it('should have exactly one closed shadowrootmode template', function () {
       expect(
         dom.window.document.querySelectorAll(
