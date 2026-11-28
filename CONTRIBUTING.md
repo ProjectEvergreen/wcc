@@ -11,7 +11,7 @@ To develop for the project, you'll want to follow these steps:
 1. Clone the repository
 1. Have the Node.js version in [.nvmrc](./.nvmrc) installed, or use `nvm` (see below)
 1. Install the pinned pnpm version with `npm install --global pnpm@12.23.0`
-1. Run `pnpm install --frozen-lockfile`
+1. Run `pnpm ci`
 1. Run `pnpm run build`
 1. Run `pnpm --filter docs exec playwright install`
 

@@ -17,7 +17,7 @@ WCC renders standard Web Components into HTML. This monorepo contains the compil
 
 1. Clone the repo
 1. Have the Node.js version in `.nvmrc` and the pnpm version pinned in `package.json` installed.
-1. Run `pnpm install --frozen-lockfile`
+1. Run `pnpm ci`
 
 ### Commands
 
