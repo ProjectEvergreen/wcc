@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
-import { format } from 'prettier';
+import { format } from 'oxfmt';
 import { htmlElementAttributes } from 'html-element-attributes';
 import { svgElementAttributes } from 'svg-element-attributes';
 import { find, html, svg, type Schema } from 'property-information';
@@ -230,11 +230,14 @@ for (const [prefix, map, schema, domMap] of [
 }
 
 // step 8 - format the output, then write it or check that the committed file matches.
-const result = await format(lines.join('\n'), {
-  filepath: output.pathname,
+const { code: result, errors } = await format(output.pathname, lines.join('\n'), {
   printWidth: 100,
   singleQuote: true,
 });
+
+if (errors.length > 0) {
+  throw new Error(`Failed to format JSX attributes: ${JSON.stringify(errors)}`);
+}
 
 if (process.argv.includes('--check')) {
   const current = await fs.readFile(output, 'utf8').catch(() => '');

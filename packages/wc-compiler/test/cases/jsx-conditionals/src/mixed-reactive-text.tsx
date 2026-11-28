@@ -1,4 +1,4 @@
-/* eslint-disable no-constant-condition -- Even constant markup must not be erased by a sibling text effect. */
+/* oxlint-disable no-constant-condition -- Even constant markup must not be erased by a sibling text effect. */
 export const inferredObservability = true;
 
 export default class MixedConditionalText extends HTMLElement {

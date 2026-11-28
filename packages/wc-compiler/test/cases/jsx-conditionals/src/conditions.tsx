@@ -1,4 +1,4 @@
-/* eslint-disable no-constant-binary-expression, no-constant-condition -- Exercise constant branches and short-circuit values in JSX. */
+/* oxlint-disable no-constant-binary-expression, no-constant-condition -- Exercise constant branches and short-circuit values in JSX. */
 type Day = { date: number | null; events: string[] };
 
 export const inferredObservability = true;

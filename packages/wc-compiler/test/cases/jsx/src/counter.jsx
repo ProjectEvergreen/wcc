@@ -1,6 +1,7 @@
 import './badge.jsx';
 
 export default class Counter extends HTMLElement {
+  // oxlint-disable-next-line no-unused-private-class-members -- Preserve the private field in this compiler fixture.
   #count;
 
   constructor() {

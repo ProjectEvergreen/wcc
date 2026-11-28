@@ -32,6 +32,7 @@ export default class Counter extends HTMLElement {
   }
 
   render() {
+    // oxlint-disable-next-line no-unused-vars -- The compiler infers observed attributes from these bindings.
     const { count, highlight, parity } = this;
 
     return (

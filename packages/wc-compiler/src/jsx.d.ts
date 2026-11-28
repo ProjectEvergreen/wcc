@@ -3,7 +3,10 @@ import type { HtmlAttributes, SvgAttributes } from './jsx-attributes.js';
 type EventAttributes<Events> = {
   // WCC supports inline assignments/updates, e.g. onclick={this.count += 1}.
   [Name in keyof Events & string as `on${Name}`]?:
-    ((event: Events[Name]) => unknown) | number | boolean | void;
+    | ((event: Events[Name]) => unknown)
+    | number
+    | boolean
+    | void;
 };
 
 type WccCustomAttributes = {

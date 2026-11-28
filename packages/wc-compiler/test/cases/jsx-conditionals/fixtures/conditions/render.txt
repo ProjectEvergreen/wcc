@@ -24,24 +24,24 @@ render() {
   const $evRegister = handlers => $evBindings.push(handlers) - 1;
   this.innerHTML = `<section>
         ${Conditions.$$wccChild(true ? $$wccMarkup(`<p id="conditional-sibling">Conditional sibling</p>`) : null)}
-        <p id="reactive-sibling" title="${Conditions.$$escapeHtml(`${this.#value.get()}`, true)}" data-wcc-target-faa3b9ee673a-0="">
+        <p id="reactive-sibling" title="${Conditions.$$escapeHtml(`${this.#value.get()}`, true)}" data-wcc-target-95d6531327fc-0="">
           ${Conditions.$$wccChild(this.#value.get())}
         </p>
         ${Conditions.$$wccChild(active ? $$wccMarkup(`
-            <button id="captured-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', () => this.select(user.id)]])}">
+            <button id="captured-handler" data-wcc-ev-95d6531327fc-0="${$evRegister([['click', () => this.select(user.id)]])}">
               Select user
             </button>
-            <button id="private-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', event => this.#reset(event)]])}">
+            <button id="private-handler" data-wcc-ev-95d6531327fc-0="${$evRegister([['click', event => this.#reset(event)]])}">
               Select
             </button>
           `) : null)}
-        ${Conditions.$$wccChild(active && $$wccMarkup(`<button id="logical-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', () => this.#select(user.id)]])}">
+        ${Conditions.$$wccChild(active && $$wccMarkup(`<button id="logical-handler" data-wcc-ev-95d6531327fc-0="${$evRegister([['click', () => this.#select(user.id)]])}">
             Logical
           </button>`))}
-        ${Conditions.$$wccChild(_nullishCoalesce(fallback, () => $$wccMarkup(`<button id="nullish-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', event => this.#reset(event)]])}">
+        ${Conditions.$$wccChild(_nullishCoalesce(fallback, () => $$wccMarkup(`<button id="nullish-handler" data-wcc-ev-95d6531327fc-0="${$evRegister([['click', event => this.#reset(event)]])}">
             Fallback
           </button>`)))}
-        <button id="static-handler" data-wcc-ev-faa3b9ee673a-0="${$evRegister([['click', () => this.#select(user.id)]])}">
+        <button id="static-handler" data-wcc-ev-95d6531327fc-0="${$evRegister([['click', () => this.#select(user.id)]])}">
           Static button
         </button>
         <p id="ternary">${Conditions.$$wccChild(active ? $$wccMarkup(`<b>${Conditions.$$wccChild(this.#label)}</b>`) : $$wccMarkup(`<i>Inactive</i>`))}</p>
@@ -74,12 +74,12 @@ render() {
                   </a>`)) : null)}
           </div>`).join('')}
       </section>`;
-  for (const $evEl of this.querySelectorAll("[data-wcc-ev-faa3b9ee673a-0]") ?? []) {
+  for (const $evEl of this.querySelectorAll("[data-wcc-ev-95d6531327fc-0]") ?? []) {
     if ($evEl.parentElement?.closest(this.localName) !== this) continue;
-    const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-faa3b9ee673a-0"))];
+    const $evHandlers = $evBindings[Number($evEl.getAttribute("data-wcc-ev-95d6531327fc-0"))];
     for (const [$evName, $evHandler] of $evHandlers ?? []) {
       $evEl.addEventListener($evName, $evHandler);
     }
-    $evEl.removeAttribute("data-wcc-ev-faa3b9ee673a-0");
+    $evEl.removeAttribute("data-wcc-ev-95d6531327fc-0");
   }
 }
