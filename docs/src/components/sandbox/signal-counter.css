@@ -1,19 +1,55 @@
-:host,
-:root {
+:host {
+  display: block;
   text-align: center;
+  font-family: inherit;
+  color: #193247;
 }
 
 .heading {
   display: block;
-  text-decoration: underline;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+button {
+  font: inherit;
+  font-size: 0.875rem;
+  border: 1px solid #aabac7;
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  margin: 0.2rem;
+  color: #013553;
+  background: white;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  background: #e8eef3;
+}
+
+button:focus-visible {
+  outline: 2px solid #277cad;
+  outline-offset: 3px;
+}
+
+.even,
+.odd {
+  display: block;
+  margin-top: 1rem;
 }
 
 .even {
-  color: green;
-  display: block;
+  color: #257044;
 }
 
 .odd {
-  color: red;
-  display: block;
+  color: #a33c31;
+}
+
+p {
+  font-size: 0.875rem;
+  color: #52677a;
+  margin: 0.5rem 0;
 }

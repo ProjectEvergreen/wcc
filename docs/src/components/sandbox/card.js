@@ -12,7 +12,8 @@ export default class Card extends HTMLElement {
       template.innerHTML = `
         <style>
           :host .card {
-            width: 30%;
+            width: 100%;
+            max-width: 240px;
             margin: 0 auto;
             text-align: center;
           }
@@ -28,7 +29,7 @@ export default class Card extends HTMLElement {
         </style>
         <div class="card">
           <h3>${title}</h3>
-          <img src="${thumbnail}" alt="${title}" loading="lazy" width="200" height="200">
+          <img src="${thumbnail}" alt="${title}" loading="lazy" width="200" height="140">
           <button onclick="this.getRootNode().host.selectItem()">View Item Details</button>
         </div>
       `;
